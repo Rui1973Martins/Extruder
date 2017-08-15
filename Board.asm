@@ -47,11 +47,11 @@ BoardInitDraw; COLOR
 ; Inputs:
 ;	IX = Board Structure
 	
-	LD C, (IX+0)	; Height
-	LD B, (IX+1)	; Width
+	LD C, (IX+BRD_HEIGHT)	; Height
+	LD B, (IX+BRD_WIDTH )	; Width
 
-	LD E, (IX+4)	; Start Position HIGH
-	LD D, (IX+5)	; Start Position LOW
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
 
 	JP BoardDraw_JP1
 
@@ -69,7 +69,7 @@ BoardDraw_JP1
 	PUSH DE	; POSITION YX
 
 	LD HL, BubbleMissing
-	CALL Blit	; Blits once plus A extra times
+	CALL Blit	; Blits Full Column (1 + A times)
 
 	POP DE
 	POP BC
@@ -78,39 +78,39 @@ BoardDraw_JP1
 RET
 
 BoardDrawRow
-; ; Inputs:
-; ;	IX = Board Structure
-; ; 	A = Row Index
+; Inputs:
+;	IX = Board Structure
+; 	A = Row Index
 	
-	; LD C, (IX+0)	; Height
-	; LD B, (IX+1)	; Width
+	LD C, (IX+BRD_HEIGHT)	; Height
+	LD B, (IX+BRD_WIDTH )	; Width
 
-	; LD E, (IX+4)	; Start Position HIGH
-	; LD D, (IX+5)	; Start Position LOW
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
 
-	; JR BoardDrawRow_JP1
+	JR BoardDrawRow_JP1
 
-; BoardDrawRow_JP0
-	; ;Calc Next Column
-	; LD HL, #0010
-	; ADD HL,DE
-	; EX DE, HL
+BoardDrawRow_JP0
+	;Calc Next Column
+	LD HL, #0010
+	ADD HL,DE
+	EX DE, HL
 
-; BoardDrawRow_JP1
-	; LD A, C
-	; DEC A	; amount of times to repeat
+BoardDrawRow_JP1
+	LD A, C
+	DEC A	; amount of times to repeat
 
-	; PUSH BC	; Save Counters
-	; PUSH DE	; POSITION YX
+	PUSH BC	; Save Counters
+	PUSH DE	; POSITION YX
 
-	; LD HL, BubbleWhite ; BubbleMissing
-	; CALL CBlit	; Blits once plus A extra times
+	LD HL, BubbleWhite ; BubbleMissing
+	CALL Blit	; Blits once plus A extra times
 
-	; POP DE
-	; POP BC
+	POP DE
+	POP BC
 
-	; DJNZ BoardDrawRow_JP0
-; RET
+	DJNZ BoardDrawRow_JP0
+RET
 
 
 BoardPressCol	; Adds another item into specific col
