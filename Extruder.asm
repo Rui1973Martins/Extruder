@@ -23,11 +23,21 @@ MENU_ENTRY
 	CALL CLS0
 
 MENU_PLAY
+
+	CALL GameInit_Versus
+
+MENU_LOOP
 	CALL DrawMenu
 
-	CALL MAIN_ENTRY; 	FULL_GAME
+	CALL GameInitDraw_Versus; 	FULL_GAME
 
-    JP MENU_ENTRY ;MENU_PLAY
+	LD IX, BOARD1
+	CALL BoardPressCol
+
+	LD IX, BOARD2
+	CALL BoardPressCol
+	
+    JP MENU_LOOP ;MENU_PLAY
 ;RET
 
 
@@ -42,27 +52,27 @@ WaitPressAnyKey
 	JR WaitPressAnyKey
 
 
-MAIN_ENTRY
-
-	LD HL, BOARD1
-	LD DE, #0B07	; H x W
-	LD BC, BOARD1_DATA
-	
-	CALL BoardInit
+GameInit_Versus
+	; Player 1
 	LD IX, BOARD1
-	CALL BoardDraw
+	LD BC, #0B07	; H x W
+	LD DE, BOARD1_DATA
+	CALL BoardInit
 
-	HALT
-
-	LD HL, BOARD2
-	LD DE, #0B07	; H x W
-	LD BC, BOARD2_DATA
-	
-	CALL BoardInit	
+	; Player 2
 	LD IX, BOARD2
-	CALL BoardDraw
+	LD BC, #0B07	; H x W
+	LD DE, BOARD2_DATA
+	CALL BoardInit	
+RET
 
-	HALT
+GameInitDraw_Versus
+
+	LD IX, BOARD1
+	CALL BoardInitDraw
+
+	LD IX, BOARD2
+	CALL BoardInitDraw
 	
 	JP WaitPressAnyKey
 ;RET
@@ -91,9 +101,9 @@ DrawMenu
 
 	HALT
 	
-	LD A,WHITE
-	CALL CLSC
-	CALL CLS0
+;	LD A,WHITE
+;	CALL CLSC
+;	CALL CLS0
 	
 Menu_REPAINT
 

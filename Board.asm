@@ -11,53 +11,39 @@
 
 BoardInit
 ; Inputs:
-; HL = GameBoard Pointer to DataStructure (Should use IX instead)
-; D = Height (in items)
-; E = Width (in items)
-; BC = Pointer free buffer for (H x W) entries
+; IX = GameBoard Pointer to Data Structure
+; B = Height (in items)
+; C = Width (in items)
+; DE = Pointer free buffer for (H x W) entries
 
 ; Output: Initializes Board Data Structure
-;	Keeps HL and DE
 ;	Trashes A and BC
 
-	PUSH HL
-	
 	; Init Dimensions
-	LD (HL), D	; Height
-	INC HL
-	LD (HL), E	; Width
-	INC HL
+	LD (IX+BRD_HEIGHT), B	; Height
+	LD (IX+BRD_WIDTH ), C	; Width
 
 	; Init Buffer
-	LD (HL), B	; LOW  Buffer pointer
-	INC HL
-	LD (HL), C	; HIGH Buffer Pointer
+	LD (IX+BRD_BUF_H), D	; Buffer pointer HIGH
+	LD (IX+BRD_BUF_L), E	; Buffer Pointer LOW
 
 	; WARNING:
 	;	Position is not initialized YET
 	;	Flags is not initialized YET
 	
-	LD H, B		; HL = BC = buffer
-	LD L, C
-
-	LD B, D		; Height	
-	LD C, E		; Width
-
 	LD A, #00	; EMPTY Slot
 
 BoardInit_JP1
-	LD (HL), A
-	INC HL	
+	LD (DE), A
+	INC DE	
 	DJNZ	BoardInit_JP1
 
 	DEC C
-	JP NZ,	BoardInit_JP1
-	
-	POP HL
+	JP NZ,	BoardInit_JP1	
 RET
 
 	
-BoardDraw; COLOR
+BoardInitDraw; COLOR
 ; Inputs:
 ;	IX = Board Structure
 	
@@ -82,11 +68,82 @@ BoardDraw_JP1
 	PUSH BC	; Save Counters
 	PUSH DE	; POSITION YX
 
-	LD HL, BubbleWhite ; BubbleMissing
-	CALL CBlit	; Blits once plus A extra times
+	LD HL, BubbleMissing
+	CALL Blit	; Blits once plus A extra times
 
 	POP DE
 	POP BC
 
 	DJNZ BoardDraw_JP0
+RET
+
+BoardDrawRow
+; ; Inputs:
+; ;	IX = Board Structure
+; ; 	A = Row Index
+	
+	; LD C, (IX+0)	; Height
+	; LD B, (IX+1)	; Width
+
+	; LD E, (IX+4)	; Start Position HIGH
+	; LD D, (IX+5)	; Start Position LOW
+
+	; JR BoardDrawRow_JP1
+
+; BoardDrawRow_JP0
+	; ;Calc Next Column
+	; LD HL, #0010
+	; ADD HL,DE
+	; EX DE, HL
+
+; BoardDrawRow_JP1
+	; LD A, C
+	; DEC A	; amount of times to repeat
+
+	; PUSH BC	; Save Counters
+	; PUSH DE	; POSITION YX
+
+	; LD HL, BubbleWhite ; BubbleMissing
+	; CALL CBlit	; Blits once plus A extra times
+
+	; POP DE
+	; POP BC
+
+	; DJNZ BoardDrawRow_JP0
+; RET
+
+
+BoardPressCol	; Adds another item into specific col
+; Inputs:
+;	IX = Board Structure
+; 	A = New Item (previous)
+;	? = Row Index
+
+	LD C, (IX+BRD_HEIGHT)
+	LD B, C
+	
+	LD H, (IX+BRD_BUF_H)
+	LD L, (IX+BRD_BUF_L)
+	
+	EX AF, AF'	; Save index
+
+BoardPressCol_LOOP
+	LD A, (HL)
+	CP #00
+
+	JP Z, BoardPressCol_LAST
+	
+	EX AF, AF'	;	Swap Existing with previous
+	LD (HL), A
+
+	INC HL
+
+	DJNZ BoardPressCol_LOOP	; Exit if end of Column Height
+
+	RET	
+
+BoardPressCol_LAST
+	EX AF, AF'	;	Insert new Item
+	LD (HL), A
+	
 RET
