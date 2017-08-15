@@ -53,15 +53,15 @@ BoardInitDraw; COLOR
 	LD D, (IX+BRD_POS_Y)	; Start Position Y
 	LD E, (IX+BRD_POS_X)	; Start Position X
 
-	JP BoardDraw_JP1
+	JP BoardInitDraw_JP1
 
-BoardDraw_JP0
+BoardInitDraw_JP0
 	;CALC Next Column
 	LD HL, #0010
 	ADD HL,DE
 	EX DE, HL
 
-BoardDraw_JP1
+BoardInitDraw_JP1
 	LD A, C
 	DEC A	; amount of times to repeat
 
@@ -74,7 +74,64 @@ BoardDraw_JP1
 	POP DE
 	POP BC
 
-	DJNZ BoardDraw_JP0
+	DJNZ BoardInitDraw_JP0
+RET
+
+
+BoardColNextPos
+; Inputs:
+;	DE = Column Start Position (Y, X)
+
+	LD	A, #10		; TODO, Increment Column
+	ADD	A, E
+	LD	E, A	
+
+RET	; FALLTHROUGH ?
+
+
+BoardColNextBuf
+; Inputs:
+;	HL = Column Start Buffer
+
+	LD	B, 0
+	LD	C, (IX+BRD_HEIGHT)
+	ADD	HL, BC
+RET
+
+
+BoardUpdateAll
+; Inputs:
+;	IX = Board Structure
+
+	LD B, (IX+BRD_WIDTH )	; Width
+
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
+	LD H, (IX+BRD_BUF_H)	; Col Buffer
+	LD L, (IX+BRD_BUF_L)	; Col Buffer
+
+	JR BoardUpdate_COL
+	
+BoardUpdate_LOOP
+
+	CALL BoardColNextPos
+	PUSH BC		; TODO, Need to optimize this, to not trash BC, or process it in another way
+		CALL BoardColNextBuf	; Trashes BC
+	POP BC
+
+BoardUpdate_COL
+	PUSH BC
+	PUSH DE
+	PUSH HL
+
+	CALL BoardDrawCol
+
+	POP HL
+	POP DE
+	POP BC
+	
+	DJNZ BoardUpdate_LOOP
+
 RET
 
 BoardDrawCol
@@ -124,36 +181,33 @@ BoardDrawCol_JP1
 RET
 
 
-BoardPressCol	; Adds another item into specific col
+BoardColInject	; Adds another item into specific col
 ; Inputs:
 ;	IX = Board Structure
 ; 	A = New Item (previous)
-;	? = Row Index
+;	HL = Column Start Buffer 
 
 	LD C, (IX+BRD_HEIGHT)
 	LD B, C
-	
-	LD H, (IX+BRD_BUF_H)
-	LD L, (IX+BRD_BUF_L)
-	
+		
 	EX AF, AF'	; Save index
 
-BoardPressCol_LOOP
+BoardColInject_LOOP
 	LD A, (HL)
 	CP #00
 
-	JP Z, BoardPressCol_LAST
+	JP Z, BoardColInject_LAST
 	
 	EX AF, AF'	;	Swap Existing with previous
 	LD (HL), A
 
 	INC HL
 
-	DJNZ BoardPressCol_LOOP	; Exit if end of Column Height
+	DJNZ BoardColInject_LOOP	; Exit if end of Column Height
 
 	RET	
 
-BoardPressCol_LAST
+BoardColInject_LAST
 	EX AF, AF'	;	Insert new Item
 	LD (HL), A
 	

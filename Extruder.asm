@@ -34,39 +34,126 @@ MENU_LOOP
 	HALT	; sync before update Board
 	
 	LD IX, BOARD1
-	; FORCED FOR NOW
-	LD D, (IX+BRD_POS_Y)	; Start Position Y
-	LD E, (IX+BRD_POS_X)	; Start Position X
-	LD H, (IX+BRD_BUF_H)	; Col Buffer
-	LD L, (IX+BRD_BUF_L)	; Col Buffer
-	CALL BoardDrawCol
+	CALL BoardUpdateAll
 	
-	LD IX, BOARD2
-	; FORCED FOR NOW
-	LD D, (IX+BRD_POS_Y)	; Start Position Y
-	LD E, (IX+BRD_POS_X)	; Start Position X
-	LD H, (IX+BRD_BUF_H)	; Col Buffer
-	LD L, (IX+BRD_BUF_L)	; Col Buffer
-	CALL BoardDrawCol
+	; ;FORCED FOR NOW
+	; LD D, (IX+BRD_POS_Y)	; Start Position Y
+	; LD E, (IX+BRD_POS_X)	; Start Position X
+	; LD H, (IX+BRD_BUF_H)	; Col Buffer
+	; LD L, (IX+BRD_BUF_L)	; Col Buffer
+	; CALL BoardDrawCol
+
+	; ;FORCED FOR NOW
+	; LD	D, (IX+BRD_POS_Y)	; Start Position Y
+	; LD	E, (IX+BRD_POS_X)	; Start Position X
+	; CALL BoardColNextPos
+	
+	; LD H, (IX+BRD_BUF_H)	; Col Buffer
+	; LD L, (IX+BRD_BUF_L)	; Col Buffer
+	; CALL BoardColNextBuf
+
+	; CALL BoardDrawCol
 
 	
-	LD A, 1	; RED
+	LD IX, BOARD2
+	CALL BoardUpdateAll
+		
+	; ; FORCED FOR NOW
+	; LD D, (IX+BRD_POS_Y)	; Start Position Y
+	; LD E, (IX+BRD_POS_X)	; Start Position X
+	; LD H, (IX+BRD_BUF_H)	; Col Buffer
+	; LD L, (IX+BRD_BUF_L)	; Col Buffer
+	; CALL BoardDrawCol
+
+	; ; FORCED FOR NOW
+	; LD	D, (IX+BRD_POS_Y)	; Start Position Y
+	; LD	E, (IX+BRD_POS_X)	; Start Position X
+	; CALL BoardColNextPos
+	
+	; LD H, (IX+BRD_BUF_H)	; Col Buffer
+	; LD L, (IX+BRD_BUF_L)	; Col Buffer
+	; CALL BoardColNextBuf
+
+	; CALL BoardDrawCol
+
+	
 	LD IX, BOARD1
-	CALL BoardPressCol
-	LD A, 2	; GREEN
-	CALL BoardPressCol
-
 	
-	LD A, 3	; CYAN
+	CALL InjectLine1
+	CALL InjectLine2
+	
 	LD IX, BOARD2
-	CALL BoardPressCol
-	LD A, 4	; YELLOW
-	CALL BoardPressCol
+		
+	CALL InjectLine2
+	CALL InjectLine1
 
-	
+		
     JP MENU_LOOP ;MENU_PLAY
 ;RET
 
+InjectLine1
+	LD H, (IX+BRD_BUF_H)
+	LD L, (IX+BRD_BUF_L)
+
+	LD A, 1	; RED
+	PUSH HL	
+		CALL BoardColInject
+	POP HL
+	
+	CALL BoardColNextBuf
+
+	LD	A, 2	; GREEN
+	PUSH HL
+		CALL	BoardColInject
+	POP HL
+
+	CALL BoardColNextBuf
+
+	LD	A, 3	; CYAN
+	PUSH HL
+		CALL	BoardColInject
+	POP HL
+
+	CALL BoardColNextBuf
+
+	LD	A, 4	; Yeloow
+	PUSH HL
+		CALL	BoardColInject
+	POP HL
+
+RET
+
+
+InjectLine2
+	LD H, (IX+BRD_BUF_H)
+	LD L, (IX+BRD_BUF_L)
+
+	LD	A, 4	; Yeloow
+	PUSH HL	
+		CALL BoardColInject
+	POP HL
+	
+	CALL BoardColNextBuf
+
+	LD	A, 3	; CYAN
+	PUSH HL
+		CALL	BoardColInject
+	POP HL
+
+	CALL BoardColNextBuf
+
+	LD	A, 2	; GREEN
+	PUSH HL
+		CALL	BoardColInject
+	POP HL
+
+	CALL BoardColNextBuf
+
+	LD A, 1	; RED
+	PUSH HL
+		CALL	BoardColInject
+	POP HL
+RET
 
 WaitPressAnyKey
 	; Press AnyKey
