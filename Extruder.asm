@@ -26,16 +26,43 @@ MENU_PLAY
 
 	CALL GameInit_Versus
 
+	CALL GameInitDraw_Versus; 	FULL_GAME
+
 MENU_LOOP
 	CALL DrawMenu
 
-	CALL GameInitDraw_Versus; 	FULL_GAME
+	HALT	; sync before update Board
+	
+	LD IX, BOARD1
+	; FORCED FOR NOW
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
+	LD H, (IX+BRD_BUF_H)	; Col Buffer
+	LD L, (IX+BRD_BUF_L)	; Col Buffer
+	CALL BoardDrawCol
+	
+	LD IX, BOARD2
+	; FORCED FOR NOW
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
+	LD H, (IX+BRD_BUF_H)	; Col Buffer
+	LD L, (IX+BRD_BUF_L)	; Col Buffer
+	CALL BoardDrawCol
 
+	
+	LD A, 1	; RED
 	LD IX, BOARD1
 	CALL BoardPressCol
+	LD A, 2	; GREEN
+	CALL BoardPressCol
 
+	
+	LD A, 3	; CYAN
 	LD IX, BOARD2
 	CALL BoardPressCol
+	LD A, 4	; YELLOW
+	CALL BoardPressCol
+
 	
     JP MENU_LOOP ;MENU_PLAY
 ;RET

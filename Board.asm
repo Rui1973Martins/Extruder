@@ -68,7 +68,7 @@ BoardDraw_JP1
 	PUSH BC	; Save Counters
 	PUSH DE	; POSITION YX
 
-	LD HL, BubbleMissing
+	LD HL, BubbleEmpty
 	CALL Blit	; Blits Full Column (1 + A times)
 
 	POP DE
@@ -77,39 +77,50 @@ BoardDraw_JP1
 	DJNZ BoardDraw_JP0
 RET
 
-BoardDrawRow
+BoardDrawCol
 ; Inputs:
 ;	IX = Board Structure
-; 	A = Row Index
+;	HL = Column Start Buffer 
+;	DE = Column Start Position (Y, X)
 	
-	LD C, (IX+BRD_HEIGHT)	; Height
-	LD B, (IX+BRD_WIDTH )	; Width
+	LD	B, (IX+BRD_HEIGHT)	; Height
 
-	LD D, (IX+BRD_POS_Y)	; Start Position Y
-	LD E, (IX+BRD_POS_X)	; Start Position X
+	LD	C, #10	; Y Increm
+	JR	BoardDrawCol_JP1
 
-	JR BoardDrawRow_JP1
+BoardDrawCol_JP0
 
-BoardDrawRow_JP0
-	;Calc Next Column
-	LD HL, #0010
-	ADD HL,DE
-	EX DE, HL
+	; Increment Y Position
+	LD	A, D
+	ADD	A, C 
+	LD	D, A
+	
+	;Next Data Row (same Column)
+	INC	HL
 
-BoardDrawRow_JP1
-	LD A, C
-	DEC A	; amount of times to repeat
+BoardDrawCol_JP1
 
-	PUSH BC	; Save Counters
+	PUSH HL
 	PUSH DE	; POSITION YX
+	PUSH BC	; Save Counters
 
-	LD HL, BubbleWhite ; BubbleMissing
-	CALL Blit	; Blits once plus A extra times
+	LD A, (HL)	; Bubble Item
+	
+	; Determine BUBBLE_TAB ndex
+	ADD	A, A	; *2 
+	ADD	A, A	; *4
+	ADD	A, A	; *8
 
-	POP DE
+	LD H, HIGH BUBBLE_TAB	; HL Points to Bitmap Struct
+	LD L, A
+	
+	CALL Blit0
+
 	POP BC
+	POP DE
+	POP HL
 
-	DJNZ BoardDrawRow_JP0
+	DJNZ BoardDrawCol_JP0
 RET
 
 
