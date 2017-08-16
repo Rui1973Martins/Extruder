@@ -185,7 +185,7 @@ BoardDrawCol
 	LD L, A
 	
 	;CALL Blit0
-	CALL M_Blit0
+	CALL M_CBlitM0
 
 	POP BC
 	POP DE

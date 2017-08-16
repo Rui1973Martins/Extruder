@@ -95,6 +95,21 @@ REPCY	DEFB 0
 BLITW	DEFW 0
 BLITH	DEFB 0
 
+
+M_CBlitM0
+	XOR A
+M_CBlitM
+	;LD (M_REPPY),A
+	LD (M_REPCY),A
+	LD A,(HL)
+	LD (M_BLITW),A
+	INC HL
+	LD A,(HL)
+	LD (M_BLITH),A
+	INC HL
+	; FallTrough
+
+; WARNING: Entry Point
 M_CBlit
 	LD A,(HL);Col
 	INC HL
@@ -134,60 +149,8 @@ M_CBlitL
 	
 ; ===== ===== =====	
 
-M_Blit0
-	XOR A
-M_Blit
-	LD (M_REPPY),A
-	LD (M_REPCY),A
-	LD A,(HL)
-	LD (M_BLITW),A
-	INC HL
-	LD A,(HL)
-	LD (M_BLITH),A
-	INC HL
-	PUSH HL
-		PUSH DE
-			CALL M_CBlit
-		POP DE
-		EX DE,HL
-		CALL PixelAD
-	POP HL
-    INC HL
-    INC HL
-M_PBlit
-	LD A,(HL);Px
-	INC HL
-	LD H,(HL)
-	LD L,A
-	PUSH HL
-		LD A,(M_BLITH)
-M_PBlitL
-		LD BC,(M_BLITW)
-		PUSH DE
-			;LDI
-			LDIR
-		POP DE
-		EX AF,AF'
-		;PART INLINE
-		LD A,D;INCSY
-		OR #F8
-		INC A
-        JR NZ,M_PBlitX1
-			CALL INCSY543
-			JR $+2+1
-M_PBlitX1
-		INC D
-		EX AF,AF'
-		DEC A
-        JP NZ,M_PBlitL
-    POP HL
-	LD A,(M_REPPY)
-	DEC A;
-RET M
-    LD (M_REPPY),A
-    JR M_PBlitL-3-1
-	
 ; ----- ----- ------	
+
 PxBlit0		; Similar to Blit0, except only Pixels are processed (PBlit)
 	XOR A
 PxBlit		; Similar to Blit, except only Pixels are processed (PBlit)

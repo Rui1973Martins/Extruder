@@ -44,21 +44,36 @@ MENU_PLAY
 MENU_LOOP
 	HALT	; sync before update Board
 	
+	LD A, RED
+	OUT (ULA),A
+
 	LD IX, BOARD1
 	CALL BoardUpdateAll
 		
+	LD A, MAGENTA
+	OUT (ULA),A
+
 	LD IX, BOARD2
 	CALL BoardUpdateAll
 	
 	
-	LD IX, BOARD1
-	CALL BoardDrawCursor
+	LD A, YELLOW
+	OUT (ULA),A
 
-	LD IX, BOARD2
-	CALL BoardDrawCursor
+	; LD IX, BOARD1
+	; CALL BoardDrawCursor
+
+	; LD A, WHITE
+	; OUT (ULA),A
+
+	; LD IX, BOARD2
+	; CALL BoardDrawCursor
 
 
-	CALL WaitPressAnyKey
+	LD A, BLACK
+	OUT (ULA),A
+
+;	CALL WaitPressAnyKey
 	
 
 	LD	IX, BOARD1
