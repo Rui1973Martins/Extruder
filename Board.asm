@@ -184,7 +184,8 @@ BoardDrawCol
 	LD H, HIGH BUBBLE_TAB	; HL Points to Bitmap Struct
 	LD L, A
 	
-	CALL Blit0
+	;CALL Blit0
+	CALL M_Blit0
 
 	POP BC
 	POP DE

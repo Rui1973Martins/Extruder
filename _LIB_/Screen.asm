@@ -85,11 +85,109 @@ ColorADA
 RET
 
 
-REPPY DEFB 0
-REPCY DEFB 0
-BLITW DEFW 0
-BLITH DEFB 0
+M_REPPY	DEFB 0
+M_REPCY	DEFB 0
+M_BLITW	DEFW 0
+M_BLITH	DEFB 0
+	
+REPPY	DEFB 0
+REPCY	DEFB 0
+BLITW	DEFW 0
+BLITH	DEFB 0
 
+M_CBlit
+	LD A,(HL);Col
+	INC HL
+	LD H,(HL)
+	LD L,A
+		CALL ColorADA
+	LD A,(M_BLITH)
+	RRA;/8
+	RRA
+	RRA
+	AND #1F
+	JR NZ,$+2+1
+		INC A
+	LD B,A
+	EX AF,AF';SaveA
+	LD A,B
+	PUSH HL;Loop
+M_CBlitL
+		LD BC,(M_BLITW)
+		PUSH DE
+			LDIR
+			EX DE,HL;SaveHL
+		POP HL;DE
+		;LD BC,#0020
+		LD C,#20;B=0
+		ADD HL,BC
+		EX DE,HL;RestHL
+		DEC A
+		JR NZ,M_CBlitL
+	POP HL
+	LD A,(M_REPCY)
+	DEC A
+   RET M
+	LD (M_REPCY),A
+	EX AF,AF'
+	JR M_CBlitL-1-1-1-1
+	
+; ===== ===== =====	
+
+M_Blit0
+	XOR A
+M_Blit
+	LD (M_REPPY),A
+	LD (M_REPCY),A
+	LD A,(HL)
+	LD (M_BLITW),A
+	INC HL
+	LD A,(HL)
+	LD (M_BLITH),A
+	INC HL
+	PUSH HL
+		PUSH DE
+			CALL M_CBlit
+		POP DE
+		EX DE,HL
+		CALL PixelAD
+	POP HL
+    INC HL
+    INC HL
+M_PBlit
+	LD A,(HL);Px
+	INC HL
+	LD H,(HL)
+	LD L,A
+	PUSH HL
+		LD A,(M_BLITH)
+M_PBlitL
+		LD BC,(M_BLITW)
+		PUSH DE
+			;LDI
+			LDIR
+		POP DE
+		EX AF,AF'
+		;PART INLINE
+		LD A,D;INCSY
+		OR #F8
+		INC A
+        JR NZ,M_PBlitX1
+			CALL INCSY543
+			JR $+2+1
+M_PBlitX1
+		INC D
+		EX AF,AF'
+		DEC A
+        JP NZ,M_PBlitL
+    POP HL
+	LD A,(M_REPPY)
+	DEC A;
+RET M
+    LD (M_REPPY),A
+    JR M_PBlitL-3-1
+	
+; ----- ----- ------	
 PxBlit0		; Similar to Blit0, except only Pixels are processed (PBlit)
 	XOR A
 PxBlit		; Similar to Blit, except only Pixels are processed (PBlit)
