@@ -49,6 +49,13 @@ MENU_LOOP
 		
 	LD IX, BOARD2
 	CALL BoardUpdateAll
+	
+	
+	LD IX, BOARD1
+	CALL BoardDrawCursor
+
+	LD IX, BOARD2
+	CALL BoardDrawCursor
 
 
 	CALL WaitPressAnyKey

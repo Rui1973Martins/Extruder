@@ -5,6 +5,7 @@
 ; DEFW screen start position (YX)
 ; DEFB LineTotal (Total New Lines to be inserted ) 
 ; DEFB LineCount (Count New Lines ALREADY inserted)
+; DEFB Cursor or Clown Relative Pos (Defaults to Centered, to Width)
 ; DEFB flags
 
 
@@ -31,7 +32,14 @@ BoardInit
 
 	LD (IX+BRD_LINE_TOT), 0	; New LineTotal
 	LD (IX+BRD_LINE_CNT), 0	; New LineCount
-	
+
+	; Center at middle
+	LD A, C					; Cursor or Clown POS 
+	SRA A					; Integer Divide By 2
+	; since we start at 0, and Sprite has width, discard this
+	;INC A					; Divide by 2, + 1 will center (with Odd Width)
+	LD (IX+BRD_CUR_X), A	; Cursor or Clown POS 
+
 	; WARNING:
 	;	Position is not initialized YET
 	;	Flags is not initialized YET
@@ -136,8 +144,8 @@ BoardUpdateAll
 	POP BC
 	
 	DJNZ BoardUpdate_LOOP
-
 RET
+
 
 BoardDrawCol
 ; Inputs:
@@ -183,6 +191,43 @@ BoardDrawCol
 	POP HL
 
 	DJNZ BoardDrawCol_JP0
+RET
+
+
+BoardDrawCursor
+; Inputs:
+;	IX = Board Structure
+
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
+
+	LD A, (IX+BRD_CUR_X)	; Cursor X (in Chars)
+	ADD A, A				; * 2
+	ADD A, A				; * 4
+	ADD A, A				; * 8	
+	ADD A, A				; * 16	A = ( ItemWidth * Cur_X ) (in Pixels)	
+	
+	ADD A, E				;       A = ( ItemWidth * Cur_X ) + Position_X
+	LD	E, A				; ABS X   = ( ItemWidth * Cur_X ) + Position_X				
+	
+; TODO; OPtimize this, by pre-calc this in BoardInit
+		LD B, (IX+BRD_HEIGHT )	; Height
+		LD C, 16				; Two chars height per Item
+		LD A, D					; Start Position Y
+
+	 BoardDrawCursor_MUL
+		ADD A, C
+		DJNZ BoardDrawCursor_MUL	; A = Height * ItemHeight, (in Pixels)
+		
+		SUB (3*8)				; Subtract 3 Chars height (1.5 * Item Height)
+; TODO END
+	LD D, A					; Y = Position_Y + (Height * 8) , (in Pixels )
+	
+	; DE has position YX
+	
+	; TODO Draw Current Clown Frame 
+	LD	HL, Clown0
+	CALL Blit0
 RET
 
 
