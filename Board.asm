@@ -3,6 +3,8 @@
 ; DEFB width
 ; DEFW Buffer * (pointer) with (H x W) entries (1 byte for each?)
 ; DEFW screen start position (YX)
+; DEFB LineTotal (Total New Lines to be inserted ) 
+; DEFB LineCount (Count New Lines ALREADY inserted)
 ; DEFB flags
 
 
@@ -27,13 +29,16 @@ BoardInit
 	LD (IX+BRD_BUF_H), D	; Buffer pointer HIGH
 	LD (IX+BRD_BUF_L), E	; Buffer Pointer LOW
 
+	LD (IX+BRD_LINE_TOT), 0	; New LineTotal
+	LD (IX+BRD_LINE_CNT), 0	; New LineCount
+	
 	; WARNING:
 	;	Position is not initialized YET
 	;	Flags is not initialized YET
 	
 	LD A, #00	; EMPTY Slot
 
-BoardInit_JP1
+ BoardInit_JP1
 	LD (DE), A
 	INC DE	
 	DJNZ	BoardInit_JP1
@@ -55,13 +60,13 @@ BoardInitDraw; COLOR
 
 	JP BoardInitDraw_JP1
 
-BoardInitDraw_JP0
+ BoardInitDraw_JP0
 	;CALC Next Column
 	LD HL, #0010
 	ADD HL,DE
 	EX DE, HL
 
-BoardInitDraw_JP1
+ BoardInitDraw_JP1
 	LD A, C
 	DEC A	; amount of times to repeat
 
@@ -112,14 +117,14 @@ BoardUpdateAll
 
 	JR BoardUpdate_COL
 	
-BoardUpdate_LOOP
+ BoardUpdate_LOOP
 
 	CALL BoardColNextPos
 	PUSH BC		; TODO, Need to optimize this, to not trash BC, or process it in another way
 		CALL BoardColNextBuf	; Trashes BC
 	POP BC
 
-BoardUpdate_COL
+ BoardUpdate_COL
 	PUSH BC
 	PUSH DE
 	PUSH HL
@@ -145,7 +150,7 @@ BoardDrawCol
 	LD	C, #10	; Y Increm
 	JR	BoardDrawCol_JP1
 
-BoardDrawCol_JP0
+ BoardDrawCol_JP0
 
 	; Increment Y Position
 	LD	A, D
@@ -155,7 +160,7 @@ BoardDrawCol_JP0
 	;Next Data Row (same Column)
 	INC	HL
 
-BoardDrawCol_JP1
+ BoardDrawCol_JP1
 
 	PUSH HL
 	PUSH DE	; POSITION YX
@@ -192,7 +197,7 @@ BoardColInject	; Adds another item into specific col
 		
 	EX AF, AF'	; Save index
 
-BoardColInject_LOOP
+ BoardColInject_LOOP
 	LD A, (HL)
 	CP #00
 
@@ -207,8 +212,85 @@ BoardColInject_LOOP
 
 	RET	
 
-BoardColInject_LAST
+ BoardColInject_LAST
 	EX AF, AF'	;	Insert new Item
 	LD (HL), A
 	
 RET
+
+
+BoardAddLineTotal
+; Inputs:
+;	IX = Board Structure
+; 	A = Lines to ADD
+
+	LD	C, (IX+BRD_LINE_TOT)	; LineTotal
+	ADD	A, C
+	LD	(IX+BRD_LINE_TOT), A	; LineTotal += A 
+RET
+	
+	
+BoardInjectLine
+; Inputs:
+;	IX = Board Structure
+; 	A = New Item (previous)
+; ?	HL = Column Start Buffer 
+;	DE = LineData Pointer
+	
+	LD	C, (IX+BRD_LINE_CNT)	; LineCount (always <= LineTotal)
+	LD	A, (IX+BRD_LINE_TOT)	; LineTotal
+	CP	C
+	RET Z						; ( LineTotal - LineCount ) == 0
+	JP	P, BoardInjectLine_JP1	; ( LineTotal - LineCount )  > 0
+
+	; Reset Line Info
+	LD	(IX+BRD_LINE_TOT), 0	; Reset LineTotal
+	LD	(IX+BRD_LINE_CNT), 0	; Reset LineCount
+	RET
+	
+BoardInjectLine_JP1
+	
+	INC C						; Must be true before ( LineTotal > LineCount )
+	LD	(IX+BRD_LINE_CNT), C	; LineCount++
+
+	LD	B, (IX+BRD_WIDTH)	; Width
+
+	LD H, (IX+BRD_BUF_H)	; Buffer
+	LD L, (IX+BRD_BUF_L)
+
+	JR	BoardInjectLine_TEST
+	
+ BoardInjectLine_LOOP
+ 
+    INC DE
+
+	PUSH BC
+		CALL BoardColNextBuf
+	POP BC
+	
+ BoardInjectLine_TEST
+ 
+	LD	A, (DE)				; New Line Rule, Example: ( 3 2 2 1 2 2 3 )
+	CP	C					; LineCount
+
+	JP	P,	BoardInjectLine_NEXT	; BoardInjectLine_DO
+
+ BoardInjectLine_DO	
+	; Positive or Zero, Injects
+	PUSH BC
+
+		; Determine Next Color from History
+		LD A, 4	; Yellow
+		
+		PUSH HL	
+			CALL BoardColInject
+		POP HL
+
+	POP BC
+
+ BoardInjectLine_NEXT
+
+	DJNZ BoardInjectLine_LOOP
+
+RET
+

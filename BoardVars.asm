@@ -4,13 +4,17 @@ BRD_BUF_H	EQU	2
 BRD_BUF_L	EQU	3 
 BRD_POS_X	EQU 4
 BRD_POS_Y	EQU	5
-BRD_FLAGS	EQU	6
+BRD_LINE_TOT EQU 6
+BRD_LINE_CNT	EQU 7
+BRD_FLAGS	EQU	8
 
 BOARD1
 	DEFB 0		; Height
 	DEFB 0		; Width
 	DEFW #0000	; BOARD1_DATA
 	DEFW #0000	; START POSITION Y,X
+	DEFB 0		; LineTotal
+	DEFB 0		; LineCount
 	DEFB #0		; flags
 
 
@@ -19,7 +23,103 @@ BOARD2
 	DEFB 0		; Width
 	DEFW #0000	; BOARD2_DATA
 	DEFW #0090	; START POSITION Y,X
+	DEFB 0		; LineTotal
+	DEFB 0		; LineCount
 	DEFB #0		; flags
+
+
+BOARD_PATTERN1	DEFB 3,2,1,0,1,2,3
+BOARD_PATTERN2	DEFB 2,1,1,0,1,1,2
+
+BOARD_PATTERN_FOOL
+	DEFB	0,	0,	0,	0,	0,	0,	0	; Zero Rebased from		1,	1,	1,	1,	1,	1,	1
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5		O	O	O	O	O	O	O
+	;4		O	O	O	O	O	O	O
+	;3		O	O	O	O	O	O	O
+	;2		O	O	O	O	O	O	O
+	;1		O	O	O	O	O	O	O
+	;0		O	O	O	O	O	O	O
+
+BOARD_PATTERN_STAR	; NOTE SAME as CHARIOT
+	DEFB	6,	4,	2,	0,	1,	3,	5	; Zero Rebased from		7,	5,	3,	1,	2,	4,	6
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5			O	O	O	O	O	O
+	;4			O	O	O	O	O	
+	;3				O	O	O	O	
+	;2				O	O	O		
+	;1					O	O		
+	;0					O			
+
+BOARD_PATTERN_CHARIOT
+	DEFB	6,	4,	2,	0,	1,	3,	5	; Zero Rebased from		7,	5,	3,	1,	2,	4,	6
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5			O	O	O	O	O	O
+	;4			O	O	O	O	O	
+	;3				O	O	O	O	
+	;2				O	O	O		
+	;1					O	O		
+	;0					O			
+
+BOARD_PATTERN_PRIESTESS
+	DEFB	3,	0,	3,	4,	3,	0,	3 	; Zero Rebased from		4,	1,	4,	5,	4,	1,	4
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5		O	O	O	O	O	O	O
+	;4		O	O	O	O	O	O	O
+	;3		O	O	O		O	O	O
+	;2			O				O	
+	;1			O				O	
+	;0			O				O	
+
+BOARD_PATTERN_JUSTICE
+	DEFB	3,	3,	1,	0,	1,	3,	3 	; Zero Rebased from		4,	4,	2,	1,	2,	4,	4
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5		O	O	O	O	O	O	O
+	;4		O	O	O	O	O	O	O
+	;3		O	O	O	O	O	O	O
+	;2				O	O	O		
+	;1				O	O	O		
+	;0					O			
+	
+BOARD_PATTERN_MAGICIAN
+	DEFB	4,	1,	0,	2,	0,	1,	4 	; Zero Rebased from		5,	2,	1,	3,	1,	2,	5
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5		O	O	O	O	O	O	O
+	;4		O	O	O	O	O	O	O
+	;3			O	O	O	O	O	
+	;2			O	O	O	O	O	
+	;1			O	O		O	O	
+	;0				O		O		
+
+BOARD_PATTERN_WORLD
+	DEFB	0,	1,	2,	3,	3,	3,	3 	; Zero Rebased from		1,	2,	3,	4,	4,	4,	4
+	;8		O	O	O	O	O	O	O
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5		O	O	O	O	O	O	O
+	;4		O	O	O	O	O	O	O
+	;3		O	O	O
+	;2		O	O
+	;1		O
+
+	
+;BOARD_PATTERN_MOON
+;	DEFB	1,	2,	3,	4,	3,	2,	1	
+	;8		O	O	O	O	O	O	O
+	;7		O	O	O	O	O	O	O
+	;6		O	O	O	O	O	O	O
+	;5		O	O	O	O	O	O	O
+	;4		O	O	O	O	O	O	O
+	;3		O	O	O		O	O	O
+	;2		O	O				O	O
+	;1		O						O
+
 
 ; In single player mode, Board1, will extend into board 2 buffer,
 ; since single board has a larger area (11 x 13)
