@@ -170,13 +170,13 @@ BoardUpdateAll
 				
 				; Determine BUBBLE_TAB ndex
 				ADD	A, A	; *2 
-				ADD	A, A	; *4
-				ADD	A, A	; *8
+				;ADD	A, A	; *4
+				;ADD	A, A	; *8
 
-				LD H, HIGH BUBBLE_TAB	; HL Points to Bitmap Struct
+				LD H, HIGH BUBBLE_TAB_C	; HL Points to Bitmap Struct
 				LD L, A
 				
-					CALL B_CBlitM_H2W2_0;  CALL B_CBlitM_W2_0; CALL B_CBlitM0	;CALL M_CBlitM0	;CALL Blit0
+					CALL B_CBlit_H2W2; B_CBlitM_H2W2_0;  CALL B_CBlitM_W2_0; CALL B_CBlitM0	;CALL M_CBlitM0	;CALL Blit0
 
 				POP BC
 				POP DE

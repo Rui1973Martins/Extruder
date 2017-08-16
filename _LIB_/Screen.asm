@@ -105,10 +105,13 @@ B_CBlitM_H2W2
 
 ; WARNING: Entry Point
 B_CBlit_H2W2		; Specific Ottimized code for Width 2
+
 	LD A,(HL)	; Color
 	INC HL
 	LD H,(HL)
 	LD L,A
+	
+	AND A	; RESET Carry
 		;CALL ColorADA
 			; UNROLL CALL
 			LD A,D
