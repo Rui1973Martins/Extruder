@@ -145,17 +145,34 @@ BoardUpdateAll
 			;	HL = Column Start Buffer 
 			;	DE = Column Start Position (Y, X)
 				
+				; CALL ColorADA	; Update DE to Color Address
+						; ; UNROLL CALL
+						LD A,D
+						RRA;Dump 3
+						RRA
+						RRA
+						RRA;->D->E
+						RR E
+						RRA;->D->E
+						RR E
+						RRA;->D->E
+						RR E
+						AND #03;High
+						OR  #58;Addr
+						LD D,A
+
 				LD	B, (IX+BRD_HEIGHT)	; Height
 
 				LD	C, #10	; Y Increm
 				JR	BoardDrawCol_JP1
 
+				
 			 BoardDrawCol_JP0
 
-				; Increment Y Position
-				LD	A, D
-				ADD	A, C 
-				LD	D, A
+				; ; Increment Y Position
+				; LD	A, D
+				; ADD	A, C 
+				; LD	D, A
 				
 				;Next Data Row (same Column)
 				INC	HL
@@ -163,7 +180,7 @@ BoardUpdateAll
 			 BoardDrawCol_JP1
 
 				PUSH HL
-				PUSH DE	; POSITION YX
+				; PUSH DE	; POSITION YX
 				PUSH BC	; Save Counters
 
 				LD A, (HL)	; Bubble Item
@@ -176,10 +193,35 @@ BoardUpdateAll
 				LD H, HIGH BUBBLE_TAB_C	; HL Points to Bitmap Struct
 				LD L, A
 				
-					CALL B_CBlit_H2W2; B_CBlitM_H2W2_0;  CALL B_CBlitM_W2_0; CALL B_CBlitM0	;CALL M_CBlitM0	;CALL Blit0
+					;CALL B_CBlit_H2W2
+						; INLINED
+						; Specific Ottimized code for Sprite 2x2
 
+							LD A,(HL)	; Color
+							INC HL
+							LD H,(HL)
+							LD L,A
+							
+							; LOOP Completly UNROLLED for 2x2
+									LDI
+									LDI
+
+								LD	BC,#0020-2	; Optimized for Width 2
+								EX	DE, HL		;SaveHL
+								ADD	HL, BC
+								EX	DE, HL		;RestHL and DE
+
+									LDI
+									LDI
+
+								LD	BC,#0020-2	; Optimized for Width 2
+								EX	DE, HL		;SaveHL
+								ADD	HL, BC
+								EX	DE, HL		;RestHL and DE
+						;RET	
+		
 				POP BC
-				POP DE
+				; POP DE
 				POP HL
 
 				DJNZ BoardDrawCol_JP0

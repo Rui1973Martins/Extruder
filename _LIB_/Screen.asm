@@ -96,67 +96,6 @@ BLITW	DEFW 0
 BLITH	DEFB 0
 
 
-B_CBlitM_H2W2_0
-	XOR A
-B_CBlitM_H2W2
-	INC HL		; pass Over Width (fixed)
-	INC HL
-	; FallTrough
-
-; WARNING: Entry Point
-B_CBlit_H2W2		; Specific Ottimized code for Width 2
-
-	LD A,(HL)	; Color
-	INC HL
-	LD H,(HL)
-	LD L,A
-	
-	AND A	; RESET Carry
-		;CALL ColorADA
-			; UNROLL CALL
-			LD A,D
-			RRA;Dump 3
-			RRA
-			RRA
-			RRA;->D->E
-			RR E
-			RRA;->D->E
-			RR E
-			RRA;->D->E
-			RR E
-			AND #03;High
-			OR  #58;Addr
-			LD D,A
-
-	LD A, 2		;Height in Chars
-	AND	#1F
-	JR	NZ, $+2+1
-		INC A
-	LD	B, A
-	EX	AF, AF'	;SaveA
-	LD	A, B
-
-	; LOOP Completly UNROLLED
- 		; Specific Ottimized code for Width 2
-			LDI	; LDIR
-			LDI
-
-		LD	BC,#0020-2	; Optimized for Width 2
-		EX	DE, HL		;SaveHL
-		ADD	HL, BC
-		EX	DE, HL		;RestHL and DE
-
-			LDI	; LDIR
-			LDI
-
-		; LD	BC,#0020-2	; Optimized for Width 2
-		; EX	DE, HL		;SaveHL
-		; ADD	HL, BC
-		; EX	DE, HL		;RestHL and DE
-	RET
-	
-; ===== ===== =====	
-
 B_CBlitM_W2_0
 	XOR A
 B_CBlitM_W2
