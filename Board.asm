@@ -161,48 +161,53 @@ BoardUpdateAll
 						OR  #58;Addr
 						LD D,A
 
-				LD	B, (IX+BRD_HEIGHT)	; Height
+				;LD	B, (IX+BRD_HEIGHT)	; Height
+				; ALTERNATIVE to BC PUSH + POP
+					LD	A, (IX+BRD_HEIGHT)	; Height
+					EX AF, AF'	; Save Counter
 
 				LD	C, #10	; Y Increm
-				JR	BoardDrawCol_JP1
+
+				JP	BoardDrawCol_JP1	; Absolute JP is Faster
 
 				
 			 BoardDrawCol_JP0
-
+				; ALTERNATIVE to BC PUSH + POP
+					EX AF, AF'	;  4T	; Save Counter
+				
 				; ; Increment Y Position
-				; LD	A, D
-				; ADD	A, C 
-				; LD	D, A
+				; LD	A, D	; 4T
+				; ADD	A, C 	; 7T
+				; LD	D, A	; 4T
+								; 15T Total inlcuding push + pop -=> 15 + 10 + 11 = 36T
 				
 				;Next Data Row (same Column)
 				INC	HL
 
 			 BoardDrawCol_JP1
 
-				PUSH HL
-				; PUSH DE	; POSITION YX
-				PUSH BC	; Save Counters
+				PUSH HL		; Start of Sprite Color Data
 
 				LD A, (HL)	; Bubble Item
 				
 				; Determine BUBBLE_TAB ndex
-				ADD	A, A	; *2 
-				;ADD	A, A	; *4
-				;ADD	A, A	; *8
+				ADD	A, A		; *2 
 
 				LD H, HIGH BUBBLE_TAB_C	; HL Points to Bitmap Struct
 				LD L, A
 				
 					;CALL B_CBlit_H2W2
-						; INLINED
-						; Specific Ottimized code for Sprite 2x2
+						; INLINED, Specific Ottimized code for Sprite 2x2
 
-							LD A,(HL)	; Color
-							INC HL
+							LD A,(HL)	; Color Data
+							INC HL							
 							LD H,(HL)
 							LD L,A
-							
-							; LOOP Completly UNROLLED for 2x2
+							; TODO These 4 lines above, to load HL, could be optimized OUT
+							; using special alignment, ensuring H for Ball colors would be the same as the one in BUBBLE_TAB_C
+							; and ahving BUBBLE_TAB_C only having one Byte with the low byte of each Color Address.
+
+							; LOOP Completly UNROLLED for 2x2								
 									LDI
 									LDI
 
@@ -211,20 +216,47 @@ BoardUpdateAll
 								ADD	HL, BC
 								EX	DE, HL		;RestHL and DE
 
-									LDI
-									LDI
+									LDI			; 16T
+									LDI			; 16T
 
-								LD	BC,#0020-2	; Optimized for Width 2
-								EX	DE, HL		;SaveHL
-								ADD	HL, BC
-								EX	DE, HL		;RestHL and DE
+								LD	BC,#0020-2	; 10T		Optimized for Width 2
+								EX	DE, HL		;  4T		SaveHL
+								ADD	HL, BC		; 11T
+								EX	DE, HL		;  4T		RestHL and DE
+												; 29T Total
 						;RET	
-		
-				POP BC
-				; POP DE
+							; Alternative LOOP (Slower ?)
+								; LD	BC,#0020-2	; 10T	; Optimized for Width 2
+
+								; LD (DE),A	;  7T
+								; INC D		;  4T
+								; LD (DE),A	;  7T
+								; INC DE	;  6T
+											; 24T
+								
+								; EX	DE, HL		;  4T	;SaveHL
+								; ADD	HL, BC		; 11T
+								; EX	DE, HL		;  4T	;RestHL and DE
+													; 19T Total
+													
+								; LD (DE),A
+								; INC 
+								; LD (DE),A
+								; INC DE
+								
+								; EX	DE, HL		;SaveHL
+								; ADD	HL, BC
+								; EX	DE, HL		;RestHL and DE
+
 				POP HL
 
-				DJNZ BoardDrawCol_JP0
+				; POP BC				; 10Y				
+				;DJNZ BoardDrawCol_JP0	; 13T
+				; ALTERNATIVE to BC PUSH + POP 
+					EX AF, AF'				; 4T	; Recover counter
+					DEC A					; 4T
+					JP NZ, BoardDrawCol_JP0	; 10T
+				
 			;RET
 
 	POP HL

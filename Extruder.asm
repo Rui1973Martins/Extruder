@@ -28,11 +28,11 @@ MENU_PLAY
 	CALL GameInitDraw_Versus; 	FULL_GAME
 
 	LD	IX, BOARD1
-	LD	A, 8
+	LD	A, 5
 	CALL BoardAddLineTotal
 
 	LD	IX, BOARD2
-	LD	A, 8
+	LD	A, 5
 	CALL BoardAddLineTotal
 
 	CALL DrawMenu
@@ -60,14 +60,14 @@ MENU_LOOP
 	LD A, YELLOW
 	OUT (ULA),A
 
-	; LD IX, BOARD1
-	; CALL BoardDrawCursor
+	LD IX, BOARD1
+	CALL BoardDrawCursor
 
-	; LD A, WHITE
-	; OUT (ULA),A
+	LD A, WHITE
+	OUT (ULA),A
 
-	; LD IX, BOARD2
-	; CALL BoardDrawCursor
+	LD IX, BOARD2
+	CALL BoardDrawCursor
 
 
 	LD A, BLACK
