@@ -31,6 +31,16 @@ BubbleWhite
 	DEFW BUBBLE_WHITE, BUBBLE_PX
 	DEFW #0000 	; Dummy, to make Strut 8x multiple
 
+BubbleBlack
+	DEFB 2,16;WxH
+	DEFW BUBBLE_BLACK, BUBBLE_PX
+	DEFW #0000 	; Dummy, to make Strut 8x multiple
+
+BubbleMagenta
+	DEFB 2,16;WxH
+	DEFW BUBBLE_MAGENTA, BUBBLE_PX
+	DEFW #0000 	; Dummy, to make Strut 8x multiple
+
 ; ----- Pixel Data and Colors -----
 
 ;GRAPHIC DATA:
@@ -63,3 +73,10 @@ BUBBLE_YELLOW
 	
 BUBBLE_WHITE
 	DEFB	0x4F,0x0F,0x0F,0x4F
+
+; EXTRA COLORS
+BUBBLE_BLACK
+	DEFB	0x48,0x08,0x08,0x48
+
+BUBBLE_MAGENTA
+	DEFB	0x4B,0x0B,0x0B,0x4B

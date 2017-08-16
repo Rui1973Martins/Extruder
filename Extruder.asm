@@ -34,6 +34,12 @@ MENU_PLAY
 	LD	IX, BOARD2
 	LD	A, 8
 	CALL BoardAddLineTotal
+
+	CALL DrawMenu
+	
+	;Set Border
+	LD A,BLACK
+	OUT (ULA),A
 	
 MENU_LOOP
 	HALT	; sync before update Board
@@ -45,9 +51,9 @@ MENU_LOOP
 	CALL BoardUpdateAll
 
 
-	CALL DrawMenu
-
+	CALL WaitPressAnyKey
 	
+
 	LD	IX, BOARD1
 	LD	DE, BOARD_PATTERN1
 	CALL	BoardInjectLine

@@ -280,7 +280,8 @@ BoardInjectLine_JP1
 	PUSH BC
 
 		; Determine Next Color from History
-		LD A, 4	; Yellow
+		LD A, C	; Yellow
+		AND #07	; Mask
 		
 		PUSH HL	
 			CALL BoardColInject
