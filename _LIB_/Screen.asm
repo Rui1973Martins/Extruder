@@ -96,6 +96,121 @@ BLITW	DEFW 0
 BLITH	DEFB 0
 
 
+B_CBlitM_H2W2_0
+	XOR A
+B_CBlitM_H2W2
+	INC HL		; pass Over Width (fixed)
+	INC HL
+	; FallTrough
+
+; WARNING: Entry Point
+B_CBlit_H2W2		; Specific Ottimized code for Width 2
+	LD A,(HL)	; Color
+	INC HL
+	LD H,(HL)
+	LD L,A
+		;CALL ColorADA
+			; UNROLL CALL
+			LD A,D
+			RRA;Dump 3
+			RRA
+			RRA
+			RRA;->D->E
+			RR E
+			RRA;->D->E
+			RR E
+			RRA;->D->E
+			RR E
+			AND #03;High
+			OR  #58;Addr
+			LD D,A
+
+	LD A, 2		;Height in Chars
+	AND	#1F
+	JR	NZ, $+2+1
+		INC A
+	LD	B, A
+	EX	AF, AF'	;SaveA
+	LD	A, B
+
+	; LOOP Completly UNROLLED
+ 		; Specific Ottimized code for Width 2
+			LDI	; LDIR
+			LDI
+
+		LD	BC,#0020-2	; Optimized for Width 2
+		EX	DE, HL		;SaveHL
+		ADD	HL, BC
+		EX	DE, HL		;RestHL and DE
+
+			LDI	; LDIR
+			LDI
+
+		; LD	BC,#0020-2	; Optimized for Width 2
+		; EX	DE, HL		;SaveHL
+		; ADD	HL, BC
+		; EX	DE, HL		;RestHL and DE
+	RET
+	
+; ===== ===== =====	
+
+B_CBlitM_W2_0
+	XOR A
+B_CBlitM_W2
+	INC HL		; pass Over Width (fixed)
+	LD A,(HL)
+	EX AF, AF'	; Store Height
+	INC HL
+	; FallTrough
+
+; WARNING: Entry Point
+B_CBlit_W2		; Specific Ottimized code for Width 2
+	LD A,(HL)	; Color
+	INC HL
+	LD H,(HL)
+	LD L,A
+		;CALL ColorADA
+			; UNROLL CALL
+			LD A,D
+			RRA;Dump 3
+			RRA
+			RRA
+			RRA;->D->E
+			RR E
+			RRA;->D->E
+			RR E
+			RRA;->D->E
+			RR E
+			AND #03;High
+			OR  #58;Addr
+			LD D,A
+
+	EX AF, AF'	;restore Height		;LD A,(M_BLITH)
+	RRA			; / 2
+	RRA			; / 4
+	RRA			; / 8
+	AND	#1F
+	JR	NZ, $+2+1
+		INC A
+	LD	B, A
+	EX	AF, AF';SaveA
+	LD	A, B
+ B_CBlit_W2_L
+	; Specific Ottimized code for Width 2
+			LDI	; LDIR
+			LDI
+		EX	DE, HL		;SaveHL
+		LD	BC,#0020-2	; Optimized for Width 2
+		ADD	HL, BC
+		EX	DE, HL		;RestHL and DE
+
+		DEC A
+		JR NZ,B_CBlit_W2_L
+	RET
+	
+; ===== ===== =====	
+
+
 M_CBlitM0
 	XOR A
 M_CBlitM

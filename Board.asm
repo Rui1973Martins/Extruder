@@ -137,7 +137,53 @@ BoardUpdateAll
 	PUSH DE
 	PUSH HL
 
-	CALL BoardDrawCol
+	; CALL BoardDrawCol
+	; INLINE Function
+			BoardDrawCol
+			; Inputs:
+			;	IX = Board Structure
+			;	HL = Column Start Buffer 
+			;	DE = Column Start Position (Y, X)
+				
+				LD	B, (IX+BRD_HEIGHT)	; Height
+
+				LD	C, #10	; Y Increm
+				JR	BoardDrawCol_JP1
+
+			 BoardDrawCol_JP0
+
+				; Increment Y Position
+				LD	A, D
+				ADD	A, C 
+				LD	D, A
+				
+				;Next Data Row (same Column)
+				INC	HL
+
+			 BoardDrawCol_JP1
+
+				PUSH HL
+				PUSH DE	; POSITION YX
+				PUSH BC	; Save Counters
+
+				LD A, (HL)	; Bubble Item
+				
+				; Determine BUBBLE_TAB ndex
+				ADD	A, A	; *2 
+				ADD	A, A	; *4
+				ADD	A, A	; *8
+
+				LD H, HIGH BUBBLE_TAB	; HL Points to Bitmap Struct
+				LD L, A
+				
+					CALL B_CBlitM_H2W2_0;  CALL B_CBlitM_W2_0; CALL B_CBlitM0	;CALL M_CBlitM0	;CALL Blit0
+
+				POP BC
+				POP DE
+				POP HL
+
+				DJNZ BoardDrawCol_JP0
+			;RET
 
 	POP HL
 	POP DE
@@ -147,52 +193,6 @@ BoardUpdateAll
 RET
 
 
-BoardDrawCol
-; Inputs:
-;	IX = Board Structure
-;	HL = Column Start Buffer 
-;	DE = Column Start Position (Y, X)
-	
-	LD	B, (IX+BRD_HEIGHT)	; Height
-
-	LD	C, #10	; Y Increm
-	JR	BoardDrawCol_JP1
-
- BoardDrawCol_JP0
-
-	; Increment Y Position
-	LD	A, D
-	ADD	A, C 
-	LD	D, A
-	
-	;Next Data Row (same Column)
-	INC	HL
-
- BoardDrawCol_JP1
-
-	PUSH HL
-	PUSH DE	; POSITION YX
-	PUSH BC	; Save Counters
-
-	LD A, (HL)	; Bubble Item
-	
-	; Determine BUBBLE_TAB ndex
-	ADD	A, A	; *2 
-	ADD	A, A	; *4
-	ADD	A, A	; *8
-
-	LD H, HIGH BUBBLE_TAB	; HL Points to Bitmap Struct
-	LD L, A
-	
-	;CALL Blit0
-	CALL M_CBlitM0
-
-	POP BC
-	POP DE
-	POP HL
-
-	DJNZ BoardDrawCol_JP0
-RET
 
 
 BoardDrawCursor
