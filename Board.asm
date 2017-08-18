@@ -199,20 +199,21 @@ BoardUpdateAll
 				
 				; Determine BUBBLE_TAB ndex
 				ADD	A, A		; *2 
+				ADD	A, A		; *4 
 
-				LD H, HIGH BUBBLE_TAB_C	; HL Points to Bitmap Struct
+				LD H, HIGH BUBBLE_TAB_C_COMPACT	; HL Points to Bitmap Struct
 				LD L, A
 				
 					; CALL B_CBlit_H2W2
 					; INLINED, Specific Ottimized code for Sprite 2x2
 
-						LD A,(HL)	; Color Data
-						INC HL							
-						LD H,(HL)
-						LD L,A
-						; TODO These 4 lines above, to load HL, could be optimized OUT
-						; using special alignment, ensuring H for Ball colors would be the same as the one in BUBBLE_TAB_C
-						; and ahving BUBBLE_TAB_C only having one Byte with the low byte of each Color Address.
+				;		LD A,(HL)	; Color Data
+				;		INC HL							
+				;		LD H,(HL)
+				;		LD L,A
+				;		; TODO These 4 lines above, to load HL, could be optimized OUT
+				;		; using special alignment, ensuring H for Ball colors would be the same as the one in BUBBLE_TAB_C
+				;		; and ahving BUBBLE_TAB_C only having one Byte with the low byte of each Color Address.
 
 						; LOOP Completly UNROLLED for 2x2								
 								LDI
