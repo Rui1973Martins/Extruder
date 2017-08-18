@@ -123,21 +123,26 @@ BoardUpdateAll
 	LD H, (IX+BRD_BUF_H)	; Col Buffer
 	LD L, (IX+BRD_BUF_L)	; Col Buffer
 
+	PUSH BC
+
 	JR BoardUpdate_COL
 	
  BoardUpdate_LOOP
 
-	CALL BoardColNextPos
+	; CALL BoardColNextPos
+	; INLINED
+		LD	A, #10		; TODO, Increment Column
+		ADD	A, E
+		LD	E, A	
+
 	PUSH BC		; TODO, Need to optimize this, to not trash BC, or process it in another way
 		; CALL BoardColNextBuf	; Trashes BC
 		; INLINED
 			LD	B, 0
 			LD	C, (IX+BRD_HEIGHT)
 			ADD	HL, BC
-	POP BC
 
  BoardUpdate_COL
-	PUSH BC
 	PUSH DE
 	PUSH HL
 
