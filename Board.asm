@@ -129,7 +129,11 @@ BoardUpdateAll
 
 	CALL BoardColNextPos
 	PUSH BC		; TODO, Need to optimize this, to not trash BC, or process it in another way
-		CALL BoardColNextBuf	; Trashes BC
+		; CALL BoardColNextBuf	; Trashes BC
+		; INLINED
+			LD	B, 0
+			LD	C, (IX+BRD_HEIGHT)
+			ADD	HL, BC
 	POP BC
 
  BoardUpdate_COL
@@ -385,7 +389,11 @@ BoardInjectLine_JP1
     INC DE
 
 	PUSH BC
-		CALL BoardColNextBuf
+		; CALL BoardColNextBuf
+		; INLINED
+			LD	B, 0
+			LD	C, (IX+BRD_HEIGHT)
+			ADD	HL, BC
 	POP BC
 	
  BoardInjectLine_TEST
