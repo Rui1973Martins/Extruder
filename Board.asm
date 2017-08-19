@@ -146,7 +146,7 @@ BoardUpdateAll
 	PUSH DE
 	PUSH HL
 
-	; TODO: Optimize, by taking into account that we now how Y increment is done
+	; TODO: Optimize, by taking into account that we know how Y increment is done
 	; Hence we only NEED to CALC once the screen address, and then we can just update screen address
 	
 	; CALL BoardDrawCol
@@ -176,6 +176,7 @@ BoardUpdateAll
 				;LD	B, (IX+BRD_HEIGHT)	; Height
 				; ALTERNATIVE to BC PUSH + POP
 					LD	A, (IX+BRD_HEIGHT)	; Height	; TODO: Optimize by self modify this code into a LD A, nn, updated at start
+				DEC A ; HACK, avoid updating last row, since it's mostly never full, since last row is for bursting/loosing
 
 
 				JP	BoardDrawCol_JP1	; Absolute JP is Faster
@@ -197,7 +198,7 @@ BoardUpdateAll
 
 				LD A, (HL)	; Bubble Item
 				
-				; Determine BUBBLE_TAB ndex
+				; Determine BUBBLE_TAB_C_COMPACT index LOW ADDR
 				ADD	A, A		; *2 
 				ADD	A, A		; *4 
 
@@ -207,13 +208,12 @@ BoardUpdateAll
 					; CALL B_CBlit_H2W2
 					; INLINED, Specific Ottimized code for Sprite 2x2
 
-				;		LD A,(HL)	; Color Data
-				;		INC HL							
-				;		LD H,(HL)
-				;		LD L,A
-				;		; TODO These 4 lines above, to load HL, could be optimized OUT
-				;		; using special alignment, ensuring H for Ball colors would be the same as the one in BUBBLE_TAB_C
-				;		; and ahving BUBBLE_TAB_C only having one Byte with the low byte of each Color Address.
+					;	LD A,(HL)	; Color Data
+					;	INC HL							
+					;	LD H,(HL)
+					;	LD L,A
+					;	; TODO These 4 lines above, to load HL, could be optimized OUT
+					;	; using special alignment, ensuring H for Ball colors would be the same for all BUBBLE_* colors
 
 						; LOOP Completly UNROLLED for 2x2								
 								LDI
