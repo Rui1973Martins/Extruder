@@ -206,7 +206,7 @@ BoardUpdateAll
 				LD L, A
 				
 					; CALL B_CBlit_H2W2
-					; INLINED, Specific Ottimized code for Sprite 2x2
+					; INLINED, Specific Optimized code for Sprite 2x2
 
 					;	LD A,(HL)	; Color Data
 					;	INC HL							
@@ -215,7 +215,7 @@ BoardUpdateAll
 					;	; TODO These 4 lines above, to load HL, could be optimized OUT
 					;	; using special alignment, ensuring H for Ball colors would be the same for all BUBBLE_* colors
 
-						; LOOP Completly UNROLLED for 2x2								
+						; LOOP Completely UNROLLED for 2x2								
 								LDI
 								LDI
 
