@@ -138,7 +138,7 @@ B_CBlit_W2		; Specific Ottimized code for Width 2
 	EX	AF, AF';SaveA
 	LD	A, B
  B_CBlit_W2_L
-	; Specific Ottimized code for Width 2
+	; Specific Optimized code for Width 2
 			LDI	; LDIR
 			LDI
 		EX	DE, HL		;SaveHL

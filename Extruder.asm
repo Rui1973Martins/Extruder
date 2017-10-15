@@ -60,13 +60,17 @@ MENU_LOOP
 	LD A, YELLOW
 	OUT (ULA),A
 
+	;LD A, ; BRD_ANIM_STATE
+
 	LD IX, BOARD1
+	CALL BoardStepAnim
 	CALL BoardDrawCursor
 
 	LD A, WHITE
 	OUT (ULA),A
 
 	LD IX, BOARD2
+	CALL BoardStepAnim
 	CALL BoardDrawCursor
 
 

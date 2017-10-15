@@ -1,13 +1,15 @@
-BRD_HEIGHT 	EQU	0	; Height
-BRD_WIDTH	EQU	1	; Width
-BRD_BUF_H	EQU	2	; BOARD_DATA High
-BRD_BUF_L	EQU	3 	; BOARD_DATA Low
-BRD_POS_X	EQU 4	; START POSITION X
-BRD_POS_Y	EQU	5	; START POSITION Y
+BRD_HEIGHT 		EQU	0	; Height
+BRD_WIDTH		EQU	1	; Width
+BRD_BUF_H		EQU	2	; BOARD_DATA High
+BRD_BUF_L		EQU	3 	; BOARD_DATA Low
+BRD_POS_X		EQU 4	; START POSITION X
+BRD_POS_Y		EQU	5	; START POSITION Y
 BRD_LINE_TOT	EQU 6	; LineTotal
 BRD_LINE_CNT	EQU 7	; LineCount
-BRD_CUR_X	EQU 8	; Cursor (in Chars)
-BRD_FLAGS	EQU	9
+BRD_CUR_X		EQU 8	; Cursor (in Chars)
+BRD_ANIM		EQU 9	; Clown Animation Sequence (With and without ball)
+BRD_ANIM_STATE	EQU 11	; Animation State Frame
+BRD_FLAGS		EQU	12	; flags
 
 BOARD1
 	DEFB 0		; Height
@@ -17,6 +19,8 @@ BOARD1
 	DEFB 0		; LineTotal
 	DEFB 0		; LineCount
 	DEFB 0		; Cursor (in Chars)
+	DEFW ClownIdleAnimator1	; Clown Animation Sequence
+	DEFB 0		; Animation State Frame
 	DEFB #0		; flags
 
 
@@ -28,6 +32,8 @@ BOARD2
 	DEFB 0		; LineTotal
 	DEFB 0		; LineCount
 	DEFB 0		; Cursor (in Chars)
+	DEFW ClownIdleAnimator2	; Clown Animation Sequence
+	DEFB 0		; Animation State Frame
 	DEFB #0		; flags
 
 

@@ -249,6 +249,34 @@ BoardUpdateAll
 RET
 
 
+BoardStepAnim
+	INC	(IX+BRD_ANIM_STATE)	; Step counter
+	
+	LD	HL, ClownIdleAnimFrames
+	LD	A, (IX+BRD_ANIM_STATE)
+	AND (HL)	; MASK
+	RLA			; simplification from  SLA A, since Carry is clear
+	RLA			; x4
+	LD	E, A
+	LD	D, 0
+	INC HL
+	INC HL	; point to frames
+	ADD HL, DE
+	
+	LD	C, (IX+BRD_ANIM)
+	LD	B, (IX+BRD_ANIM+1)
+	LD	DE, 2
+	EX DE, HL	; Save HL
+		ADD	HL, BC
+	EX	DE, HL
+
+	; Replace PX address in Animator
+	LDI	; CL Address
+	LDI
+	LDI	; Px Address
+	LDI
+	; NOTE could instead of updating animator Address, try to enter bliter with X and Y setup and HL pointing to start of CL and PX
+RET
 
 
 BoardDrawCursor
@@ -282,8 +310,10 @@ BoardDrawCursor
 	
 	; DE has position YX
 	
-	; TODO Draw Current Clown Frame 
-	LD	HL, Clown0
+	; TODO Draw Current Clown Frame	
+	;LD	HL, ClownIdleAnimator ; Clown0
+	LD	L, (IX+BRD_ANIM)	; Low
+	LD	H, (IX+BRD_ANIM+1)	; High
 	CALL Blit0
 RET
 
