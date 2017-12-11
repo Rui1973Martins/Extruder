@@ -72,7 +72,6 @@ MENU_ENTRY
 
 	HALT
 	
-	;Set Border
 	LD A,BLACK
 	OUT (ULA),A
 
@@ -120,92 +119,130 @@ WaitNoKeyPressed
 
 ; ===== 1 Player Init =====
 
-GameInit_1Player
+GameInitWithAnim_1Player
 	; Player 1
 	LD IX, BOARD1
 	LD BC, #0B0D	; H x W
 	LD DE, BOARD1_DATA
 	LD HL, #0818	; Y = 8, X = 24
-	CALL BoardInit
+		CALL BoardInit
 
-RET
-
-GameInitDraw_1Player
-
-	LD IX, BOARD1
-	CALL BoardInitDraw
-	
-	JP WaitPressAnyKey
-;RET
+	LD	A, 5
+		CALL BoardAddLineTotal
 
 GameDropAnim_1Player
 	CALL BoardsResetDropAnim
 	
-PLAY1_DROP_ANIM
+	JP PLAY1_DROP_ANIM
+
+PLAY1_DROP_ANIM_NEXT
 
 	CALL BoardsNextDropAnimLine
+
+PLAY1_DROP_ANIM
 	
+	LD A, BLACK
+	OUT (ULA),A
+
 	HALT 
 
-	LD IX, BOARD1
-	CALL BoardDropAnimLineColor
-	CALL BoardDropAnimLinePixels
+	LD A, CYAN
+	OUT (ULA),A
 
-	JP NZ, PLAY1_DROP_ANIM
+	LD IX, BOARD1
+		CALL BoardDropAnimLineColor
+
+	LD A, BLUE
+	OUT (ULA),A
+
+		CALL BoardDropAnimLinePixels
+
+	JP NZ, PLAY1_DROP_ANIM_NEXT
 RET
+
+
+;DEPRECATED
+GameInitDraw_1Player
+
+	LD IX, BOARD1
+		CALL BoardInitDraw
+	
+	JP WaitPressAnyKey
+;RET
 
 
 ; ===== 2 Players =====
 
-GameInit_2Players
+GameInitWithAnim_2Players
 	; Player 1
 	LD IX, BOARD1
 	LD BC, #0B07	; H x W
 	LD DE, BOARD1_DATA
 	LD HL, #0800	; Y = 8, X = 0
-	CALL BoardInit
+		CALL BoardInit
+
+	LD	A, 5
+		CALL BoardAddLineTotal
 
 	; Player 2
 	LD IX, BOARD2
 	LD BC, #0B07	; H x W
 	LD DE, BOARD2_DATA
 	LD HL, #0890	; Y = 8, X = 144
-	CALL BoardInit	
+		CALL BoardInit	
+
+	LD	A, 5
+		CALL BoardAddLineTotal
+
+GameDropAnim_2Players
+	CALL BoardsResetDropAnim
+	
+	JP PLAY2_DROP_ANIM
+	
+PLAY2_DROP_ANIM_NEXT
+
+	CALL BoardsNextDropAnimLine
+
+PLAY2_DROP_ANIM
+
+	LD A, BLACK
+	OUT (ULA),A
+
+	HALT 
+	
+	LD A, CYAN
+	OUT (ULA),A
+
+	LD IX, BOARD1
+		CALL BoardDropAnimLineColor
+	LD IX, BOARD2
+		CALL BoardDropAnimLineColor
+
+	LD A, BLUE
+	OUT (ULA),A
+
+	LD IX, BOARD1
+		CALL BoardDropAnimLinePixels
+	LD IX, BOARD2
+		CALL BoardDropAnimLinePixels
+	
+	JP NZ, PLAY2_DROP_ANIM_NEXT
 RET
 
+
+;DEPRECATED
 GameInitDraw_2Players
 
 	LD IX, BOARD1
-	CALL BoardInitDraw
+		CALL BoardInitDraw
 
 	LD IX, BOARD2
-	CALL BoardInitDraw
+		CALL BoardInitDraw
 	
 	JP WaitPressAnyKey
 ;RET
 
 
-GameDropAnim_2Players
-	CALL BoardsResetDropAnim
-	
-PLAY2_DROP_ANIM
-
-	CALL BoardsNextDropAnimLine
-
-	HALT 
-	
-	LD IX, BOARD1
-	CALL BoardDropAnimLineColor
-	LD IX, BOARD2
-	CALL BoardDropAnimLineColor
-
-	LD IX, BOARD1
-	CALL BoardDropAnimLinePixels
-	LD IX, BOARD2
-	CALL BoardDropAnimLinePixels
-	
-	JP NZ, PLAY2_DROP_ANIM
-RET
 
 ORG #8000
 
@@ -220,16 +257,13 @@ PLAY1
 	CALL CLSC
 	CALL CLS0
 
-	CALL GameInit_1Player
+	CALL GameInitWithAnim_1Player
+	
 
-	;CALL GameInitDraw_1Player
-	CALL GameDropAnim_1Player
-	
-	
-	LD	IX, BOARD1
-	LD	A, 5
+	;Add Extra line from time to time (use a frameTimer)	
+	;LD	IX, BOARD1
+	LD	A, 1
 	CALL BoardAddLineTotal
-	
 	
 PLAY1_LOOP
 
@@ -279,17 +313,16 @@ PLAY2
 	CALL CLSC
 	CALL CLS0
 
-	CALL GameInit_2Players
-	;CALL GameInitDraw_2Players
-	CALL GameDropAnim_2Players
+	CALL GameInitWithAnim_2Players
+
 	
-	
+	;Add Extra line from time to time (use a frameTimer)	
 	LD	IX, BOARD1
-	LD	A, 5
+	LD	A, 1
 	CALL BoardAddLineTotal
 
 	LD	IX, BOARD2
-	LD	A, 5
+	LD	A, 1
 	CALL BoardAddLineTotal
 	
 PLAY2_LOOP
@@ -327,7 +360,6 @@ PLAY2_LOOP
 		LD IX, BOARD2
 		CALL BoardStepAnim
 		CALL BoardDrawCursor
-
 
 
 ;	CALL WaitPressAnyKey
