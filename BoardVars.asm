@@ -167,5 +167,15 @@ BOARD2_DATA
 		DEFB #00
 	ENDM
 
+
 BOARD_DATA_END_MARKER
 	DEFB #FF	
+	
+; Used to keep generated Ball Colors history, so that both players get the same values
+; TODO, Can't we use ROM DATA for generation ?
+; Would avoid having to keep a copy of the items.
+BOARD_GEN_HISTORY
+	REPT 11*7*2	; Must be enough to keep the entire game input (MAX 250 per user ?)
+		DEFB #00
+	ENDM
+

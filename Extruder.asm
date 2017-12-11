@@ -142,7 +142,7 @@ GameInitWithAnim_1Player
 	LD HL, #0818	; Y = 8, X = 24
 		CALL BoardInit
 
-	LD	A, 5
+	LD	A, 7
 		CALL BoardAddLineTotal
 
 GameDropAnim_1Player
@@ -275,10 +275,10 @@ PLAY1
 	CALL GameInitWithAnim_1Player
 	
 
-	;Add Extra line from time to time (use a frameTimer)	
-	;LD	IX, BOARD1
-	LD	A, 1
-	CALL BoardAddLineTotal
+	; ;Add Extra line from time to time (use a frameTimer)	
+	; ;LD	IX, BOARD1
+	; LD	A, 1
+	; CALL BoardAddLineTotal
 	
 PLAY1_LOOP
 
@@ -331,14 +331,14 @@ PLAY2
 	CALL GameInitWithAnim_2Players
 
 	
-	;Add Extra line from time to time (use a frameTimer)	
-	LD	IX, BOARD1
-	LD	A, 1
-	CALL BoardAddLineTotal
+	; ;Add Extra line from time to time (use a frameTimer)	
+	; LD	IX, BOARD1
+	; LD	A, 1
+	; CALL BoardAddLineTotal
 
-	LD	IX, BOARD2
-	LD	A, 1
-	CALL BoardAddLineTotal
+	; LD	IX, BOARD2
+	; LD	A, 1
+	; CALL BoardAddLineTotal
 	
 PLAY2_LOOP
 
@@ -381,11 +381,11 @@ PLAY2_LOOP
 	
 
 	LD	IX, BOARD1
-	LD	DE, BOARD_PATTERN1
+	LD	DE, BOARD_PATTERN_DUAL	;BOARD_PATTERN1
 	CALL	BoardInjectLine
 	
 	LD IX, BOARD2
-	LD	DE, BOARD_PATTERN_MAGICIAN
+	LD	DE, BOARD_PATTERN_DUAL	;BOARD_PATTERN_MAGICIAN
 	CALL	BoardInjectLine
 
 
