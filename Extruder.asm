@@ -6,129 +6,6 @@ include "_REF_\KEYBOARD.asm"
 ORG #6000
 JP MENU_ENTRY
 
-include "_LIB_\ClearScreen.asm"
-include "_LIB_\Screen.asm"
-
-MENU_ENTRY
-
-	HALT
-	
-	;Set Border
-	LD A,BLACK
-	OUT (ULA),A
-
-	; Clear Screen (Black on Black)
-	LD A, BLACK<<3 + BLACK	; BLACK on  BLACK
-	CALL CLSC
-	CALL CLS0
-
-MENU_PLAY
-
-	CALL GameInit_Versus
-	CALL GameInitDraw_Versus; 	FULL_GAME
-
-	LD	IX, BOARD1
-	LD	A, 5
-	CALL BoardAddLineTotal
-
-	LD	IX, BOARD2
-	LD	A, 5
-	CALL BoardAddLineTotal
-
-	CALL DrawMenu
-	
-	;Set Border
-	LD A,BLACK
-	OUT (ULA),A
-	
-MENU_LOOP
-	HALT	; sync before update Board
-	
-	LD A, RED
-	OUT (ULA),A
-
-	LD IX, BOARD1
-	CALL BoardUpdateAll
-		
-	LD A, MAGENTA
-	OUT (ULA),A
-
-	LD IX, BOARD2
-	CALL BoardUpdateAll
-	
-	
-	LD A, YELLOW
-	OUT (ULA),A
-
-	;LD A, ; BRD_ANIM_STATE
-
-	LD IX, BOARD1
-	CALL BoardStepAnim
-	CALL BoardDrawCursor
-
-	LD A, WHITE
-	OUT (ULA),A
-
-	LD IX, BOARD2
-	CALL BoardStepAnim
-	CALL BoardDrawCursor
-
-
-	LD A, BLACK
-	OUT (ULA),A
-
-;	CALL WaitPressAnyKey
-	
-
-	LD	IX, BOARD1
-	LD	DE, BOARD_PATTERN1
-	CALL	BoardInjectLine
-	
-	LD IX, BOARD2
-	LD	DE, BOARD_PATTERN_MAGICIAN
-	CALL	BoardInjectLine
-
-		
-    JP MENU_LOOP ;MENU_PLAY
-;RET
-
-
-WaitPressAnyKey
-	; Press AnyKey
-	XOR A
-	IN A,(ULA)	; Read All Keys - Check for any Key pressed
-	AND #1F ; Test only 5 Keys
-	CP #1F	; If Not Zero, some key was pressed !
-
-	RET NZ
-	JR WaitPressAnyKey
-
-
-GameInit_Versus
-	; Player 1
-	LD IX, BOARD1
-	LD BC, #0B07	; H x W
-	LD DE, BOARD1_DATA
-	CALL BoardInit
-
-	; Player 2
-	LD IX, BOARD2
-	LD BC, #0B07	; H x W
-	LD DE, BOARD2_DATA
-	CALL BoardInit	
-RET
-
-GameInitDraw_Versus
-
-	LD IX, BOARD1
-	CALL BoardInitDraw
-
-	LD IX, BOARD2
-	CALL BoardInitDraw
-	
-	JP WaitPressAnyKey
-;RET
-
 DrawCredits
 
 	HALT
@@ -145,7 +22,6 @@ DrawCredits
 	JP Z, DrawCredits
 
 RET
-
 
 borderCounter DEFB BLACK
 
@@ -180,8 +56,8 @@ Menu_PAINT
 
 	; Press AnyKey
 	XOR A
-	IN A,(ULA)	; Read All Keys - Check for nay Key pressed
-	AND #1F	; Test only 5 Keys
+	IN A,(ULA)	; Read All Keys - Check for any Key pressed
+	AND #1F	; Test only keys (5 bits)
 	CP #1F	; If Not Zero, some key was pressed !
 
 	RET NZ
@@ -189,7 +65,293 @@ Menu_PAINT
 JP Menu_REPAINT
 
 
+
+; ===== MENU =====
+
+MENU_ENTRY
+
+	HALT
+	
+	;Set Border
+	LD A,BLACK
+	OUT (ULA),A
+
+	; Clear Screen (Black on Black)
+	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
+	CALL CLSC
+	CALL CLS0
+	
+	CALL DrawMenu
+
+MENU_PLAY1
+
+	CALL PLAY1
+	CALL WaitNoKeyPressed
+	
+MENU_PLAY2
+
+	CALL PLAY2
+	CALL WaitNoKeyPressed
+	
+    JP MENU_ENTRY
+;RET
+
+
+WaitPressAnyKey
+	; Press AnyKey
+	XOR A
+	IN A,(ULA)	; Read All Keys - Check for any Key pressed
+	AND #1F ; Test only 5 Keys
+	CP #1F	; If Not Zero, some key was pressed !
+
+	RET NZ
+	JR WaitPressAnyKey
+
+WaitNoKeyPressed
+	; Press AnyKey
+	XOR A
+	IN A,(ULA)	; Read All Keys - Check for any Key pressed
+	AND #1F ; Test only 5 Keys
+	CP #1F	; If Not Zero, some key was pressed !
+
+	RET Z
+	JR WaitNoKeyPressed
+
+
+; ===== 1 Player Init =====
+
+GameInit_1Player
+	; Player 1
+	LD IX, BOARD1
+	LD BC, #0B0D	; H x W
+	LD DE, BOARD1_DATA
+	LD HL, #0818	; Y = 8, X = 24
+	CALL BoardInit
+
+RET
+
+GameInitDraw_1Player
+
+	LD IX, BOARD1
+	CALL BoardInitDraw
+	
+	JP WaitPressAnyKey
+;RET
+
+GameDropAnim_1Player
+	CALL BoardsResetDropAnim
+	
+PLAY1_DROP_ANIM
+
+	CALL BoardsNextDropAnimLine
+	
+	HALT 
+
+	LD IX, BOARD1
+	CALL BoardDropAnimLineColor
+	CALL BoardDropAnimLinePixels
+
+	JP NZ, PLAY1_DROP_ANIM
+RET
+
+
+; ===== 2 Players =====
+
+GameInit_2Players
+	; Player 1
+	LD IX, BOARD1
+	LD BC, #0B07	; H x W
+	LD DE, BOARD1_DATA
+	LD HL, #0800	; Y = 8, X = 0
+	CALL BoardInit
+
+	; Player 2
+	LD IX, BOARD2
+	LD BC, #0B07	; H x W
+	LD DE, BOARD2_DATA
+	LD HL, #0890	; Y = 8, X = 144
+	CALL BoardInit	
+RET
+
+GameInitDraw_2Players
+
+	LD IX, BOARD1
+	CALL BoardInitDraw
+
+	LD IX, BOARD2
+	CALL BoardInitDraw
+	
+	JP WaitPressAnyKey
+;RET
+
+
+GameDropAnim_2Players
+	CALL BoardsResetDropAnim
+	
+PLAY2_DROP_ANIM
+
+	CALL BoardsNextDropAnimLine
+
+	HALT 
+	
+	LD IX, BOARD1
+	CALL BoardDropAnimLineColor
+	LD IX, BOARD2
+	CALL BoardDropAnimLineColor
+
+	LD IX, BOARD1
+	CALL BoardDropAnimLinePixels
+	LD IX, BOARD2
+	CALL BoardDropAnimLinePixels
+	
+	JP NZ, PLAY2_DROP_ANIM
+RET
+
 ORG #8000
+
+	
+include "_LIB_\ClearScreen.asm"
+include "_LIB_\Screen.asm"
+
+; ===== Single Player Game Loop =====
+PLAY1
+	; Clear Screen (Black on Black)
+	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
+	CALL CLSC
+	CALL CLS0
+
+	CALL GameInit_1Player
+
+	;CALL GameInitDraw_1Player
+	CALL GameDropAnim_1Player
+	
+	
+	LD	IX, BOARD1
+	LD	A, 5
+	CALL BoardAddLineTotal
+	
+	
+PLAY1_LOOP
+
+	LD A,BLACK
+	OUT (ULA),A
+
+	HALT	; sync before update Board
+	
+	LD A, RED
+	OUT (ULA),A
+
+		LD IX, BOARD1
+		CALL BoardUpdateAll
+
+	LD A, YELLOW
+	OUT (ULA),A
+
+		;LD A, ; BRD_ANIM_STATE
+
+		LD IX, BOARD1
+		CALL BoardStepAnim
+		CALL BoardDrawCursor
+
+	
+;	CALL WaitPressAnyKey
+	
+	LD	IX, BOARD1
+	LD	DE, BOARD_PATTERN_SINGLE
+	CALL	BoardInjectLine
+
+
+	; Press AnyKey to LEAVE
+	XOR A
+	IN A,(ULA)	; Read All Keys - Check for any Key pressed
+	AND #1F	; Test only keys (5 bits)
+	CP #1F	; If Not Zero, some key was pressed !
+	RET NZ
+	
+    JP PLAY1_LOOP
+;RET
+
+
+; ===== Dual Player Game Loop =====
+PLAY2
+	; Clear Screen (Black on Black)
+	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
+	CALL CLSC
+	CALL CLS0
+
+	CALL GameInit_2Players
+	;CALL GameInitDraw_2Players
+	CALL GameDropAnim_2Players
+	
+	
+	LD	IX, BOARD1
+	LD	A, 5
+	CALL BoardAddLineTotal
+
+	LD	IX, BOARD2
+	LD	A, 5
+	CALL BoardAddLineTotal
+	
+PLAY2_LOOP
+
+	LD A, BLACK
+	OUT (ULA),A
+
+	HALT	; sync before update Board
+	
+	LD A, RED
+	OUT (ULA),A
+
+		LD IX, BOARD1
+		CALL BoardUpdateAll
+		
+	LD A, MAGENTA
+	OUT (ULA),A
+
+		LD IX, BOARD2
+		CALL BoardUpdateAll
+	
+	
+	LD A, YELLOW
+	OUT (ULA),A
+
+		;LD A, ; BRD_ANIM_STATE
+
+		LD IX, BOARD1
+		CALL BoardStepAnim
+		CALL BoardDrawCursor
+
+	LD A, WHITE
+	OUT (ULA),A
+
+		LD IX, BOARD2
+		CALL BoardStepAnim
+		CALL BoardDrawCursor
+
+
+
+;	CALL WaitPressAnyKey
+	
+
+	LD	IX, BOARD1
+	LD	DE, BOARD_PATTERN1
+	CALL	BoardInjectLine
+	
+	LD IX, BOARD2
+	LD	DE, BOARD_PATTERN_MAGICIAN
+	CALL	BoardInjectLine
+
+
+	; Press AnyKey to LEAVE
+	XOR A
+	IN A,(ULA)	; Read All Keys - Check for any Key pressed
+	AND #1F	; Test only keys (5 bits)
+	CP #1F	; If Not Zero, some key was pressed !
+	RET NZ
+		
+    JP PLAY2_LOOP
+;RET
+
 include "Board.asm"
 
 ORG #A000
