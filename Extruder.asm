@@ -82,10 +82,25 @@ MENU_ENTRY
 	
 	CALL DrawMenu
 
+	; Read First Row (12345)
+	LD BC, KBRD15
+	IN A,(C)
+	OR #E0			;Set Bits765
+
+	CP KEY1
+	JP Z, MENU_PLAY1
+
+	CP KEY2
+	JP Z, MENU_PLAY2
+	
+	JP MENU_ENTRY
+	
 MENU_PLAY1
 
 	CALL PLAY1
 	CALL WaitNoKeyPressed
+
+	JP MENU_ENTRY
 	
 MENU_PLAY2
 
@@ -295,12 +310,12 @@ PLAY1_LOOP
 	CALL	BoardInjectLine
 
 
-	; Press AnyKey to LEAVE
-	XOR A
-	IN A,(ULA)	; Read All Keys - Check for any Key pressed
-	AND #1F	; Test only keys (5 bits)
-	CP #1F	; If Not Zero, some key was pressed !
-	RET NZ
+	; Press SPACE to LEAVE
+	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYSP
+	RET Z
 	
     JP PLAY1_LOOP
 ;RET
@@ -374,12 +389,12 @@ PLAY2_LOOP
 	CALL	BoardInjectLine
 
 
-	; Press AnyKey to LEAVE
-	XOR A
-	IN A,(ULA)	; Read All Keys - Check for any Key pressed
-	AND #1F	; Test only keys (5 bits)
-	CP #1F	; If Not Zero, some key was pressed !
-	RET NZ
+	; Press SPACE to LEAVE
+	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYSP
+	RET Z
 		
     JP PLAY2_LOOP
 ;RET
