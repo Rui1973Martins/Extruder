@@ -18,6 +18,7 @@ BoardInit
 ; B = Height (in items)
 ; C = Width (in items)
 ; DE = Pointer free buffer for (H x W) entries
+; HL = START POSITION Y,X 
 
 ; Output: Initializes Board Data Structure
 ;	Trashes A and BC
@@ -30,10 +31,14 @@ BoardInit
 	LD (IX+BRD_BUF_H), D	; Buffer pointer HIGH
 	LD (IX+BRD_BUF_L), E	; Buffer Pointer LOW
 
+	; Init Screen Position
+	LD (IX+BRD_POS_Y), H	; Buffer pointer HIGH
+	LD (IX+BRD_POS_X), L	; Buffer Pointer LOW
+
 	LD (IX+BRD_LINE_TOT), 0	; New LineTotal
 	LD (IX+BRD_LINE_CNT), 0	; New LineCount
 
-	; Center at middle
+	; Center Clown XPos at middle
 	LD A, C					; Cursor or Clown POS 
 	SRA A					; Integer Divide By 2
 	; since we start at 0, and Sprite has width, discard this
@@ -46,17 +51,118 @@ BoardInit
 	
 	LD A, #00	; EMPTY Slot
 
- BoardInit_JP1
+ BoardInit_JP1	; Clear Board Buffer Contents
 	LD (DE), A
 	INC DE	
 	DJNZ	BoardInit_JP1
 
 	DEC C
-	JP NZ,	BoardInit_JP1	
+	JP NZ,	BoardInit_JP1
 RET
 
+
+BoardsResetDropAnim
+	XOR A
+	LD (BOARDS_DROP_ANIM_CNT), A
+RET
+
+BoardsNextDropAnimLine
+	LD HL, BOARDS_DROP_ANIM_CNT 
+	INC (HL)
+RET
+
+BoardDropAnimLineColor
+; Inputs:
+;	IX = Board Structure
 	
-BoardInitDraw; COLOR
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CP (IX+BRD_HEIGHT)			; Height
+	RET Z
+
+	LD B, (IX+BRD_WIDTH )	; Width
+
+	ADD A, A	; *2
+	ADD A, A	; *4
+	ADD A, A	; *8
+	ADD A, A	; *16	Actual Ball height 
+	; TODO optimize, Add 16 iteratively, instead of multiply, in less than 16T ?
+	
+	ADD A, (IX+BRD_POS_Y)	; Start Position Y
+	LD D, A
+	LD E, (IX+BRD_POS_X)	; Start Position X
+	
+	JP BoardDropAnimLineColor_JP1
+
+ BoardDropAnimLineColor_JP0
+	;CALC Next Column
+	LD HL, #0010			; Width of a Ball
+	ADD HL,DE
+	EX DE, HL				; DE = New (Column) Position
+
+ BoardDropAnimLineColor_JP1
+
+	PUSH BC	; Save Counters
+	PUSH DE	; POSITION YX
+
+		LD HL, BubbleEmpty
+		CALL B_CBlitM_W2_0
+
+	POP DE
+	POP BC
+
+	DJNZ BoardDropAnimLineColor_JP0
+
+	XOR A
+	CP #FF	; Make sure we return a NON ZERO Flag
+RET
+
+BoardDropAnimLinePixels
+; Inputs:
+;	IX = Board Structure
+	
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CP (IX+BRD_HEIGHT)			; Height
+	RET Z
+
+	LD B, (IX+BRD_WIDTH )	; Width
+
+	ADD A, A	; *2
+	ADD A, A	; *4
+	ADD A, A	; *8
+	ADD A, A	; *16	Actual Ball height 
+	; TODO optimize, Add 16 iteratively, instead of multiply, in less than 16T ?
+	
+	ADD A, (IX+BRD_POS_Y)	; Start Position Y
+	LD D, A
+	LD E, (IX+BRD_POS_X)	; Start Position X
+	
+	JP BoardDropAnimLinePx_JP1
+
+ BoardDropAnimLinePx_JP0
+	;CALC Next Column
+	LD HL, #0010			; Width of a Ball
+	ADD HL,DE
+	EX DE, HL				; DE = New (Column) Position
+
+ BoardDropAnimLinePx_JP1
+
+	PUSH BC	; Save Counters
+	PUSH DE	; POSITION YX
+
+		LD HL, BubbleEmpty
+		CALL PxBlit0	; Blits Single Ball, Pixels Only
+
+	POP DE
+	POP BC
+
+	DJNZ BoardDropAnimLinePx_JP0
+
+	XOR A
+	CP #FF	; Make sure we return a NON ZERO Flag
+RET
+
+; DEPRECATED
+BoardInitDraw;
 ; Inputs:
 ;	IX = Board Structure
 	
@@ -70,9 +176,9 @@ BoardInitDraw; COLOR
 
  BoardInitDraw_JP0
 	;CALC Next Column
-	LD HL, #0010
+	LD HL, #0010			; Width of a Ball
 	ADD HL,DE
-	EX DE, HL
+	EX DE, HL				; DE = New (Column) Position
 
  BoardInitDraw_JP1
 	LD A, C
@@ -267,7 +373,7 @@ BoardStepAnim
 	LD	B, (IX+BRD_ANIM+1)
 	LD	DE, 2
 	EX DE, HL	; Save HL
-		ADD	HL, BC
+		ADD	HL, BC			; We can optimize, by eventually keeping a direct pointer to the position.
 	EX	DE, HL
 
 	; Replace PX address in Animator
@@ -277,6 +383,54 @@ BoardStepAnim
 	LDI
 	; NOTE could instead of updating animator Address, try to enter bliter with X and Y setup and HL pointing to start of CL and PX
 RET
+
+; ------------------------------------------------------
+; NEXT CODE must be reviewed to be included
+; ------------------------------------------------------
+; LookupAlignedTabMacro MACRO ADDR
+		; LD H, HIGH(ADDR)
+		; SLA A	;*2
+		; LD L,A
+		; LD A,(HL)
+		; INC HL
+		; LD H,(HL)
+		; LD L,A
+; ENDM
+; ; ------------------------------------------------------
+; L_ANIM
+		; LD L,(IX+6)
+		; LD H,(IX+7)		; Anim Structure Addr
+		; LD A,(FRAME)	; Frame Number
+; LO_ANIM			; Alternative entry point
+		; AND (HL)		; Mask - Anim Structure,first byte
+		; LD C,A
+		; LD A,(HL)		; Shift Mask Right until first bit Set
+; ANIMSK		RRA			; While bit0 = 0
+			; JR C,ANITAB 
+				; SRL C	;   Shift right 
+			; JR ANIMSK	; end While
+; ANITAB	INC HL			; Reserved Byte
+		; INC HL			; First Frame Record Addr
+		; SLA C;*4		; Frame Record size = 4
+		; SLA C
+		; LD B,0
+		; ADD HL,BC		; New Frame Number
+		; EX DE,HL		; SaveHL
+		; LD A,(IX+REC_SPRITE)		; Graphic Index/Type
+			; ;CALL LookupSpriteTab
+			; LookupAlignedTabMacro LevelSpriteAlignedTab
+
+		; EX DE,HL		; Restore HL
+		; INC DE			; DE = Sprite Height (Pixels)
+		; INC DE			; DE = Sprite Color Addr
+		; LDI				; Replace Sprite Color Addr
+		; LDI
+		; LDI				; Replace Sprite Pixel Addr
+		; LDI
+	; RET
+; ------------------------------------------------------
+; END of to be reviewed
+; ------------------------------------------------------
 
 
 BoardDrawCursor
