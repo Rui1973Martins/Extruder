@@ -543,15 +543,15 @@ BoardColInject	; Adds another item into specific col
 	LD C, (IX+BRD_HEIGHT)	; TODO: We can Load B directly, if we do not need C to have the height
 	LD B, C
 		
-	EX AF, AF'		; Save index
+	EX AF, AF'		; Save as previous
 
  BoardColInject_LOOP
 	LD A, (HL)
-	CP #00
+	CP B_0			; B_0 = BOARD EMPTY SPOT
 
 	JP Z, BoardColInject_LAST
 	
-	EX AF, AF'	;	Swap Existing with previous
+	EX AF, AF'		; Swap Existing with previous
 	LD (HL), A
 
 	INC HL			; TODO, we could move this to start of loop, if it allows for faster processing on last element.

@@ -1,6 +1,6 @@
 	
 ; OVERFLOW PATTERN codes
-B_0	EQU 0	; DUMMY code, to mark unknown
+B_0	EQU 0	; Empty code (if used on Overflow Patterns, means UNKNOWN)
 B_R	EQU	1	; r = red
 B_G	EQU	2	; g = green
 B_B	EQU	3	; b = blue
@@ -224,7 +224,7 @@ BOARD_OVERFLOW_PATTERN_STRENGTH
 BOARD_OVERFLOW_PATTERN_EMPRESS;
 	DEFB		B_W,	B_B,	B_G,	B_W,	B_Y,	B_R,	B_W
 	DEFB		B_B,	B_W,	B_Y,	B_R,	B_G,	B_W,	B_R
-	DEFB		B_R,	B_G,	B_W,	B_B,	B_W,	B_0,	B_B
+	DEFB		B_R,	B_G,	B_W,	B_B,	B_W,	B_Y,	B_B
 	DEFB		B_Y,	B_W,	B_B,	B_Y,	B_G,	B_W,	B_R
 	DEFB		B_B,	B_W,	B_G,	B_R,	B_Y,	B_W,	B_R
 	DEFB		B_R,	B_Y,	B_W,	B_B,	B_W,	B_G,	B_B

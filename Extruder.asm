@@ -191,7 +191,7 @@ GameInitDraw_1Player
 
 GameInitWithAnim_2Players
 	; Player 1
-	LD	A, JUSTICE
+	LD	A, EMPRESS
 	LD IX, BOARD1
 	LD BC, #0B07	; H x W
 	LD DE, BOARD1_DATA
@@ -202,7 +202,7 @@ GameInitWithAnim_2Players
 		CALL BoardAddLineTotal
 
 	; Player 2
-	LD	A, MAGICIAN
+	LD	A, EMPRESS
 	LD IX, BOARD2
 	LD BC, #0B07	; H x W
 	LD DE, BOARD2_DATA

@@ -1,18 +1,19 @@
 
 
-BRD_HEIGHT 		EQU	0	; Height
-BRD_WIDTH		EQU	1	; Width
-BRD_BUF			EQU 2	; BOARD_DATA Addr
-BRD_BUF_H		EQU	2	; BOARD_DATA High
-BRD_BUF_L		EQU	3 	; BOARD_DATA Low
-BRD_POS			EQU 4	; Screen POSITION
-BRD_POS_X		EQU 4	; Screen POSITION X
-BRD_POS_Y		EQU	5	; Screen POSITION Y
-BRD_LINE_TOT	EQU 6	; LineTotal
-BRD_LINE_CNT	EQU 7	; LineCount
-BRD_CUR_X		EQU 8	; Cursor (in Chars) relative to START POSITION_X
-BRD_ANIM		EQU 9	; Clown Animation Sequence (With and without ball)
-; 10 Space for  remainder of BRD_ANIM address
+BRD_HEIGHT 		EQU	 0	; Height
+BRD_WIDTH		EQU	 1	; Width
+BRD_BUF			EQU  2	; BOARD_DATA Addr
+BRD_BUF_H		EQU	 2	; BOARD_DATA High
+BRD_BUF_L		EQU	 3 	; BOARD_DATA Low
+BRD_POS			EQU  4	; Screen POSITION
+ BRD_POS_X		EQU  4	; Screen POSITION X
+ BRD_POS_Y		EQU	 5	; Screen POSITION Y
+BRD_LINE_TOT	EQU  6	; LineTotal
+BRD_LINE_CNT	EQU  7	; LineCount
+BRD_CUR_X		EQU  8	; Cursor (in Chars) relative to START POSITION_X
+BRD_ANIM		EQU  9	; Clown Animation Sequence (With and without ball)
+ BRD_ANIM_L		EQU  9	; Clown Animation Sequence Low
+ BRD_ANIM_H		EQU 10	; Clown Animation Sequence High 
 BRD_ANIM_STATE	EQU 11	; Animation State Frame
 BRD_OVFLOW_Base_L	EQU 12	; Overflow Tab Base Address Low, used to loop back.
 BRD_OVFLOW_Base_H	EQU 13	; Overflow Tab Base Address High, used to loop back.
