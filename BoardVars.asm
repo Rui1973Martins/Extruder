@@ -18,7 +18,8 @@ BRD_OVFLOW_Base_L	EQU 12	; Overflow Tab Base Address Low, used to loop back.
 BRD_OVFLOW_Base_H	EQU 13	; Overflow Tab Base Address High, used to loop back.
 BRD_OVFLOW_TAB_L	EQU	14	; Opponent Overflow Tab Address Low (This will change during updates)
 BRD_OVFLOW_TAB_H	EQU	15	; Opponent Overflow Tab Address High
-BRD_FLAGS		EQU	16	; flags
+BRD_OVFLOW_CNT		EQU 16	; Count Down, Initialized to BRD_OVFLOW_CNT
+BRD_FLAGS		EQU	17	; flags
 
 
 BOARD1
@@ -31,8 +32,9 @@ BOARD1
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator1	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
-	DEFW 0		; Overflow Pattern Table Base Address
-	DEFW 0		; Overflow Pattern Table Address
+	DEFW #0000	; Overflow Pattern Table Base Address
+	DEFW #0000	; Overflow Pattern Table Address
+	DEFB 0		; OverflowPAttern Count Down
 	DEFB #0		; flags
 
 
@@ -46,8 +48,9 @@ BOARD2
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator2	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
-	DEFW 0		; Overflow Pattern Table Base Address
-	DEFW 0		; Overflow Pattern Table Address
+	DEFW #0000	; Overflow Pattern Table Base Address
+	DEFW #0000	; Overflow Pattern Table Address
+	DEFB 0		; OverflowPAttern Count Down
 	DEFB #0		; flags
 
 
