@@ -269,7 +269,7 @@ BOARD_OVERFLOW_PATTERN_BLACK_PIERROT
 
 
 
-OVERFLOW_TAB_SIZE	EQU	7*8	; amount of entries in an Overflow table, 7 row items times 8 lines.
+OVERFLOW_PATTERN_SIZE	EQU	7*8	; amount of entries in an Overflow table, 7 row items times 8 lines.
 
 BOARD_OVERFLOW_PATTERN_TAB_COUNT	EQU	11 ; Number of Overflow Patterns in table, or table size
 

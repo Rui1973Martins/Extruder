@@ -676,7 +676,7 @@ BoardOverflowNext
 	; NOTE: Alternatively, we can use a one byte counter, to detect loop condition.
 	; proably takes less T States to compute, although we have to save this counter too.
 	PUSH HL
-		LD	A, OVERFLOW_TAB_SIZE-1
+		LD	A, OVERFLOW_PATTERN_SIZE-1
 		ADD A, (IX+BRD_OVFLOW_Base_L)
 		LD	L, A
 		LD	A, #0	; WARNING: CAN NOT USE XOR A, or we loose the Carry Flag 
