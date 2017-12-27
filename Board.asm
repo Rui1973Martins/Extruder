@@ -672,32 +672,10 @@ BoardOverflowNext
 	INC BC		; TODO make sure that these tables 7x8 will never cross a 256 boundary, to optimized this to INC C
 
 	;Determine, if we need to loop back
-	;LD	A, (IX+BRD_OVFLOW_Base_L)
-	;ADD A, OVERFLOW_TAB_SIZE
-	;CP C			; C == LMIN + OVERFLOW_TAB_SIZE ?
-
-	LD	A, (IX+BRD_OVFLOW_CNT); DEBUG
 	DEC (IX+BRD_OVFLOW_CNT)
-	LD	A, (IX+BRD_OVFLOW_CNT); DEBUG
 	
 	JP NZ, BoardOverflowNext_Value
 		
-	; we need to use 16 bit diff, due to table limits not being aligned in all cases
-	; NOTE: Alternatively, we can use a one byte counter, to detect loop condition.
-	; proably takes less T States to compute, although we have to save this counter too.
-	; PUSH HL
-		; LD	A, OVERFLOW_PATTERN_SIZE-1
-		; ADD A, (IX+BRD_OVFLOW_Base_L)
-		; LD	L, A
-		; LD	A, #0	; WARNING: CAN NOT USE XOR A, or we loose the Carry Flag 
-		; ADC	A, (IX+BRD_OVFLOW_Base_H) 
-		; LD	H, A
-		; XOR	A	; Clear Carry
-		; SBC	HL, BC
-	; POP HL
-
-	; JP NC, BoardOverflowNext_Value	; Almost ALWAYS JUMPs
-
 BoardOverflowNext_Reset
 	LD	B, (IX+BRD_OVFLOW_Base_H) 
 	LD	C, (IX+BRD_OVFLOW_Base_L)
