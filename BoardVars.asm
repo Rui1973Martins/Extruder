@@ -1,3 +1,5 @@
+
+
 BRD_HEIGHT 		EQU	0	; Height
 BRD_WIDTH		EQU	1	; Width
 BRD_BUF			EQU 2	; BOARD_DATA Addr
@@ -10,8 +12,12 @@ BRD_LINE_TOT	EQU 6	; LineTotal
 BRD_LINE_CNT	EQU 7	; LineCount
 BRD_CUR_X		EQU 8	; Cursor (in Chars) relative to START POSITION_X
 BRD_ANIM		EQU 9	; Clown Animation Sequence (With and without ball)
+; 10 Space for  remainder of BRD_ANIM address
 BRD_ANIM_STATE	EQU 11	; Animation State Frame
-BRD_FLAGS		EQU	12	; flags
+BRD_OVFLOW_TAB_LMIN	EQU 12	; Maximum value	(excluding that Low Base Value (or Minimum value), used to loop back.
+BRD_OVFLOW_TAB_L	EQU	13	; Opponent Overflow Tab Address Low (This will change during updates)
+BRD_OVFLOW_TAB_H	EQU	14	; Opponent Overflow Tab Address High
+BRD_FLAGS		EQU	15	; flags
 
 
 BOARD1
@@ -24,6 +30,8 @@ BOARD1
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator1	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
+	DEFB 0		; Low Overflow PatternTable Address base Low
+	DEFW 0		; Overflow Pattern Table Address
 	DEFB #0		; flags
 
 
@@ -37,6 +45,8 @@ BOARD2
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator2	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
+	DEFB 0		; Low Overflow PatternTable Address base Low
+	DEFW 0		; Overflow Pattern Table Address
 	DEFB #0		; flags
 
 
@@ -76,7 +86,7 @@ BOARD_DATA_END_MARKER
 	DEFB #FF	
 
 	
-include "Patterns.asm"
+;include "Patterns.asm"
 
 ; Used to keep generated Ball Colors history, so that both players get the same values
 ; TODO, Can't we use ROM DATA for generation ?
@@ -86,3 +96,11 @@ BOARD_GEN_HISTORY
 		DEFB #00
 	ENDM
 
+
+; ALIGN to 256 boundary, by reaching the next boundary, when necessary
+ALIGNED_PATTERN_DATA_HIGH EQU HIGH($)
+ALIGNED_PATTERN_DATA_LOW EQU LOW($)
+ORG	( (ALIGNED_PATTERN_DATA_LOW = 0 ? 0 : 256 ) + 256 * ALIGNED_PATTERN_DATA_HIGH )
+
+include "Patterns.asm"
+include "Injection.asm"

@@ -1,3 +1,16 @@
+; Characters
+DEVIL			EQU	 0
+FOOL			EQU  1
+STAR			EQU  2
+CHARIOT			EQU  3
+PRIESTESS		EQU  4
+JUSTICE			EQU  5
+MAGICIAN		EQU  6
+WORLD			EQU  7
+STRENGTH		EQU  8
+EMPRESS			EQU  9
+BLACK_PIERROT	EQU 10
+
 ; Game Board Structure
 ; DEFB height
 ; DEFB width
@@ -15,6 +28,7 @@
 BoardInit
 ; Inputs:
 ; IX = GameBoard Pointer to Data Structure
+; A = Opponent Character
 ; B = Height (in items)
 ; C = Width (in items)
 ; DE = Pointer free buffer for (H x W) entries
@@ -38,6 +52,41 @@ BoardInit
 	LD (IX+BRD_LINE_TOT), 0	; New LineTotal
 	LD (IX+BRD_LINE_CNT), 0	; New LineCount
 
+	; Init Overflow Tab
+	; NOTE: This block could eventualy be refactored to an outside function, would save PUSH/POP, but would cost another CALL/RET
+	PUSH DE
+		LD	D,	0
+
+		; Make sure we are within valid range (0 to BOARD_OVERFLOW_PATTERN_TAB_COUNT)
+
+		; Check Upper Boundary
+		CP	BOARD_OVERFLOW_PATTERN_TAB_COUNT
+		JP	M, BoardInit_CheckLowerBoundary ; Jump if less than BOARD_OVERFLOW_PATTERN_TAB_COUNT
+
+		XOR A							; Clear to default 0 (Default could be input as A', and use EX AF, AF' intead )
+		JR BoardInit_OverflowTab
+		
+BoardInit_CheckLowerBoundary
+		CP D
+		JP	P, BoardInit_OverflowTab 		; Jump if greater than or EQUAL to zero
+		
+		XOR A							; Clear to default 0
+
+BoardInit_OverflowTab
+		ADD A, A						; Mutiply by 2		
+		LD	E, A
+
+		LD	HL, BOARD_OVERFLOW_PATTERN_TAB
+		ADD HL, DE
+		
+		LD	A, (HL)
+		LD	(IX+BRD_OVFLOW_TAB_LMIN), A
+		LD	(IX+BRD_OVFLOW_TAB_L), A
+		INC	HL
+		LD	A, (HL)
+		LD	(IX+BRD_OVFLOW_TAB_H), A
+	POP DE
+	
 	; Center Clown XPos at middle
 	LD A, C					; Cursor or Clown POS 
 	SRA A					; Integer Divide By 2
@@ -51,13 +100,18 @@ BoardInit
 	
 	LD A, #00	; EMPTY Slot
 
- BoardInit_JP1	; Clear Board Buffer Contents
+	LD	H,	B	; Save B
+	
+BoardInit_JP0	; Clear Board Buffer Contents
+	LD	B,	H	; Restore B
+	
+ BoardInit_JP1
 	LD (DE), A
 	INC DE	
 	DJNZ	BoardInit_JP1
 
 	DEC C
-	JP NZ,	BoardInit_JP1
+	JP NZ,	BoardInit_JP0
 RET
 
 
@@ -70,6 +124,7 @@ BoardsNextDropAnimLine
 	LD HL, BOARDS_DROP_ANIM_CNT 
 	INC (HL)
 RET
+
 
 BoardDropAnimLineColor
 ; Inputs:
@@ -116,6 +171,7 @@ BoardDropAnimLineColor
 	CP #FF	; Make sure we return a NON ZERO Flag
 RET
 
+
 BoardDropAnimLinePixels
 ; Inputs:
 ;	IX = Board Structure
@@ -160,6 +216,7 @@ BoardDropAnimLinePixels
 	XOR A
 	CP #FF	; Make sure we return a NON ZERO Flag
 RET
+
 
 ; DEPRECATED
 BoardInitDraw;
@@ -478,10 +535,10 @@ BoardColInject	; Adds another item into specific col
 ; 	A = New Item (previous)
 ;	HL = Column Start Buffer 
 
-	LD C, (IX+BRD_HEIGHT)
+	LD C, (IX+BRD_HEIGHT)	; TODO: We can Load B directly, if we do not need C to have the height
 	LD B, C
 		
-	EX AF, AF'	; Save index
+	EX AF, AF'		; Save index
 
  BoardColInject_LOOP
 	LD A, (HL)
@@ -492,7 +549,8 @@ BoardColInject	; Adds another item into specific col
 	EX AF, AF'	;	Swap Existing with previous
 	LD (HL), A
 
-	INC HL
+	INC HL			; TODO, we could move this to start of loop, if it allows for faster processing on last element.
+					; Could also be replaced with "INC L", if full board play buffer is aligned to 256, and not larger than 256 positions
 
 	DJNZ BoardColInject_LOOP	; Exit if end of Column Height
 
@@ -572,9 +630,11 @@ BoardInjectLine_JP1
 		; Determine Next Color from History
 		;LD A, C	; Yellow
 		; Determine Next Color Randomly, (1 to 4)
-		LD A, R	; Yellow
-		AND #03	; Mask
-		INC A 
+		;	LD A, R	; Yellow
+		;	AND #03	; Mask
+		;	INC A
+		CALL BoardOverflowNext
+		
 		
 		PUSH HL	
 			CALL BoardColInject
@@ -588,3 +648,41 @@ BoardInjectLine_JP1
 
 RET
 
+
+; This function, will extract the next ball color, from the "opponent" character overflow table
+BoardOverflowNext
+; Inputs:
+;	IX = Board Structure
+; outputs:
+; 	A = New Item
+; Trashes: A', BC
+
+	LD	B, (IX+BRD_OVFLOW_TAB_H)
+	LD	C, (IX+BRD_OVFLOW_TAB_L)
+
+	LD	A, (BC)
+	EX	AF,	AF'		; Save Value
+
+	;Set next item pointer, to be available on next call
+	INC BC		; TODO make sure that these tables 7x8 will never cross a 256 boundary, to optimized this to INC C
+
+	;Determine, if we need to loop back
+	LD	A, (IX+BRD_OVFLOW_TAB_LMIN)
+	ADD A, OVERFLOW_TAB_SIZE
+	CP C			; C == LMIN + OVERFLOW_TAB_SIZE ?
+
+	JR NZ, BoardOverflowNext_Value	; Almost ALWAYS JUMPs (12T if jump, 7T if not)
+
+BoardOverflowNext_Reset
+	LD	C, (IX+BRD_OVFLOW_TAB_L)
+	
+BoardOverflowNext_Value
+	;LD	(IX+BRD_OVFLOW_TAB_H), B	; This will fail, if it overflows,, since we are not resetting it 
+	LD	(IX+BRD_OVFLOW_TAB_L), C	; Update Low part only 
+
+	EX	AF,	AF'		; Restore Value
+	; Do we need to clean up data ?
+	; we do not, since that is already been cleaned
+	;AND #03	; Mask
+	;INC A
+RET
