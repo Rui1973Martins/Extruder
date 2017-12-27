@@ -88,9 +88,13 @@ BoardInit_OverflowTab
 		LD	(IX+BRD_OVFLOW_TAB_H), A
 	POP DE
 	
-	; RESET Counter
+	; RESET OVERFLOW_PATTERN Count Down Counter
 	LD	A, OVERFLOW_PATTERN_SIZE
 	LD	(IX+BRD_OVFLOW_CNT), A
+	
+	; RESET Combo
+	XOR	A
+	LD	(IX+BRD_COMBO_CNT), A
 	
 	; Center Clown XPos at middle
 	LD A, C					; Cursor or Clown POS 
@@ -693,4 +697,59 @@ BoardOverflowNext_Value
 	; we do not, since that is already been cleaned
 	;AND #03	; Mask
 	;INC A
+RET
+
+BoardTransformStone
+; Inputs:
+;	IX = Board Structure
+;	A = Replacement Item
+; outputs:
+; Trashes: A', BC, HL
+
+	LD	H, (IX+BRD_BUF_H)	; Buffer
+	LD	L, (IX+BRD_BUF_L)
+
+	LD	C, (IX+BRD_WIDTH )	; Width
+
+ BoardTransformStone_LOOP
+	CALL	BoardColReplace
+	
+	DEC C
+	JP NZ,	BoardTransformStone_LOOP
+RET
+
+
+BoardColReplace	; Replaces an item by another
+; Inputs:
+;	IX = Board Structure
+; 	A = New Item (replacement)
+;	HL = Column Start Buffer 
+
+	LD B, (IX+BRD_HEIGHT)	
+	EX AF, AF'		; Save replacement
+
+ BoardColReplace_LOOP
+	LD A, (HL)
+	CP B_W			; B_W = White Bubble = Stone 
+
+	JR NZ, BoardColReplace_NEXT
+	
+	EX AF, AF'		; Swap Existing with Replacement
+	LD (HL), A
+	EX AF, AF'
+
+BoardColReplace_NEXT
+	CP	B_0			; B_0 = EMPTY SLOT
+	JR	Z, BoardColReplace_NEXT_COL
+	
+	INC HL
+
+	DJNZ BoardColReplace_LOOP	; Exit if end of Column Height
+	EX	AF, AF'					; Restore replacement
+RET
+BoardColReplace_NEXT_COL
+	INC HL
+
+	DJNZ BoardColReplace_NEXT_COL	; Exit if end of Column Height
+	EX	AF, AF'					; Restore replacement
 RET

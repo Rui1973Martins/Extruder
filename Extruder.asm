@@ -136,7 +136,7 @@ WaitNoKeyPressed
 
 GameInitWithAnim_1Player
 	; Player 1
-	LD	A, DEVIL
+	LD	A, FOOL
 	LD IX, BOARD1
 	LD BC, #0B0D	; H x W
 	LD DE, BOARD1_DATA
@@ -190,8 +190,12 @@ GameInitDraw_1Player
 ; ===== 2 Players =====
 
 GameInitWithAnim_2Players
+; Inputs:
+;	A  = Player 1 Opponent Character
+;	A' = Player 2 Opponent Character
+
 	; Player 1
-	LD	A, EMPRESS
+	;LD	A, FOOL
 	LD IX, BOARD1
 	LD BC, #0B07	; H x W
 	LD DE, BOARD1_DATA
@@ -202,7 +206,8 @@ GameInitWithAnim_2Players
 		CALL BoardAddLineTotal
 
 	; Player 2
-	LD	A, EMPRESS
+	;LD	A, WORLD
+	EX AF, AF'	; get Player 2 Char
 	LD IX, BOARD2
 	LD BC, #0B07	; H x W
 	LD DE, BOARD2_DATA
@@ -331,6 +336,10 @@ PLAY2
 	CALL CLSC
 	CALL CLS0
 
+	
+	LD	A, WORLD	; Player 2 Opponent Character
+	EX	AF, AF'
+	LD	A, FOOL		; Player 1 Opponent Character
 	CALL GameInitWithAnim_2Players
 
 	
@@ -398,7 +407,31 @@ PLAY2_LOOP
 	OR #E0			;Set Bits765
 	CP KEYSP
 	RET Z
-		
+
+	
+	; Press 1 to TransformStone on Player 1 with RED Bubbles
+	LD BC, KBRD15	; Read Numbers 1 to 5 Row (5,4,3,2,1)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEY1
+
+	; TODO Optimize this out
+	LD IX, BOARD1
+	LD A, B_R		; RED Bubble
+	CALL Z, BoardTransformStone
+
+	; Press 2 to TransformStone on Player 2 with BLUE Bubbles
+	LD BC, KBRD15	; Read Numbers 1 to 5 Row (5,4,3,2,1)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEY2
+
+	; TODO Optimize this out
+	LD IX, BOARD2
+	LD A, B_B		; BLUE Bubble
+	CALL Z, BoardTransformStone
+
+	
     JP PLAY2_LOOP
 ;RET
 

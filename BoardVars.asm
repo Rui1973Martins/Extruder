@@ -19,8 +19,10 @@ BRD_OVFLOW_Base_L	EQU 12	; Overflow Tab Base Address Low, used to loop back.
 BRD_OVFLOW_Base_H	EQU 13	; Overflow Tab Base Address High, used to loop back.
 BRD_OVFLOW_TAB_L	EQU	14	; Opponent Overflow Tab Address Low (This will change during updates)
 BRD_OVFLOW_TAB_H	EQU	15	; Opponent Overflow Tab Address High
-BRD_OVFLOW_CNT		EQU 16	; Count Down, Initialized to BRD_OVFLOW_CNT
-BRD_FLAGS		EQU	17	; flags
+BRD_OVFLOW_CNT		EQU 16	; Opponent Overflow Count Down, Initialized to OVERFLOW_PATTERN_SIZE
+BRD_COMBO_CNT		EQU	17	; Opponent Combo Count (0 = no combo, positive = combo counting)
+BRD_FLAGS		EQU	18	; flags
+	BRD_FLAG_COMBO	EQU 0x01	; If 1, Defines that a COMBO is in progress ( used as MASK on BRD_FLAGS)
 
 
 BOARD1
@@ -35,7 +37,8 @@ BOARD1
 	DEFB 0		; Animation State Frame
 	DEFW #0000	; Overflow Pattern Table Base Address
 	DEFW #0000	; Overflow Pattern Table Address
-	DEFB 0		; OverflowPAttern Count Down
+	DEFB 0		; Overflow Pattern Count Down (Should be initialized to OVERFLOW_PATTERN_SIZE)
+	DEFB 0		; Opponent Combo Count
 	DEFB #0		; flags
 
 
@@ -51,7 +54,8 @@ BOARD2
 	DEFB 0		; Animation State Frame
 	DEFW #0000	; Overflow Pattern Table Base Address
 	DEFW #0000	; Overflow Pattern Table Address
-	DEFB 0		; OverflowPAttern Count Down
+	DEFB 0		; Overflow Pattern Count Down (Should be initialized to OVERFLOW_PATTERN_SIZE)
+	DEFB 0		; Opponent Combo Count
 	DEFB #0		; flags
 
 
