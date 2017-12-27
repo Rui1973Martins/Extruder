@@ -80,10 +80,11 @@ BoardInit_OverflowTab
 		ADD HL, DE
 		
 		LD	A, (HL)
-		LD	(IX+BRD_OVFLOW_TAB_LMIN), A
+		LD	(IX+BRD_OVFLOW_Base_L), A
 		LD	(IX+BRD_OVFLOW_TAB_L), A
 		INC	HL
 		LD	A, (HL)
+		LD	(IX+BRD_OVFLOW_Base_H), A
 		LD	(IX+BRD_OVFLOW_TAB_H), A
 	POP DE
 	
@@ -667,17 +668,32 @@ BoardOverflowNext
 	INC BC		; TODO make sure that these tables 7x8 will never cross a 256 boundary, to optimized this to INC C
 
 	;Determine, if we need to loop back
-	LD	A, (IX+BRD_OVFLOW_TAB_LMIN)
-	ADD A, OVERFLOW_TAB_SIZE
-	CP C			; C == LMIN + OVERFLOW_TAB_SIZE ?
+	;LD	A, (IX+BRD_OVFLOW_Base_L)
+	;ADD A, OVERFLOW_TAB_SIZE
+	;CP C			; C == LMIN + OVERFLOW_TAB_SIZE ?
 
-	JR NZ, BoardOverflowNext_Value	; Almost ALWAYS JUMPs (12T if jump, 7T if not)
+	; we need to use 16 bit diff, due to table limits not being aligned in all cases
+	; NOTE: Alternatively, we can use a one byte counter, to detect loop condition.
+	; proably takes less T States to compute, although we have to save this counter too.
+	PUSH HL
+		LD	A, OVERFLOW_TAB_SIZE-1
+		ADD A, (IX+BRD_OVFLOW_Base_L)
+		LD	L, A
+		LD	A, #0	; WARNING: CAN NOT USE XOR A, or we loose the Carry Flag 
+		ADC	A, (IX+BRD_OVFLOW_Base_H) 
+		LD	H, A
+		XOR	A	; Clear Carry
+		SBC	HL, BC
+	POP HL
+
+	JP NC, BoardOverflowNext_Value	; Almost ALWAYS JUMPs
 
 BoardOverflowNext_Reset
-	LD	C, (IX+BRD_OVFLOW_TAB_L)
+	LD	B, (IX+BRD_OVFLOW_Base_H) 
+	LD	C, (IX+BRD_OVFLOW_Base_L)
 	
 BoardOverflowNext_Value
-	;LD	(IX+BRD_OVFLOW_TAB_H), B	; This will fail, if it overflows,, since we are not resetting it 
+	LD	(IX+BRD_OVFLOW_TAB_H), B	; Update High part only 
 	LD	(IX+BRD_OVFLOW_TAB_L), C	; Update Low part only 
 
 	EX	AF,	AF'		; Restore Value

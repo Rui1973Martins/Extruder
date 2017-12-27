@@ -191,25 +191,25 @@ GameInitDraw_1Player
 
 GameInitWithAnim_2Players
 	; Player 1
-	LD	A, FOOL
+	LD	A, JUSTICE
 	LD IX, BOARD1
 	LD BC, #0B07	; H x W
 	LD DE, BOARD1_DATA
 	LD HL, #0800	; Y = 8, X = 0
 		CALL BoardInit
 
-	LD	A, 8	;5
+	LD	A, 9	;5
 		CALL BoardAddLineTotal
 
 	; Player 2
-	LD	A, STAR
+	LD	A, MAGICIAN
 	LD IX, BOARD2
 	LD BC, #0B07	; H x W
 	LD DE, BOARD2_DATA
 	LD HL, #0890	; Y = 8, X = 144
 		CALL BoardInit	
 
-	LD	A, 8	;5
+	LD	A, 9	;5
 		CALL BoardAddLineTotal
 
 GameDropAnim_2Players

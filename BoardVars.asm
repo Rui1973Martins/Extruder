@@ -14,10 +14,11 @@ BRD_CUR_X		EQU 8	; Cursor (in Chars) relative to START POSITION_X
 BRD_ANIM		EQU 9	; Clown Animation Sequence (With and without ball)
 ; 10 Space for  remainder of BRD_ANIM address
 BRD_ANIM_STATE	EQU 11	; Animation State Frame
-BRD_OVFLOW_TAB_LMIN	EQU 12	; Maximum value	(excluding that Low Base Value (or Minimum value), used to loop back.
-BRD_OVFLOW_TAB_L	EQU	13	; Opponent Overflow Tab Address Low (This will change during updates)
-BRD_OVFLOW_TAB_H	EQU	14	; Opponent Overflow Tab Address High
-BRD_FLAGS		EQU	15	; flags
+BRD_OVFLOW_Base_L	EQU 12	; Overflow Tab Base Address Low, used to loop back.
+BRD_OVFLOW_Base_H	EQU 13	; Overflow Tab Base Address High, used to loop back.
+BRD_OVFLOW_TAB_L	EQU	14	; Opponent Overflow Tab Address Low (This will change during updates)
+BRD_OVFLOW_TAB_H	EQU	15	; Opponent Overflow Tab Address High
+BRD_FLAGS		EQU	16	; flags
 
 
 BOARD1
@@ -30,7 +31,7 @@ BOARD1
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator1	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
-	DEFB 0		; Low Overflow PatternTable Address base Low
+	DEFW 0		; Overflow Pattern Table Base Address
 	DEFW 0		; Overflow Pattern Table Address
 	DEFB #0		; flags
 
@@ -45,7 +46,7 @@ BOARD2
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator2	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
-	DEFB 0		; Low Overflow PatternTable Address base Low
+	DEFW 0		; Overflow Pattern Table Base Address
 	DEFW 0		; Overflow Pattern Table Address
 	DEFB #0		; flags
 
