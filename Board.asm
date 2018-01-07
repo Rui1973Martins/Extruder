@@ -91,7 +91,7 @@ BoardInit
 
 		XOR A							; Clear to default 0 (Default could be input as A', and use EX AF, AF' intead )
 		JR BoardInit_AttackTab
-		
+
 BoardInit_CheckLowerBoundary
 		CP D
 		JP	P, BoardInit_AttackTab 		; Jump if greater than or EQUAL to zero
@@ -104,7 +104,7 @@ BoardInit_AttackTab
 
 		LD	HL, BOARD_ATTACK_PATTERN_TAB
 		ADD HL, DE
-		
+
 		LD	A, (HL)
 		LD	(IX+BRD_ATTACK_Base_L), A
 		LD	(IX+BRD_ATTACK_TAB_L), A
@@ -113,15 +113,11 @@ BoardInit_AttackTab
 		LD	(IX+BRD_ATTACK_Base_H), A
 		LD	(IX+BRD_ATTACK_TAB_H), A
 	POP DE
-	
+
 	; RESET ATTACK_PATTERN Count Down Counter
 	LD	A, ATTACK_PATTERN_SIZE
 	LD	(IX+BRD_ATTACK_CNT), A
-	
-	; RESET Combo
-	XOR	A
-	LD	(IX+BRD_COMBO_CNT), A
-	
+
 	; Center Clown XPos at middle
 	LD A, C					; Cursor or Clown POS 
 	SRA A					; Integer Divide By 2
@@ -130,7 +126,6 @@ BoardInit_AttackTab
 	LD (IX+BRD_CUR_X), A	; Cursor or Clown POS 
 
 	; WARNING:
-	;	Position is not initialized YET
 	;	Flags is not initialized YET
 	
 	LD A, #00	; EMPTY Slot
@@ -147,15 +142,30 @@ BoardInit_JP0	; Clear Board Buffer Contents
 
 	DEC C
 	JP NZ,	BoardInit_JP0
+
+
+	; Reset several Vars
+	XOR	A
+	LD	(IX+BRD_COMBO_CNT), A	; RESET Combo
+	LD	(IX+BRD_FLAGS), A		; RESET Flags to BRD_FLAG_NONE
 RET
 
 
-BoardsResetDropAnim
+BoardSetFlags				; TODO: This could be inlined, using a MACRO
+; Inputs:
+;	IX = Board Structure
+;	A = Flag contents to set
+	LD	(IX+BRD_FLAGS), A
+RET
+
+
+BoardsResetDropAnim			; TODO: This could be inlined, using a MACRO
 	XOR A
 	LD (BOARDS_DROP_ANIM_CNT), A
 RET
 
-BoardsNextDropAnimLine
+
+BoardsNextDropAnimLine		; TODO: This could be inlined, using a MACRO
 	LD HL, BOARDS_DROP_ANIM_CNT 
 	INC (HL)
 RET
@@ -778,4 +788,57 @@ BoardColReplace_NEXT_COL
 
 	DJNZ BoardColReplace_NEXT_COL	; Exit if end of Column Height
 	EX	AF, AF'					; Restore replacement
+RET
+
+
+;========================
+; User input processing
+;========================
+
+;------------------------
+BoardGoLeft
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+;	
+	LD	A, (IX+BRD_CUR_X)	; Load current position once	
+	AND A	; Check if position is zero
+	JP	NZ,	BoardGoLeftNoWrap	
+
+	LD	A, (IX+BRD_FLAGS)
+	AND	BRD_FLAG_WRAP
+	RET	Z
+	
+	LD	A,	(IX+BRD_WIDTH)	; New position ( Right Most position +1 )
+
+BoardGoLeftNoWrap
+
+	DEC	A
+	LD	(IX+BRD_CUR_X), A
+RET
+
+
+;------------------------
+BoardGoRight
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+;	
+	LD	A, (IX+BRD_CUR_X)	; Load current position once
+	INC	A
+	CP	(IX+BRD_WIDTH)	; Check if position is WIDTH
+	JP	NZ,	BoardGoRightNoWrap	
+
+	LD	A, (IX+BRD_FLAGS)
+	AND	BRD_FLAG_WRAP
+	RET	Z
+	
+	XOR	A					; New position ( Left Most position )
+
+BoardGoRightNoWrap
+
+	LD	(IX+BRD_CUR_X), A
+
 RET

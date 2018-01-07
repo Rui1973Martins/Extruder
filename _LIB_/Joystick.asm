@@ -1,5 +1,5 @@
 ; User Control Data Structure
-UserCtrl	DEFB #00
+;UserCtrl	DEFB #00
 
 ; Same definition as KEMPSTON
 ;CTRL_FIRE2	EQU #20	;	Bit5 = FIRE2
@@ -100,13 +100,20 @@ SINCLAIR2_LEFT		EQU #01	;	Bit0 = LEFT
 SINCLAIR2_MASK		EQU SINCLAIR2_FIRE + SINCLAIR2_UP + SINCLAIR2_DOWN + SINCLAIR2_RIGHT + SINCLAIR2_LEFT
 
 
+;====================
 KEMPSTON_DRIVER
+;--------------------
+; outputs:
+;	A	: UserCtrl
+
 	LD BC,KEMPSTON_PORT 
 	IN A,(C)
 
 	AND KEMPSTON_MASK		; Nothing else needs to be done.
-;	LD (UserCtrl),A
+
+;	LD (UserCtrl),A	
 RET
+
 
 ; CURSOR_P1_LEFT	EQU #10;	Bit4 = LEFT
 
@@ -122,7 +129,12 @@ RET
 ; CTRL_LEFT	EQU #02	;	Bit1 = LEFT			returns 1 when ACTIVE, 0 otherwise
 ; CTRL_RIGHT	EQU #01	;	Bit0 = RIGHT		returns 1 when ACTIVE, 0 otherwise
 
+;====================
 CURSOR_DRIVER	; Same as PROTEK and AGF
+;--------------------
+; outputs:
+;	A	: UserCtrl, use CTRL_* constants to check flags
+
 	LD BC,CURSOR_PORT1
 	IN A,(C)
 	CPL		; Invert logic, to match UserCtrl/Kempston
@@ -159,7 +171,12 @@ CURSOR_DRIVER	; Same as PROTEK and AGF
 RET
 
 
+;====================
 SINCLAIR2_DRIVER
+;--------------------
+; outputs:
+;	A	: UserCtrl, use CTRL_* constants to check flags
+
 	LD BC,SINCLAIR2_PORT
 	IN A,(C)
 	CPL		; Invert logic, to match UserCtrl/Kempston
@@ -184,7 +201,12 @@ SINCLAIR2_DRIVER
 RET
 
 
+;====================
 SINCLAIR1_DRIVER
+;--------------------
+; outputs:
+;	A	: UserCtrl, use CTRL_* constants to check flags
+
 	LD BC,SINCLAIR1_PORT
 	IN A,(C)
 	CPL		; Invert logic, to match UserCtrl/Kempston
@@ -222,7 +244,12 @@ SINCLAIR1_DRIVER
 RET
 
 
+;====================
 FULLER_DRIVER
+;--------------------
+; outputs:
+;	A	: UserCtrl, use CTRL_* constants to check flags
+
 	LD BC,FULLER_PORT
 	IN A,(C)
 	CPL		; Invert logic, to match UserCtrl/Kempston
@@ -256,7 +283,18 @@ FULLER_DRIVER
 RET
 
 
+KEYBUF
+		DEFW #FFFF		;
+		DEFW #FFFF		;
+		DEFW #FFFF		;
+		DEFW #FFFF		;
+		
+;====================
 KEYBOARD_DRIVER
+;--------------------
+; outputs:
+;	A	: UserCtrl, use CTRL_* constants to check flags
+
 		XOR A			; RESET Temporary Register
 		EX AF,AF'
 

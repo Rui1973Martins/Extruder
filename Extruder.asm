@@ -143,6 +143,9 @@ GameInitWithAnim_1Player
 	LD HL, #0818	; Y = 8, X = 24
 		CALL BoardInit
 
+	LD	A, BRD_FLAG_WRAP
+		CALL BoardSetFlags
+
 	LD	A, 7
 		CALL BoardAddLineTotal
 
@@ -272,6 +275,7 @@ ORG #8000
 	
 include "_LIB_\ClearScreen.asm"
 include "_LIB_\Screen.asm"
+include "_LIB_\Joystick.asm"
 
 ; ===== Single Player Game Loop =====
 PLAY1
@@ -318,14 +322,26 @@ PLAY1_LOOP
 	CALL	BoardInjectLine
 
 
+	CALL	SINCLAIR1_DRIVER	;KEMPSTON_DRIVER	;CURSOR_DRIVER
+	LD	(IX+BRD_USER_CTRL_NEW), A
+
+		LD	B,	A			; Save
+		AND CTRL_LEFT		; On Key Left
+		CALL NZ, BoardGoLeft
+
+		LD	A, B			; Restore
+			AND CTRL_RIGHT	; On Key Right
+			CALL NZ, BoardGoRight
+
+
 	; Press SPACE to LEAVE
 	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
 	IN A,(C)
 	OR #E0			;Set Bits765
 	CP KEYSP
 	RET Z
-	
-    JP PLAY1_LOOP
+
+	JP PLAY1_LOOP
 ;RET
 
 
@@ -390,15 +406,40 @@ PLAY2_LOOP
 
 
 ;	CALL WaitPressAnyKey
-	
+
 
 	LD	IX, BOARD1
 	LD	DE, BOARD_PATTERN_DUAL	;BOARD_PATTERN1
 	CALL	BoardInjectLine
-	
+
+	CALL	SINCLAIR1_DRIVER
+	LD	(IX+BRD_USER_CTRL_NEW), A
+
+		LD	B,	A			; Save
+		AND CTRL_LEFT		; On Key Left
+		CALL NZ, BoardGoLeft
+
+		LD	A, B			; Restore
+			AND CTRL_RIGHT	; On Key Right
+			CALL NZ, BoardGoRight
+
+
+
 	LD IX, BOARD2
 	LD	DE, BOARD_PATTERN_DUAL	;BOARD_PATTERN_MAGICIAN
 	CALL	BoardInjectLine
+
+	CALL	SINCLAIR2_DRIVER
+	LD	(IX+BRD_USER_CTRL_NEW), A
+
+		LD	B,	A			; Save
+		AND CTRL_LEFT		; On Key Left
+		CALL NZ, BoardGoLeft
+
+		LD	A, B			; Restore
+			AND CTRL_RIGHT	; On Key Right
+			CALL NZ, BoardGoRight
+
 
 
 	; Press SPACE to LEAVE
@@ -408,31 +449,31 @@ PLAY2_LOOP
 	CP KEYSP
 	RET Z
 
-	
-	; Press 1 to TransformStone on Player 1 with RED Bubbles
-	LD BC, KBRD15	; Read Numbers 1 to 5 Row (5,4,3,2,1)
+
+	; Press T to TransformStone on Player 1 with RED Bubbles
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
 	IN A,(C)
 	OR #E0			;Set Bits765
-	CP KEY1
+	CP KEYT
 
 	; TODO Optimize this out
 	LD IX, BOARD1
 	LD A, B_R		; RED Bubble
 	CALL Z, BoardTransformStone
 
-	; Press 2 to TransformStone on Player 2 with BLUE Bubbles
-	LD BC, KBRD15	; Read Numbers 1 to 5 Row (5,4,3,2,1)
+	; Press G to TransformStone on Player 2 with BLUE Bubbles
+	LD BC, KBRDAG	; Read Numbers A to G Row (G,F,D,S,A)
 	IN A,(C)
 	OR #E0			;Set Bits765
-	CP KEY2
+	CP KEYG
 
 	; TODO Optimize this out
 	LD IX, BOARD2
 	LD A, B_B		; BLUE Bubble
 	CALL Z, BoardTransformStone
 
-	
-    JP PLAY2_LOOP
+
+	JP PLAY2_LOOP
 ;RET
 
 include "Board.asm"
