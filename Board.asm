@@ -11,6 +11,32 @@ STRENGTH		EQU  8
 EMPRESS			EQU  9
 BLACK_PIERROT	EQU 10
 
+; Bubble Codes
+B_0	EQU 0	; Empty code (if used on Attack Patterns, means TODO/UNKNOWN)
+B_R	EQU	1	; r = red
+B_G	EQU	2	; g = green
+B_B	EQU	3	; b = blue
+B_Y	EQU	4	; y = yellow
+B_W	EQU	5	; w = white/Cristal/ROCK
+B_M	EQU	6	; m = multicolor ?
+B_X	EQU	7	; x = undistructable bubble (must be trasnformed/compacted by another ball being thrown)
+
+
+OPPONENT_1P_VS_CPU_TAB_SIZE	EQU BLACK_PIERROT+1
+OPPONENT_1P_VS_CPU_TAB
+	DEFB	FOOL
+	DEFB	STAR
+	DEFB	DEVIL
+	DEFB	CHARIOT
+	DEFB	PRIESTESS
+	DEFB	JUSTICE
+	DEFB	MAGICIAN
+	DEFB	WORLD
+	DEFB	STRENGTH
+	DEFB	EMPRESS
+
+
+
 ; Game Board Structure
 ; DEFB height
 ; DEFB width
@@ -52,45 +78,45 @@ BoardInit
 	LD (IX+BRD_LINE_TOT), 0	; New LineTotal
 	LD (IX+BRD_LINE_CNT), 0	; New LineCount
 
-	; Init Overflow Tab
+	; Init Attack Tab
 	; NOTE: This block could eventualy be refactored to an outside function, would save PUSH/POP, but would cost another CALL/RET
 	PUSH DE
 		LD	D,	0
 
-		; Make sure we are within valid range (0 to BOARD_OVERFLOW_PATTERN_TAB_COUNT)
+		; Make sure we are within valid range (0 to BOARD_ATTACK_PATTERN_TAB_COUNT)
 
 		; Check Upper Boundary
-		CP	BOARD_OVERFLOW_PATTERN_TAB_COUNT
-		JP	M, BoardInit_CheckLowerBoundary ; Jump if less than BOARD_OVERFLOW_PATTERN_TAB_COUNT
+		CP	BOARD_ATTACK_PATTERN_TAB_COUNT
+		JP	M, BoardInit_CheckLowerBoundary ; Jump if less than BOARD_ATTACK_PATTERN_TAB_COUNT
 
 		XOR A							; Clear to default 0 (Default could be input as A', and use EX AF, AF' intead )
-		JR BoardInit_OverflowTab
+		JR BoardInit_AttackTab
 		
 BoardInit_CheckLowerBoundary
 		CP D
-		JP	P, BoardInit_OverflowTab 		; Jump if greater than or EQUAL to zero
+		JP	P, BoardInit_AttackTab 		; Jump if greater than or EQUAL to zero
 		
 		XOR A							; Clear to default 0
 
-BoardInit_OverflowTab
+BoardInit_AttackTab
 		ADD A, A						; Mutiply by 2		
 		LD	E, A
 
-		LD	HL, BOARD_OVERFLOW_PATTERN_TAB
+		LD	HL, BOARD_ATTACK_PATTERN_TAB
 		ADD HL, DE
 		
 		LD	A, (HL)
-		LD	(IX+BRD_OVFLOW_Base_L), A
-		LD	(IX+BRD_OVFLOW_TAB_L), A
+		LD	(IX+BRD_ATTACK_Base_L), A
+		LD	(IX+BRD_ATTACK_TAB_L), A
 		INC	HL
 		LD	A, (HL)
-		LD	(IX+BRD_OVFLOW_Base_H), A
-		LD	(IX+BRD_OVFLOW_TAB_H), A
+		LD	(IX+BRD_ATTACK_Base_H), A
+		LD	(IX+BRD_ATTACK_TAB_H), A
 	POP DE
 	
-	; RESET OVERFLOW_PATTERN Count Down Counter
-	LD	A, OVERFLOW_PATTERN_SIZE
-	LD	(IX+BRD_OVFLOW_CNT), A
+	; RESET ATTACK_PATTERN Count Down Counter
+	LD	A, ATTACK_PATTERN_SIZE
+	LD	(IX+BRD_ATTACK_CNT), A
 	
 	; RESET Combo
 	XOR	A
@@ -642,7 +668,7 @@ BoardInjectLine_JP1
 		;	LD A, R	; Yellow
 		;	AND #03	; Mask
 		;	INC A
-		CALL BoardOverflowNext
+		CALL BoardAttackNext
 		
 		
 		PUSH HL	
@@ -658,16 +684,16 @@ BoardInjectLine_JP1
 RET
 
 
-; This function, will extract the next ball color, from the "opponent" character overflow table
-BoardOverflowNext
+; This function, will extract the next ball color, from the "opponent" character Attack table
+BoardAttackNext
 ; Inputs:
 ;	IX = Board Structure
 ; outputs:
 ; 	A = New Item
 ; Trashes: A', BC
 
-	LD	B, (IX+BRD_OVFLOW_TAB_H)
-	LD	C, (IX+BRD_OVFLOW_TAB_L)
+	LD	B, (IX+BRD_ATTACK_TAB_H)
+	LD	C, (IX+BRD_ATTACK_TAB_L)
 
 	LD	A, (BC)
 	EX	AF,	AF'		; Save Value
@@ -676,21 +702,21 @@ BoardOverflowNext
 	INC BC		; TODO make sure that these tables 7x8 will never cross a 256 boundary, to optimized this to INC C
 
 	;Determine, if we need to loop back
-	DEC (IX+BRD_OVFLOW_CNT)
+	DEC (IX+BRD_ATTACK_CNT)
 	
-	JP NZ, BoardOverflowNext_Value
+	JP NZ, BoardAttackNext_Value
 		
-BoardOverflowNext_Reset
-	LD	B, (IX+BRD_OVFLOW_Base_H) 
-	LD	C, (IX+BRD_OVFLOW_Base_L)
+BoardAttackNext_Reset
+	LD	B, (IX+BRD_ATTACK_Base_H) 
+	LD	C, (IX+BRD_ATTACK_Base_L)
 
-	LD	A, OVERFLOW_PATTERN_SIZE
-	LD	(IX+BRD_OVFLOW_CNT), A
+	LD	A, ATTACK_PATTERN_SIZE
+	LD	(IX+BRD_ATTACK_CNT), A
 	
 	
-BoardOverflowNext_Value
-	LD	(IX+BRD_OVFLOW_TAB_H), B	; Update High part only 
-	LD	(IX+BRD_OVFLOW_TAB_L), C	; Update Low part only 
+BoardAttackNext_Value
+	LD	(IX+BRD_ATTACK_TAB_H), B	; Update High part only 
+	LD	(IX+BRD_ATTACK_TAB_L), C	; Update Low part only 
 
 	EX	AF,	AF'		; Restore Value
 	; Do we need to clean up data ?

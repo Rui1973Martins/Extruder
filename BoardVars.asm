@@ -1,5 +1,8 @@
+;Shared Vars
+BOARDS_DROP_ANIM_CNT	DEFB	#00		; Used to control Board Vertical Drop Animation
 
-
+; Board Object definion
+;=======================
 BRD_HEIGHT 		EQU	 0	; Height
 BRD_WIDTH		EQU	 1	; Width
 BRD_BUF			EQU  2	; BOARD_DATA Addr
@@ -15,16 +18,23 @@ BRD_ANIM		EQU  9	; Clown Animation Sequence (With and without ball)
  BRD_ANIM_L		EQU  9	; Clown Animation Sequence Low
  BRD_ANIM_H		EQU 10	; Clown Animation Sequence High 
 BRD_ANIM_STATE	EQU 11	; Animation State Frame
-BRD_OVFLOW_Base_L	EQU 12	; Overflow Tab Base Address Low, used to loop back.
-BRD_OVFLOW_Base_H	EQU 13	; Overflow Tab Base Address High, used to loop back.
-BRD_OVFLOW_TAB_L	EQU	14	; Opponent Overflow Tab Address Low (This will change during updates)
-BRD_OVFLOW_TAB_H	EQU	15	; Opponent Overflow Tab Address High
-BRD_OVFLOW_CNT		EQU 16	; Opponent Overflow Count Down, Initialized to OVERFLOW_PATTERN_SIZE
+BRD_ATTACK_Base_L	EQU 12	; ATTACK Tab Base Address Low, used to loop back.
+BRD_ATTACK_Base_H	EQU 13	; ATTACK Tab Base Address High, used to loop back.
+BRD_ATTACK_TAB_L	EQU	14	; Opponent ATTACK Tab Address Low (This will change during updates)
+BRD_ATTACK_TAB_H	EQU	15	; Opponent ATTACK Tab Address High
+BRD_ATTACK_CNT		EQU 16	; Opponent ATTACK Count Down, Initialized to ATTACK_PATTERN_SIZE
 BRD_COMBO_CNT		EQU	17	; Opponent Combo Count (0 = no combo, positive = combo counting)
-BRD_FLAGS		EQU	18	; flags
+BRD_FLAGS			EQU	18	; FLAGS
+BRD_PUSH_PULL_COLOR			EQU 19	; used to keep Pushing and Pulling Item Color
+BRD_PUSH_PULL_ANIM_STATE	EQU 20	; used to animate Pushing and Pulling Items
+
+; Flag bits for BRD_FLAGS
 	BRD_FLAG_COMBO	EQU 0x01	; If 1, Defines that a COMBO is in progress ( used as MASK on BRD_FLAGS)
 
 
+;----------------------
+; Actual Board objects
+;----------------------
 BOARD1
 	DEFB 0		; Height
 	DEFB 0		; Width
@@ -35,13 +45,17 @@ BOARD1
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator1	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
-	DEFW #0000	; Overflow Pattern Table Base Address
-	DEFW #0000	; Overflow Pattern Table Address
-	DEFB 0		; Overflow Pattern Count Down (Should be initialized to OVERFLOW_PATTERN_SIZE)
+	DEFW #0000	; ATTACK Pattern Table Base Address
+	DEFW #0000	; ATTACK Pattern Table Address
+	DEFB 0		; ATTACK Pattern Count Down (Should be initialized to ATTACK_PATTERN_SIZE)
 	DEFB 0		; Opponent Combo Count
 	DEFB #0		; flags
+	DEFS B_0	; Current PUSH/PULL Color
+	DEFS 0		; PUSH/PULL AnimState
+;----------------------
+	
 
-
+;----------------------
 BOARD2
 	DEFB 0		; Height
 	DEFB 0		; Width
@@ -52,15 +66,14 @@ BOARD2
 	DEFB 0		; Cursor (in Chars)
 	DEFW ClownIdleAnimator2	; Clown Animation Sequence
 	DEFB 0		; Animation State Frame
-	DEFW #0000	; Overflow Pattern Table Base Address
-	DEFW #0000	; Overflow Pattern Table Address
-	DEFB 0		; Overflow Pattern Count Down (Should be initialized to OVERFLOW_PATTERN_SIZE)
+	DEFW #0000	; ATTACK Pattern Table Base Address
+	DEFW #0000	; ATTACK Pattern Table Address
+	DEFB 0		; ATTACK Pattern Count Down (Should be initialized to ATTACK_PATTERN_SIZE)
 	DEFB 0		; Opponent Combo Count
 	DEFB #0		; flags
-
-
-;Shared Vars
-BOARDS_DROP_ANIM_CNT	DEFB	#00		; Used to control Board Vertical Drop Animation
+	DEFS B_0	; Current PUSH/PULL Color
+	DEFS 0		; PUSH/PULL AnimState
+;----------------------
 
 
 ; In single player mode, Board1, will extend into board 2 buffer,
