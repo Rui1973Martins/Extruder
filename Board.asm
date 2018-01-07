@@ -796,6 +796,49 @@ RET
 ;========================
 
 ;------------------------
+BoardProcessUserInput
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	A = New User Input
+; TRASHES:
+
+	; Save old NEW as LAST key state
+	LD	C, (IX+BRD_USER_CTRL_NEW)
+	LD	(IX+BRD_USER_CTRL_LAST), C
+
+	; Save Driver result
+	LD	(IX+BRD_USER_CTRL_NEW), A
+	LD	B,	A
+
+	; Process User Keys
+	BOARD_INPUT_TEST_LEFT
+		LD	A, B
+		AND CTRL_LEFT
+		JR Z, BOARD_INPUT_TEST_RIGHT 
+							; On NEW  Key Left was ON  (1)
+		LD	A, C
+		AND CTRL_LEFT		; On LAST Key Left was OFF (0)
+		;PUSH BC
+			CALL Z, BoardGoLeft
+		;POP BC
+
+	BOARD_INPUT_TEST_RIGHT
+		LD	A, B			; Restore
+		AND CTRL_RIGHT	; On NEW Key Right is ON
+		JR Z, BOARD_INPUT_TEST_OTHERS 
+
+		LD	A, C			; Restore LAST
+		AND CTRL_RIGHT	; On LAST Key Right was OFF
+		;; PUSH BC
+			CALL Z, BoardGoRight
+		;; POP BC
+
+	BOARD_INPUT_TEST_OTHERS
+RET
+	
+	
+;------------------------
 BoardGoLeft
 ;------------------------
 ; Inputs:

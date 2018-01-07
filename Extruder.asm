@@ -324,39 +324,7 @@ PLAY1_LOOP
 	
 	; Get New Key State
 	CALL	SINCLAIR1_DRIVER	;KEMPSTON_DRIVER	;CURSOR_DRIVER
-
-	; Save old NEW as LAST key state
-	LD	C, (IX+BRD_USER_CTRL_NEW)
-	LD	(IX+BRD_USER_CTRL_LAST), C
-
-	; Save Driver result
-	LD	(IX+BRD_USER_CTRL_NEW), A
-	LD	B,	A
-
-	; Process User Keys
-	PLAY1_TEST_LEFT
-		LD	A, B
-		AND CTRL_LEFT
-		JR Z, PLAY1_TEST_RIGHT 
-							; On NEW  Key Left was ON  (1)
-		LD	A, C
-		AND CTRL_LEFT		; On LAST Key Left was OFF (0)
-		;PUSH BC
-			CALL Z, BoardGoLeft
-		;POP BC
-
-	PLAY1_TEST_RIGHT
-		LD	A, B			; Restore
-		AND CTRL_RIGHT	; On NEW Key Right is ON
-		JR Z, PLAY1_TEST_OTHERS 
-
-		LD	A, C			; Restore LAST
-		AND CTRL_RIGHT	; On LAST Key Right was OFF
-		;; PUSH BC
-			CALL Z, BoardGoRight
-		;; POP BC
-
-	PLAY1_TEST_OTHERS 
+	CALL	BoardProcessUserInput
 
 	; Press SPACE to LEAVE
 	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
@@ -437,16 +405,7 @@ PLAY2_LOOP
 	CALL	BoardInjectLine
 
 	CALL	SINCLAIR1_DRIVER
-	LD	(IX+BRD_USER_CTRL_NEW), A
-
-		LD	B,	A			; Save
-		AND CTRL_LEFT		; On Key Left
-		CALL NZ, BoardGoLeft
-
-		LD	A, B			; Restore
-			AND CTRL_RIGHT	; On Key Right
-			CALL NZ, BoardGoRight
-
+	CALL	BoardProcessUserInput
 
 
 	LD IX, BOARD2
@@ -454,16 +413,7 @@ PLAY2_LOOP
 	CALL	BoardInjectLine
 
 	CALL	SINCLAIR2_DRIVER
-	LD	(IX+BRD_USER_CTRL_NEW), A
-
-		LD	B,	A			; Save
-		AND CTRL_LEFT		; On Key Left
-		CALL NZ, BoardGoLeft
-
-		LD	A, B			; Restore
-			AND CTRL_RIGHT	; On Key Right
-			CALL NZ, BoardGoRight
-
+	CALL	BoardProcessUserInput
 
 
 	; Press SPACE to LEAVE
