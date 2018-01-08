@@ -317,7 +317,7 @@ PLAY1_LOOP
 	
 ;	CALL WaitPressAnyKey
 	
-	LD	IX, BOARD1
+;	LD	IX, BOARD1
 	LD	DE, BOARD_PATTERN_SINGLE
 	CALL	BoardInjectLine
 
@@ -326,6 +326,25 @@ PLAY1_LOOP
 	CALL	SINCLAIR1_DRIVER	;KEMPSTON_DRIVER	;CURSOR_DRIVER
 	CALL	BoardProcessUserInput
 
+	
+	; Press T to TransformStone on Player 1 with RED Bubbles
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYT
+
+	LD A, B_R		; RED Bubble
+	CALL Z, BoardTransformStone
+
+	; Press W to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYW
+
+	CALL Z, BoardPullAnim
+
+	
 	; Press SPACE to LEAVE
 	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
 	IN A,(C)
@@ -333,6 +352,13 @@ PLAY1_LOOP
 	CP KEYSP
 	RET Z
 
+	
+	
+	LD A, WHITE
+	OUT (ULA),A
+
+	CALL BoardPullAnim
+	
 	JP PLAY1_LOOP
 ;RET
 

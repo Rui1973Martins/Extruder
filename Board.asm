@@ -965,14 +965,24 @@ BoardPullStart
 		LD	D, 0
 		LD	E, A
 		
-		ADD	HL, DE		; Get	Address of intended Column last element +1 
+		ADD	HL, DE				; Get Address of intended Column last element +1 
 
 		
 		; Get Column NEAREST Color
-		LD B, C
+		LD B, C					; Height
+
+		
+		; Save Col Anim BASE Addr
+		DEC	HL
+		LD (IX+BRD_PULL_ANIM_COL_BASE_L), L
+		LD (IX+BRD_PULL_ANIM_COL_BASE_H), H
+
+		JP	BoardPullStarting_inFindColor
 
 	BoardPullStarting_FindColor
 		DEC	HL
+
+	BoardPullStarting_inFindColor
 		LD	A, (HL)
 		CP	B_0			; Empty Ball
 		JP	NZ, BoardPullStarting_CheckColor
@@ -982,7 +992,7 @@ BoardPullStart
 		; TODO: Could BEEP, signaling ERROR
 		RET				; No Ball Found, so nothing to PULL
 
-	BoardPullStarting_CheckColor
+	BoardPullStarting_CheckColor	
 		LD	C, B		; Save Index
 		LD	B, A		; A contains NEAREST Color
 		
@@ -1027,8 +1037,13 @@ BoardPullStart
 		LD	B, C	; Restore Index count
 		LD	C, A	; Save Active Color
 
+		; Save Anim Item Bottom Addr
+		LD (IX+BRD_PULL_ANIM_COL_ADDR_L), L
+		LD (IX+BRD_PULL_ANIM_COL_ADDR_H), H
+
 	BoardPullStarting_Mark
-		OR	0x08	; Active HIGH Color
+		;OR	0x08	; Active HIGH Color
+		NOP
 		
 		LD	(HL), A	; Set NEAREST to Active HIGH Color
 
@@ -1039,6 +1054,8 @@ BoardPullStart
 		DJNZ	BoardPullStarting_Mark
 		
 	BoardPullStarting_Anim	
+		INC HL		;	Can we always do this ? What about bottom of column case ?
+		
 		; Set Anim State to PP_ANIM_STATE_PULLING
 		LD	(IX+BRD_PUSH_PULL_ANIM_STATE), PP_ANIM_STATE_PULLING
 	RET
@@ -1057,16 +1074,91 @@ RET
 
 
 ;------------------------
+BoardPullAnim
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+
+	; Get Anim Col Bottom BASE Address
+	;LD	E, (IX+BRD_PULL_ANIM_COL_BASE_L)
+	;LD	D, (IX+BRD_PULL_ANIM_COL_BASE_H)
+
+	; Get Anim Col Bottom Address
+	LD	L, (IX+BRD_PULL_ANIM_COL_ADDR_L)
+	LD	H, (IX+BRD_PULL_ANIM_COL_ADDR_H)
+
+	LD	E, L			; Copy Addr
+	LD	D, H
+
+	; Get PULL_COLOR
+	LD	C, (IX+BRD_PUSH_PULL_COLOR)
+
+	; IF Addr = BASE, we reached the bottom.
+	LD	A, E
+	CP	(IX+BRD_PULL_ANIM_COL_BASE_L)	; Comparing for L provides for a quicker exit
+	JP	NZ,	BoardPullAnim_enterLoop
+	LD	A, D
+	CP	(IX+BRD_PULL_ANIM_COL_BASE_H)
+	JP	NZ, BoardPullAnim_enterLoop
+
+BoardPullAnim_bottom
+	LD	A, (DE)			; Retrieve Bottom Ball	
+	;CP	B_0				; B_0 = 0
+	AND A				;	IF BALL is Empty
+
+	;		Goto End PULL
+	JP	Z,	BoardPullStop
+	
+	;	ELSE
+	;		Increment Clown Ball Count
+	INC	(IX+BRD_PUSH_PULL_CNT)
+
+	JP	BoardPullAnim_inBottom
+
+	; Iterate while Board (HL) Color = PULL Color
+BoardPullAnim_loop
+
+;	DEC	DE
+	
+BoardPullAnim_inLoop
+	LD	(DE), A						; Move Ball one position down
+
+	DEC	DE							; prepare next Position
+BoardPullAnim_inBottom
+	DEC	HL
+				; NOTE: TODO: We MUST CHECK Array Column Bounds limit
+	LD	A, (HL)						; Check if there are more balls to move.
+	CP	C
+	JP	Z, BoardPullAnim_loop	; Exit if no more Balls
+
+BoardPullAnim_endLoop
+	XOR	A							; B_0
+	;DEC	DE							; Get Valid Clear Position
+	LD	(DE), A						; Clear Position
+RET
+
+BoardPullAnim_enterLoop
+	INC	DE							; Update Position for next call
+	LD	(IX+BRD_PULL_ANIM_COL_ADDR_L), E	
+	LD	(IX+BRD_PULL_ANIM_COL_ADDR_H), D
+
+	LD	A, (HL)			; Retrieve Ball	
+	JP	BoardPullAnim_inLoop
+;--------------------	
+	
+	
+;------------------------
 BoardPullStop
 ;------------------------
 ; Inputs:
 ;	IX = Board Structure
 ; Trashes: ?
 
-	XOR A			; B_0
+	XOR A								; B_0
 	LD	(IX+BRD_PUSH_PULL_COLOR), A
 
-	;LD	A, PP_ANIM_STATE_STOPPED	 ;= 0x00
+	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
 RET
 
@@ -1077,6 +1169,18 @@ BoardPushStart
 ;	IX = Board Structure
 ; Trashes: ?
 
+
+RET
+
+;------------------------
+BoardPushAnim
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+
+		LD L, (IX+BRD_PUSH_ANIM_COL_ADDR_L)
+		LD H, (IX+BRD_PUSH_ANIM_COL_ADDR_H)
 
 RET
 
