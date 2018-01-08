@@ -21,7 +21,17 @@ B_W	EQU	5	; w = white/Cristal/ROCK
 B_M	EQU	6	; m = multicolor ?
 B_X	EQU	7	; x = undestructable bubble (must be trasnformed/compacted by another ball being thrown)
 
+BUBBLE_PAPER_COLOR_TAB
+	DEFB	0x00
+	DEFB	0x10	; RED		for B_R
+	DEFB	0x20	; GREEN		for B_R
+	DEFB	0x08	; BLUE		for B_B
+	DEFB	0x30	; YELLOW	for B_Y
+	DEFB	0x78	; WHITE		for B_W
+	DEFB	0x18	; MULTICOL	for B_M
+	DEFB	0x38	; Black		for B_X
 
+	
 OPPONENT_1P_VS_CPU_TAB_SIZE	EQU BLACK_PIERROT+1
 OPPONENT_1P_VS_CPU_TAB
 	DEFB	FOOL
@@ -986,9 +996,9 @@ BoardPullStart
 		LD	A, (HL)
 		CP	B_0			; Empty Ball
 		JP	NZ, BoardPullStarting_CheckColor
-		
+
 		DJNZ BoardPullStarting_FindColor
-		
+
 		; TODO: Could BEEP, signaling ERROR
 		RET				; No Ball Found, so nothing to PULL
 
@@ -1020,42 +1030,43 @@ BoardPullStart
 		;  A	-=> ACTIVE Color
 		;  B	-=> NEAREST Color
 		; ( A == B ) should be true
-		
-		;; DEBUG
-		; DEBUG_ATTR_LOCATION	EQU	+32*23+ATTR	; 32*23 = 736
-			; EX	AF.AF'
-		; LD	A, B
-		; ADD	A, A	; Shift 1
-		; ADD	A, A	; Shift 2
-		; ADD	A, A	; Shift 3		
-		; LD	(DEBUG_ATTR_LOCATION), A
-			; EX	AF.AF'
-		
-		; B = NEAREST Color
-		LD	A, B	; Save NEAREST Color
 
-		LD	B, C	; Restore Index count
-		LD	C, A	; Save Active Color
+
+		; B = NEAREST Color
+;		LD	A, B	; Save NEAREST Color			; This can be saved for PullAnim, to be simpler
+
+;		LD	B, C	; Restore Index count
+;		LD	C, A	; Save Active Color
 
 		; Save Anim Item Bottom Addr
 		LD (IX+BRD_PULL_ANIM_COL_ADDR_L), L
 		LD (IX+BRD_PULL_ANIM_COL_ADDR_H), H
 
-	BoardPullStarting_Mark
-		;OR	0x08	; Active HIGH Color
-		NOP
+		; DEBUG
+			DEBUG_ATTR_LOCATION	EQU	+32*23+ATTR	; 32*23 = 736
+			LD	HL, BUBBLE_PAPER_COLOR_TAB
+			LD	C, B	; Active Color
+			LD	B, 0
+			ADD	HL, BC
+			LD	A, (HL)
+			LD	(DEBUG_ATTR_LOCATION), A
 		
-		LD	(HL), A	; Set NEAREST to Active HIGH Color
-
-		DEC HL
-		LD	A, (HL)	; validate if next color is the same.
-		CP	C
-		JP	NZ, BoardPullStarting_Anim
-		DJNZ	BoardPullStarting_Mark
 		
-	BoardPullStarting_Anim	
-		INC HL		;	Can we always do this ? What about bottom of column case ?
 		
+	; TODO: WE DO NOT NEED TO MARK, when Starting a PULL
+	; This loop can me removed
+;	; BoardPullStarting_Mark
+;		OR	0x08	; Active HIGH Color
+;		
+;		LD	(HL), A	; Set NEAREST to Active HIGH Color
+;
+;		DEC HL
+;		LD	A, (HL)	; validate if next color is the same.
+;		CP	C
+;		JP	NZ, BoardPullStarting_Anim
+;		DJNZ	BoardPullStarting_Mark
+		
+	BoardPullStarting_Anim			
 		; Set Anim State to PP_ANIM_STATE_PULLING
 		LD	(IX+BRD_PUSH_PULL_ANIM_STATE), PP_ANIM_STATE_PULLING
 	RET
@@ -1118,10 +1129,6 @@ BoardPullAnim_bottom
 
 	; Iterate while Board (HL) Color = PULL Color
 BoardPullAnim_loop
-
-;	DEC	DE
-	
-BoardPullAnim_inLoop
 	LD	(DE), A						; Move Ball one position down
 
 	DEC	DE							; prepare next Position
@@ -1134,7 +1141,6 @@ BoardPullAnim_inBottom
 
 BoardPullAnim_endLoop
 	XOR	A							; B_0
-	;DEC	DE							; Get Valid Clear Position
 	LD	(DE), A						; Clear Position
 RET
 
@@ -1144,7 +1150,7 @@ BoardPullAnim_enterLoop
 	LD	(IX+BRD_PULL_ANIM_COL_ADDR_H), D
 
 	LD	A, (HL)			; Retrieve Ball	
-	JP	BoardPullAnim_inLoop
+	JP	BoardPullAnim_loop
 ;--------------------	
 	
 	
