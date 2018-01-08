@@ -813,21 +813,25 @@ BoardProcessUserInput
 
 	; Process User Keys
 	BOARD_INPUT_TEST_LEFT
-		LD	A, B
+		LD	A, B			; Restore New
 		AND CTRL_LEFT
 		JR Z, BOARD_INPUT_TEST_RIGHT 
 							; On NEW  Key Left was ON  (1)
-		LD	A, C
+		LD	A, C			; Restore LAST
 		AND CTRL_LEFT		; On LAST Key Left was OFF (0)
 		;PUSH BC
 			CALL Z, BoardGoLeft
 		;POP BC
 
-	BOARD_INPUT_TEST_RIGHT
-		LD	A, B			; Restore
-		AND CTRL_RIGHT	; On NEW Key Right is ON
-		JR Z, BOARD_INPUT_TEST_OTHERS 
+		; NOTE: Reloading will be faster (19T), then PUSH + POP ( 11T + 10T ),
+		; if only one of the registers is messed up (B or C, but not both)
+		;LD	C, (IX+BRD_USER_CTRL_LAST)
 
+	BOARD_INPUT_TEST_RIGHT
+		LD	A, B			; Restore New
+		AND CTRL_RIGHT
+		JR Z, BOARD_INPUT_TEST_OTHERS 
+							; On NEW  Key Right is ON  (1)
 		LD	A, C			; Restore LAST
 		AND CTRL_RIGHT	; On LAST Key Right was OFF
 		;; PUSH BC
