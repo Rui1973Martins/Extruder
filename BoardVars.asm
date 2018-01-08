@@ -34,14 +34,20 @@ BRD_ATTACK_CNT		EQU 18	; Opponent ATTACK Count Down, Initialized to ATTACK_PATTE
 BRD_COMBO_CNT		EQU	19	; Opponent Combo Count (0 = no combo, positive = combo counting)
 
 BRD_FLAGS			EQU	20	; FLAGS
-
-BRD_PUSH_PULL_COLOR			EQU 19	; used to keep Pushing and Pulling Item Color
-BRD_PUSH_PULL_ANIM_STATE	EQU 20	; used to animate Pushing and Pulling Items
-
 ; Flag bits for BRD_FLAGS
 	BRD_FLAG_NONE	EQU 0x00	; Used to initialize MASK of BRD_FLAGS
 	BRD_FLAG_COMBO	EQU 0x01	; If 1, Defines that a COMBO is in progress ( used as MASK on BRD_FLAGS)
 	BRD_FLAG_WRAP	EQU 0x02	; If 1, Board Margins should wrap
+
+BRD_PUSH_PULL_COLOR			EQU 21	; used to keep Pushing and Pulling Item Color
+BRD_PUSH_PULL_CNT			EQU 22	; Number of balls being hold by clown (does not include, animating balls)
+BRD_PUSH_PULL_ANIM_STATE	EQU 23	; used to animate Pushing and Pulling Items
+; Push Pull (PP) Anim States	Uses Bits 5..3
+	PP_ANIM_STATE_STOPPED	EQU 0x00
+	PP_ANIM_STATE_PULLING	EQU	0x10
+	PP_ANIM_STATE_PUSHING	EQU	0x20
+
+	POPPING_ANIM_STATE_RUNNING	EQU	0x40
 
 
 ;----------------------
@@ -64,8 +70,9 @@ BOARD1
 	DEFB 0		; ATTACK Pattern Count Down (Should be initialized to ATTACK_PATTERN_SIZE)
 	DEFB 0		; Opponent Combo Count
 	DEFB #0		; flags
-	DEFS B_0	; Current PUSH/PULL Color
-	DEFS 0		; PUSH/PULL AnimState
+	DEFB B_0	; Current PUSH/PULL Color
+	DEFB 0		; Number of Balls in Clown Hands
+	DEFB 0		; PUSH/PULL AnimState
 ;----------------------
 	
 
@@ -87,8 +94,9 @@ BOARD2
 	DEFB 0		; ATTACK Pattern Count Down (Should be initialized to ATTACK_PATTERN_SIZE)
 	DEFB 0		; Opponent Combo Count
 	DEFB #0		; flags
-	DEFS B_0	; Current PUSH/PULL Color
-	DEFS 0		; PUSH/PULL AnimState
+	DEFB B_0	; Current PUSH/PULL Color
+	DEFB 0		; Number of Balls in Clown Hands
+	DEFB 0		; PUSH/PULL AnimState
 ;----------------------
 
 

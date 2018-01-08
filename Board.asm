@@ -19,7 +19,7 @@ B_B	EQU	3	; b = blue
 B_Y	EQU	4	; y = yellow
 B_W	EQU	5	; w = white/Cristal/ROCK
 B_M	EQU	6	; m = multicolor ?
-B_X	EQU	7	; x = undistructable bubble (must be trasnformed/compacted by another ball being thrown)
+B_X	EQU	7	; x = undestructable bubble (must be trasnformed/compacted by another ball being thrown)
 
 
 OPPONENT_1P_VS_CPU_TAB_SIZE	EQU BLACK_PIERROT+1
@@ -816,9 +816,9 @@ BoardProcessUserInput
 		LD	A, B			; Restore New
 		AND CTRL_LEFT
 		JR Z, BOARD_INPUT_TEST_RIGHT 
-							; On NEW  Key Left was ON  (1)
+							; On NEW  Key LEFT was ON  (1)
 		LD	A, C			; Restore LAST
-		AND CTRL_LEFT		; On LAST Key Left was OFF (0)
+		AND CTRL_LEFT		; On LAST Key LEFT was OFF (0)
 		;PUSH BC
 			CALL Z, BoardGoLeft
 		;POP BC
@@ -830,15 +830,37 @@ BoardProcessUserInput
 	BOARD_INPUT_TEST_RIGHT
 		LD	A, B			; Restore New
 		AND CTRL_RIGHT
-		JR Z, BOARD_INPUT_TEST_OTHERS 
-							; On NEW  Key Right is ON  (1)
+		JR Z, BOARD_INPUT_TEST_PULL 
+							; On NEW  Key RIGHT is ON  (1)
 		LD	A, C			; Restore LAST
-		AND CTRL_RIGHT	; On LAST Key Right was OFF
+		AND CTRL_RIGHT		; On LAST Key RIGHT was OFF
 		;; PUSH BC
 			CALL Z, BoardGoRight
 		;; POP BC
 
-	BOARD_INPUT_TEST_OTHERS
+	BOARD_INPUT_TEST_PULL
+		LD	A, B			; Restore New
+		AND CTRL_DOWN
+		JR Z, BOARD_INPUT_TEST_PUSH 
+							; On NEW  Key PULL is ON  (1)
+		LD	A, C			; Restore LAST
+		AND CTRL_DOWN		; On LAST Key PULL was OFF
+		;; PUSH BC
+			CALL Z, BoardPullStart
+		;; POP BC
+
+	BOARD_INPUT_TEST_PUSH
+		LD	A, B			; Restore New
+		AND CTRL_UP
+		JR Z, BOARD_INPUT_TEST_OTHERS 
+							; On NEW  Key PUSH is ON  (1)
+		LD	A, C			; Restore LAST
+		AND CTRL_UP			; On LAST Key PUSH was OFF
+		;; PUSH BC
+			CALL Z, BoardPullStop		;BoardPushStart
+		;; POP BC
+
+	BOARD_INPUT_TEST_OTHERS		; TODO: Optimize this out, if not needed.
 RET
 	
 	
@@ -887,5 +909,183 @@ BoardGoRight
 BoardGoRightNoWrap
 
 	LD	(IX+BRD_CUR_X), A
+
+RET
+
+;------------------------
+BoardPullStart
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+
+;BRD_PUSH_PULL_COLOR
+;BRD_PUSH_PULL_ANIM_STATE
+	
+	
+	
+
+;	XOR A		;	B_0
+;	CP	(IX+BRD_PUSH_PULL_COLOR)
+	
+	
+;	LD	A, (IX+BRD_PUSH_PULL_COLOR)
+	
+	
+	
+	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+
+	CP	PP_ANIM_STATE_PUSHING
+	JP	Z,	BoardPushing
+
+	CP	PP_ANIM_STATE_PULLING
+	JP	Z,	BoardPulling
+
+;	CP	PP_ANIM_STATE_STOPPED
+;	JP	Z, BoardPullStarting
+
+	BoardPullStarting
+
+		; Get Cursor/Clown Position
+		LD	B, (IX+BRD_CUR_X)	; Relative value
+		INC	B					; We Need to start from the end of the Column
+		
+		; Get Column Address (using Clown position)
+		LD	L, (IX+BRD_BUF_L)
+		LD	H, (IX+BRD_BUF_H)
+
+		; Multiply				; TODO Optimize this using the Shift Carry method
+		LD	C, (IX+BRD_HEIGHT)
+		XOR	A
+	BoardPullStarting_MULT_1
+		; NOTE: B is always > 0, due to the INC B above.
+		ADD	A, C
+		DJNZ	BoardPullStarting_MULT_1
+
+		LD	D, 0
+		LD	E, A
+		
+		ADD	HL, DE		; Get	Address of intended Column last element +1 
+
+		
+		; Get Column NEAREST Color
+		LD B, C
+
+	BoardPullStarting_FindColor
+		DEC	HL
+		LD	A, (HL)
+		CP	B_0			; Empty Ball
+		JP	NZ, BoardPullStarting_CheckColor
+		
+		DJNZ BoardPullStarting_FindColor
+		
+		; TODO: Could BEEP, signaling ERROR
+		RET				; No Ball Found, so nothing to PULL
+
+	BoardPullStarting_CheckColor
+		LD	C, B		; Save Index
+		LD	B, A		; A contains NEAREST Color
+		
+		; If No Active Color (i.e. Clown has not started a pull yet)
+		LD	A, (IX+BRD_PUSH_PULL_COLOR)
+		CP	B_0			; Empty Ball
+		
+		JP	NZ,	BoardPullStarting_CheckNearest
+		
+		;	TODO: But we must check if it's an acceptable Color (Between 7..1)
+		; XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		;	Set active color to NEAREST Color
+		LD	(IX+BRD_PUSH_PULL_COLOR), B
+		JP	BoardPullStarting_NewPull	; 10T
+
+	BoardPullStarting_CheckNearest
+		; IF Active Color != NEAREST Color
+		CP	B			; 4T	; A -=> Active Color		; B -=> NEAREST Color
+		RET	NZ			; 5T or 11T	if Exit ?	SHOULD BEEP ERROR and EXIT ?
+
+	BoardPullStarting_NewPull
+		; Start New Pull
+		; NOTES:
+		; HL	-=> first Ball of Current Active Color
+		;  A	-=> ACTIVE Color
+		;  B	-=> NEAREST Color
+		; ( A == B ) should be true
+		
+		;; DEBUG
+		; DEBUG_ATTR_LOCATION	EQU	+32*23+ATTR	; 32*23 = 736
+			; EX	AF.AF'
+		; LD	A, B
+		; ADD	A, A	; Shift 1
+		; ADD	A, A	; Shift 2
+		; ADD	A, A	; Shift 3		
+		; LD	(DEBUG_ATTR_LOCATION), A
+			; EX	AF.AF'
+		
+		; B = NEAREST Color
+		LD	A, B	; Save NEAREST Color
+
+		LD	B, C	; Restore Index count
+		LD	C, A	; Save Active Color
+
+	BoardPullStarting_Mark
+		OR	0x08	; Active HIGH Color
+		
+		LD	(HL), A	; Set NEAREST to Active HIGH Color
+
+		DEC HL
+		LD	A, (HL)	; validate if next color is the same.
+		CP	C
+		JP	NZ, BoardPullStarting_Anim
+		DJNZ	BoardPullStarting_Mark
+		
+	BoardPullStarting_Anim	
+		; Set Anim State to PP_ANIM_STATE_PULLING
+		LD	(IX+BRD_PUSH_PULL_ANIM_STATE), PP_ANIM_STATE_PULLING
+	RET
+
+	BoardPulling
+	RET
+
+	BoardPushing
+	RET
+	
+	BoardPopping
+	RET
+	
+
+RET
+
+
+;------------------------
+BoardPullStop
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+
+	XOR A			; B_0
+	LD	(IX+BRD_PUSH_PULL_COLOR), A
+
+	;LD	A, PP_ANIM_STATE_STOPPED	 ;= 0x00
+	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
+RET
+
+;------------------------
+BoardPushStart
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+
+
+RET
+
+;------------------------
+BoardPushStop
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+
 
 RET
