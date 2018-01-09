@@ -64,7 +64,7 @@ CURSOR_P2_MASK	EQU CURSOR_P2_DOWN + CURSOR_P2_UP + CURSOR_P2_RIGHT + CURSOR_P2_F
 
 
 ;-----------------------------------------
-SINCLAIR1_PORT	EQU #EFFE; 61438	SINCLAIR2 (Port 2/Interface 1)
+SINCLAIR1_PORT	EQU #EFFE; 61438	SINCLAIR1 (Port 1/Interface 2)
 ;KBRD60 			EQU #EFFE; dec 6,7,8,9,0
 ;-----------------------------------------
 
@@ -82,7 +82,7 @@ SINCLAIR1_FIRE 		EQU #01	;	Bit0 = FIRE
 SINCLAIR1_MASK		EQU SINCLAIR1_LEFT + SINCLAIR1_RIGHT + SINCLAIR1_DOWN + SINCLAIR1_UP + SINCLAIR1_FIRE
 
 ;-----------------------------------------
-SINCLAIR2_PORT	EQU	#F7FE; 63486 dec	SINCLAIR1 (Port 1/Interface 2)
+SINCLAIR2_PORT	EQU	#F7FE; 63486 dec	SINCLAIR2 (Port 2/Interface 2)
 ;KBRD15 			EQU #F7FE;5,4,3,2,1
 ;-----------------------------------------
 

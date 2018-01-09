@@ -59,13 +59,13 @@ BRD_PULL_ANIM_COL_ADDR		EQU 26	; PULL Anim Columm Addr. Used to animate balls on
  BRD_PULL_ANIM_COL_ADDR_H	EQU 27	; PULL Anim Columm Addr (High)
 
  ; NOTE: Since we can be PULLing while still PUSHing
-BRD_PUSH_ANIM_COL_BASE		EQU 24	; PUSH Anim Columm BASE Addr. Points to the Bottom? most row of PUSH Column
- BRD_PUSH_ANIM_COL_BASE_L	EQU 24	; PUSH Anim Columm BASE Addr (Low )
- BRD_PUSH_ANIM_COL_BASE_H	EQU 25	; PUSH Anim Columm BASE Addr (High)
+BRD_PUSH_ANIM_COL_BASE		EQU 28	; PUSH Anim Columm BASE Addr. Points to the Bottom? most row of PUSH Column
+ BRD_PUSH_ANIM_COL_BASE_L	EQU 28	; PUSH Anim Columm BASE Addr (Low )
+ BRD_PUSH_ANIM_COL_BASE_H	EQU 29	; PUSH Anim Columm BASE Addr (High)
 
-BRD_PUSH_ANIM_COL_ADDR		EQU 26	; PUSH Anim Columm Addr. Used to animate balls on column (away from Clown)
- BRD_PUSH_ANIM_COL_ADDR_L	EQU 26	; PUSH Anim Columm Addr (Low )
- BRD_PUSH_ANIM_COL_ADDR_H	EQU 27	; PUSH Anim Columm Addr (High)
+BRD_PUSH_ANIM_COL_ADDR		EQU 30	; PUSH Anim Columm Addr. Used to animate balls on column (away from Clown)
+ BRD_PUSH_ANIM_COL_ADDR_L	EQU 30	; PUSH Anim Columm Addr (Low )
+ BRD_PUSH_ANIM_COL_ADDR_H	EQU 31	; PUSH Anim Columm Addr (High)
 
 ;----------------------
 ; Actual Board objects

@@ -158,6 +158,15 @@ BoardInit_JP0	; Clear Board Buffer Contents
 	XOR	A
 	LD	(IX+BRD_COMBO_CNT), A	; RESET Combo
 	LD	(IX+BRD_FLAGS), A		; RESET Flags to BRD_FLAG_NONE
+	
+	;XOR A								; B_0
+	LD	(IX+BRD_PUSH_PULL_COLOR), A
+
+	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
+	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
+	
+	; We could clear the PULL/PUSH BASE/ADDR fields, but should not be needed,
+	; since we control access through BRD_PUSH_PULL_ANIM_STATE
 RET
 
 
@@ -821,6 +830,14 @@ BoardProcessUserInput
 	LD	(IX+BRD_USER_CTRL_NEW), A
 	LD	B,	A
 
+	; We CAN NOT Move, if:
+	;	- a PULL is in progress
+	; 	- a PUSH is in progress
+	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+	;CP	PP_ANIM_STATE_STOPPED		; Hence NOT PP_ANIM_STATE_PULLING and NOT PP_ANIM_STATE_PUSHING
+	AND A
+	RET NZ
+	
 	; Process User Keys
 	BOARD_INPUT_TEST_LEFT
 		LD	A, B			; Restore New
@@ -867,7 +884,7 @@ BoardProcessUserInput
 		LD	A, C			; Restore LAST
 		AND CTRL_UP			; On LAST Key PUSH was OFF
 		;; PUSH BC
-			CALL Z, BoardPullStop		;BoardPushStart
+			CALL Z, BoardPushStart
 		;; POP BC
 
 	BOARD_INPUT_TEST_OTHERS		; TODO: Optimize this out, if not needed.
@@ -1014,6 +1031,7 @@ BoardPullStart
 		
 		;	TODO: But we must check if it's an acceptable Color (Between 7..1)
 		; XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 		;	Set active color to NEAREST Color
 		LD	(IX+BRD_PUSH_PULL_COLOR), B
 		JP	BoardPullStarting_NewPull	; 10T
@@ -1043,16 +1061,10 @@ BoardPullStart
 		LD (IX+BRD_PULL_ANIM_COL_ADDR_H), H
 
 		; DEBUG
-			DEBUG_ATTR_LOCATION	EQU	+32*23+ATTR	; 32*23 = 736
-			LD	HL, BUBBLE_PAPER_COLOR_TAB
-			LD	C, B	; Active Color
-			LD	B, 0
-			ADD	HL, BC
-			LD	A, (HL)
-			LD	(DEBUG_ATTR_LOCATION), A
-		
-		
-		
+		DEBUG_ATTR_LOCATION	EQU	+32*23+ATTR	; 32*23 = 736
+		LD DE, DEBUG_ATTR_LOCATION
+		CALL BoardDebugActiveColor		
+
 	; TODO: WE DO NOT NEED TO MARK, when Starting a PULL
 	; This loop can me removed
 ;	; BoardPullStarting_Mark
@@ -1161,12 +1173,22 @@ BoardPullStop
 ;	IX = Board Structure
 ; Trashes: ?
 
-	XOR A								; B_0
-	LD	(IX+BRD_PUSH_PULL_COLOR), A
-
+	XOR A
 	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
+	
+	; TODO: Optimize by calculating HL = IX+BC for start location, and then clear and inc ?
+	LD	(IX+BRD_PULL_ANIM_COL_BASE_L), A		; Clear COL BASE
+	LD	(IX+BRD_PULL_ANIM_COL_BASE_H), A
+	
+	LD	(IX+BRD_PULL_ANIM_COL_ADDR_L), A		; Clear COL ADDR
+	LD	(IX+BRD_PULL_ANIM_COL_ADDR_H), A
+	
+	DEBUG_ATTR_LOCATION2	EQU	+32*23+ATTR+1
+	LD DE, DEBUG_ATTR_LOCATION2
+	CALL BoardDebugActiveColor	
 RET
+
 
 ;------------------------
 BoardPushStart
@@ -1175,6 +1197,8 @@ BoardPushStart
 ;	IX = Board Structure
 ; Trashes: ?
 
+;	HACK
+	CALL BoardPushStop
 
 RET
 
@@ -1197,5 +1221,53 @@ BoardPushStop
 ;	IX = Board Structure
 ; Trashes: ?
 
+	XOR A
+	LD	(IX+BRD_PUSH_PULL_CNT), A		; NOTE: Should be already empty, but just in case.
 
+	;LD	A, B_0;
+	LD	(IX+BRD_PUSH_PULL_COLOR), A
+	
+	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
+	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
+
+	LD DE, DEBUG_ATTR_LOCATION2
+	CALL BoardDebugActiveColor
+RET
+
+
+;------------------------
+BoardPushPullAnim
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	DE = Attr Address
+
+	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+
+	CP	PP_ANIM_STATE_PUSHING
+	JP	Z,	BoardPushAnim
+
+	CP	PP_ANIM_STATE_PULLING
+	JP	Z,	BoardPullAnim
+	
+RET
+
+;------------------------
+BoardDebugActiveColor
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	DE = Attr Address
+; Trashes: A
+
+	PUSH HL
+		PUSH BC
+			LD	HL, BUBBLE_PAPER_COLOR_TAB
+			LD	C, (IX+BRD_PUSH_PULL_COLOR)	; Active Color	
+			LD	B, 0
+			ADD	HL, BC
+			LD	A, (HL)
+			LD	(DE), A
+		POP	BC
+	POP	HL
 RET

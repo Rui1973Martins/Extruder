@@ -352,13 +352,12 @@ PLAY1_LOOP
 	CP KEYSP
 	RET Z
 
-	
-	
+		
 	LD A, WHITE
 	OUT (ULA),A
 
-	CALL BoardPullAnim
-	
+	CALL BoardPushPullAnim
+
 	JP PLAY1_LOOP
 ;RET
 
@@ -406,7 +405,7 @@ PLAY2_LOOP
 		CALL BoardUpdateAll
 	
 	
-	LD A, YELLOW
+	LD A, GREEN
 	OUT (ULA),A
 
 		;LD A, ; BRD_ANIM_STATE
@@ -415,7 +414,7 @@ PLAY2_LOOP
 		CALL BoardStepAnim
 		CALL BoardDrawCursor
 
-	LD A, WHITE
+	LD A, CYAN
 	OUT (ULA),A
 
 		LD IX, BOARD2
@@ -425,6 +424,8 @@ PLAY2_LOOP
 
 ;	CALL WaitPressAnyKey
 
+	LD A, BLACK
+	OUT (ULA),A
 
 	LD	IX, BOARD1
 	LD	DE, BOARD_PATTERN_DUAL	;BOARD_PATTERN1
@@ -472,6 +473,18 @@ PLAY2_LOOP
 	LD A, B_B		; BLUE Bubble
 	CALL Z, BoardTransformStone
 
+	
+	LD A, YELLOW
+	OUT (ULA),A
+
+	LD	IX, BOARD1
+	CALL BoardPushPullAnim
+
+	LD A, WHITE
+	OUT (ULA),A
+
+	LD	IX, BOARD2
+	CALL BoardPushPullAnim
 
 	JP PLAY2_LOOP
 ;RET
