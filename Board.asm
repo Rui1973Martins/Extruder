@@ -158,15 +158,21 @@ BoardInit_JP0	; Clear Board Buffer Contents
 	XOR	A
 	LD	(IX+BRD_COMBO_CNT), A	; RESET Combo
 	LD	(IX+BRD_FLAGS), A		; RESET Flags to BRD_FLAG_NONE
-	
+
 	;XOR A								; B_0
 	LD	(IX+BRD_PUSH_PULL_COLOR), A
 
 	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
-	
+
 	; We could clear the PULL/PUSH BASE/ADDR fields, but should not be needed,
 	; since we control access through BRD_PUSH_PULL_ANIM_STATE
+
+	; XOR	A
+	LD	(IX+BRD_PUSH_PULL_INSERT_CNT), A
+
+	; LD A, GAME_STATE_RUNNING	; GAME_STATE_ROLL_IN
+	LD	(IX+BRD_GAME_STATE), A
 RET
 
 
@@ -1219,6 +1225,10 @@ BoardPushStart
 		AND	A
 		RET	Z
 
+	; Reset INSERT CNT (Just to be sure)
+		XOR	A
+		LD	(IX+BRD_PUSH_PULL_INSERT_CNT), A
+
 	; Get Cursor/Clown Position
 		LD	B, (IX+BRD_CUR_X)	; Relative value
 		INC	B					; We Need to start from the end of the Column
@@ -1229,12 +1239,12 @@ BoardPushStart
 
 		; Multiply				; TODO Optimize using Shift Carry method, only 4 bits needed for Width
 		LD	C, (IX+BRD_HEIGHT)
-		XOR	A					; Init to Zero
+	;	XOR	A					; Init to Zero (NOTE: Code be removed, if XOR A above is present)
 
 	BoardPushStarting_MULT_1
 		; NOTE: B is always > 0, due to the INC B above.
 		ADD	A, C
-		DJNZ	BoardPushStarting_MULT_1
+		DJNZ	BoardPushStarting_MULT_1	; TODO: One loop could be saved, by LD A, C, and remove INC B
 
 		LD	E, A
 		LD	D, 0				; TODO: Optimize this ADD, since 256 byte aligned
@@ -1284,10 +1294,10 @@ BoardPushAnim
 
 	; IF BASE == ADDR
 		LD	A, L
-		CP	(IX+BRD_PULL_ANIM_COL_BASE_L)	; Comparing for L provides for a quicker exit
+		CP	(IX+BRD_PUSH_ANIM_COL_BASE_L)	; Comparing for L provides for a quicker exit
 		JP	NZ,	BoardPushAnim_checkSpace
 		LD	A, H
-		CP	(IX+BRD_PULL_ANIM_COL_BASE_H)
+		CP	(IX+BRD_PUSH_ANIM_COL_BASE_H)
 		JP	NZ, BoardPushAnim_checkSpace
 
 	;	Check CNT and Exit
@@ -1317,10 +1327,9 @@ BoardPushAnim_checkSpace
 		JP	NZ,	BoardPushAnim_countDown
 
 	; 	Iterate/Find Last (Could be bottom of Column)
-		NOP
-		NOP		; TODO
-		NOP
-		RET
+		LD	C, (IX+BRD_PUSH_PULL_INSERT_CNT)
+		LD	B, 0
+		ADD	HL, BC
 
 	;	Insert Empty Spot
 		XOR	A
@@ -1334,7 +1343,7 @@ BoardPushAnim_countDown
 	;	DEC BALL CNT
 		DEC	A							; a = (IX+BRD_PUSH_PULL_CNT)
 		LD	(IX+BRD_PUSH_PULL_CNT), A	; Would there be any advantage in using "DEC (IX+n)" ?
-
+		INC	(IX+BRD_PUSH_PULL_INSERT_CNT)
 	RET
 	; ;	Check End condition
 	; ;	IF BALL CNT != 0
@@ -1370,12 +1379,13 @@ BoardPushStop
 ; Trashes: ?
 
 	XOR A
-	LD	(IX+BRD_PUSH_PULL_CNT), A		; NOTE: Should be already empty, but just in case.
+	LD	(IX+BRD_PUSH_PULL_CNT), A				; Required, when loose condition !?
+	LD	(IX+BRD_PUSH_PULL_INSERT_CNT), A		; Reset
 
 	;LD	A, B_0;
 	LD	(IX+BRD_PUSH_PULL_COLOR), A
 	
-	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
+	;LD	A, PP_ANIM_STATE_STOPPED	 			; = 0x00
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
 
 	; TODO: Optimize by calculating HL = IX+BC for start location, and then clear and inc ?

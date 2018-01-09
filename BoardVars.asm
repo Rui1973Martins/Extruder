@@ -74,6 +74,8 @@ BRD_GAME_STATE				EQU 32	; Game State
 				GAME_STATE_DRAW		EQU 0x05	; It's a DRAW
 				GAME_STATE_WON		EQU 0x04	; Player WON
 
+BRD_PUSH_PULL_INSERT_CNT	EQU 33	; Number of balls Already pushhed by clown (used for animating balls)
+
 ;----------------------
 ; Actual Board objects
 ;----------------------
@@ -103,6 +105,8 @@ BOARD1
 
 	DEFW #0000	; PUSH Col Start Animation BASE (Bottom row Item)
 	DEFW #0000	; PUSH Col Start Animation (Top)
+
+	DEFB GAME_STATE_RUNNING; Game State
 ;----------------------
 	
 
@@ -133,6 +137,8 @@ BOARD2
 
 	DEFW #0000	; PUSH Col Start Animation BASE (Bottom row Item)
 	DEFW #0000	; PUSH Col Start Animation (Top)
+
+	DEFB GAME_STATE_RUNNING; Game State
 ;----------------------
 
 
