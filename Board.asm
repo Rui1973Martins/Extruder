@@ -1141,7 +1141,9 @@ BoardPullAnim_bottom
 
 	; Iterate while Board (HL) Color = PULL Color
 BoardPullAnim_loop
-	LD	(DE), A						; Move Ball one position down
+; DEPRECATED COPY, since we only need to copy the first and last
+; All others are guaranteed to be identical
+;	LD	(DE), A						; Move Ball one position down
 
 	DEC	DE							; prepare next Position
 BoardPullAnim_inBottom
@@ -1153,7 +1155,7 @@ BoardPullAnim_inBottom
 
 BoardPullAnim_endLoop
 	XOR	A							; B_0
-	LD	(DE), A						; Clear Position
+	LD	(DE), A						; Clear (last) Position
 RET
 
 BoardPullAnim_enterLoop
@@ -1161,7 +1163,8 @@ BoardPullAnim_enterLoop
 	LD	(IX+BRD_PULL_ANIM_COL_ADDR_L), E	
 	LD	(IX+BRD_PULL_ANIM_COL_ADDR_H), D
 
-	LD	A, (HL)			; Retrieve Ball	
+	LD	A, (HL)						; Retrieve Ball
+	LD	(DE), A						; Move NEAREST/First Ball one position down
 	JP	BoardPullAnim_loop
 ;--------------------	
 	
