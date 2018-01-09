@@ -70,9 +70,9 @@ BRD_PUSH_ANIM_COL_ADDR		EQU 30	; PUSH Anim Columm Addr. Used to animate balls on
 BRD_GAME_STATE				EQU 32	; Game State
 			; Possible Board Game States
 				GAME_STATE_RUNNING	EQU	0x00	; During Game Play
-				GAME_STATE_LOST		EQU 0x02	; Player LOST
-				GAME_STATE_DRAW		EQU 0x05	; It's a DRAW
-				GAME_STATE_WON		EQU 0x04	; Player WON
+				GAME_STATE_LOST		EQU 0x01	; Player LOST	(Red	Ball)
+				GAME_STATE_DRAW		EQU 0x03	; It's a DRAW	(Blue	Ball)
+				GAME_STATE_WON		EQU 0x02	; Player WON	(Green	Ball)
 
 BRD_PUSH_PULL_INSERT_CNT	EQU 33	; Number of balls Already pushhed by clown (used for animating balls)
 

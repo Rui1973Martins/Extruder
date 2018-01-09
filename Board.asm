@@ -1,3 +1,6 @@
+DEBUG_ATTR_LOCATION1	EQU	+32*23+ATTR
+DEBUG_ATTR_LOCATION2	EQU	+32*23+ATTR+1
+
 ; Characters
 DEVIL			EQU	 0
 FOOL			EQU  1
@@ -1069,8 +1072,7 @@ BoardPullStart
 		LD (IX+BRD_PULL_ANIM_COL_ADDR_H), H
 
 		; DEBUG
-		DEBUG_ATTR_LOCATION	EQU	+32*23+ATTR	; 32*23 = 736
-		LD DE, DEBUG_ATTR_LOCATION
+		LD DE, DEBUG_ATTR_LOCATION1
 		CALL BoardDebugActiveColor		
 
 	; TODO: WE DO NOT NEED TO MARK, when Starting a PULL
@@ -1397,11 +1399,7 @@ BoardPushStop
 	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), A
 
 	; DEBUG
-	LD DE, DEBUG_ATTR_LOCATION2
-	CALL BoardDebugActiveColor
-
-	; DEBUG
-	LD DE, DEBUG_ATTR_LOCATION2
+	LD DE, DEBUG_ATTR_LOCATION1
 	CALL BoardDebugActiveColor
 
 RET
@@ -1436,9 +1434,8 @@ BoardGameSetState
 	LD	(IX+BRD_GAME_STATE), A
 
 	; DEBUG
-	DEBUG_ATTR_LOCATION2	EQU	+32*23+ATTR+1
 	LD DE, DEBUG_ATTR_LOCATION2
-	CALL BoardDebugBubbleColor	
+	CALL BoardDebugBubbleColor
 
 ; BoardProcessGameState
 	; CP	GAME_STATE_ROLL_IN
@@ -1476,16 +1473,18 @@ BoardDebugBubbleColor
 ; Inputs:
 ;	DE = Attr Address
 ;	 A = Color
-; Trashes: A
+; Trashes: Nothing
 
 	PUSH HL
 		PUSH BC
-			LD	HL, BUBBLE_PAPER_COLOR_TAB
-			LD	C, A				; Color	
-			LD	B, 0
-			ADD	HL, BC
-			LD	A, (HL)
-			LD	(DE), A
+			PUSH AF
+				LD	HL, BUBBLE_PAPER_COLOR_TAB
+				LD	C, A				; Color	
+				LD	B, 0
+				ADD	HL, BC
+				LD	A, (HL)
+				LD	(DE), A
+			POP	AF
 		POP	BC
 	POP	HL
 RET
