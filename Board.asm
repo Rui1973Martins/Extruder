@@ -962,6 +962,9 @@ BoardPullStart
 	
 	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
 
+	; TODO: Do we need these extra tests ?
+	; we could just test the PP_ANIM_STATE_STOPPED case, and exit if different
+
 	CP	PP_ANIM_STATE_PUSHING
 	JP	Z,	BoardPushing
 
@@ -981,7 +984,7 @@ BoardPullStart
 		LD	L, (IX+BRD_BUF_L)
 		LD	H, (IX+BRD_BUF_H)
 
-		; Multiply				; TODO Optimize this using the Shift Carry method
+		; Multiply				; TODO Optimize using Shift Carry method, only 4 bits needed for Width
 		LD	C, (IX+BRD_HEIGHT)
 		XOR	A
 	BoardPullStarting_MULT_1
@@ -989,9 +992,8 @@ BoardPullStart
 		ADD	A, C
 		DJNZ	BoardPullStarting_MULT_1
 
-		LD	D, 0
 		LD	E, A
-		
+		LD	D, 0		
 		ADD	HL, DE				; Get Address of intended Column last element +1 
 
 		
@@ -1181,15 +1183,12 @@ BoardPullStop
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
 	
 	; TODO: Optimize by calculating HL = IX+BC for start location, and then clear and inc ?
+	; Clearing THESE Pointers can be optional, if they are NOT tested in any other ANIM_STATE except PULLING (and kept EQUAL on Exit)
 	LD	(IX+BRD_PULL_ANIM_COL_BASE_L), A		; Clear COL BASE
 	LD	(IX+BRD_PULL_ANIM_COL_BASE_H), A
 	
 	LD	(IX+BRD_PULL_ANIM_COL_ADDR_L), A		; Clear COL ADDR
 	LD	(IX+BRD_PULL_ANIM_COL_ADDR_H), A
-	
-	DEBUG_ATTR_LOCATION2	EQU	+32*23+ATTR+1
-	LD DE, DEBUG_ATTR_LOCATION2
-	CALL BoardDebugActiveColor	
 RET
 
 
@@ -1200,10 +1199,77 @@ BoardPushStart
 ;	IX = Board Structure
 ; Trashes: ?
 
-;	HACK
-	CALL BoardPushStop
+	; IF ANIM_STATE != STOPPED
+	;	Exit
+		LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+		AND	A						; 0X00 = PP_ANIM_STATE_STOPPED
+		RET NZ						; Not Equal
 
-RET
+	; IF Active_COLOR == B_0
+	;	Exit
+		LD	A, (IX+BRD_PUSH_PULL_COLOR)
+		AND	A						; 0 = B_0
+		RET	Z						; Equal
+
+	;	EX	AF, AF'					; Save Active Color
+
+	; IF PULL count == 0
+	;	Exit
+		LD	A, (IX+BRD_PUSH_PULL_CNT)
+		AND	A
+		RET	Z
+
+	; Get Cursor/Clown Position
+		LD	B, (IX+BRD_CUR_X)	; Relative value
+		INC	B					; We Need to start from the end of the Column
+
+	; Get Column Address (using Clown position)
+		LD	L, (IX+BRD_BUF_L)	; TODO: We can not Optimize to "LD L, 0" since 256 bytes aligned, due two Board 2, not starting at LOW(0)
+		LD	H, (IX+BRD_BUF_H)
+
+		; Multiply				; TODO Optimize using Shift Carry method, only 4 bits needed for Width
+		LD	C, (IX+BRD_HEIGHT)
+		XOR	A					; Init to Zero
+
+	BoardPushStarting_MULT_1
+		; NOTE: B is always > 0, due to the INC B above.
+		ADD	A, C
+		DJNZ	BoardPushStarting_MULT_1
+
+		LD	E, A
+		LD	D, 0				; TODO: Optimize this ADD, since 256 byte aligned
+		ADD	HL, DE				; Get Address of intended Column last element +1 
+
+	; Set ADDR & BASE			; We keep element +1 So we can call BoardPushAnim to set bottom item
+		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), L
+		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), H
+
+		;PUSH HL				; Save ADDR
+
+		LD	E, C				; E = Height
+		SBC	HL, DE				; First Column Position = Subtract Height
+
+		LD	(IX+BRD_PUSH_ANIM_COL_BASE_L), L
+		LD	(IX+BRD_PUSH_ANIM_COL_BASE_H), H
+
+		;EX	DE, HL				; DE = BASE
+		;POP HL					; Restore ADDR
+
+	; Set Active Color
+	;	EX	AF, AF'				; Restore Active Color
+	;	LD	(IX+BRD_PUSH_PULL_COLOR), A
+
+	; Set Anim state to PUSHING
+		LD	A, PP_ANIM_STATE_PUSHING
+		LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
+
+	; Place First Ball and Decrement
+		; NOTE: delegate this to PushAnim, since several conditions must be verified,
+		; like check if there is any free space
+
+; FALL Through
+		;CALL	BoardPushAnim
+;RET
 
 ;------------------------
 BoardPushAnim
@@ -1212,10 +1278,89 @@ BoardPushAnim
 ;	IX = Board Structure
 ; Trashes: ?
 
+	; Get Addr
 		LD L, (IX+BRD_PUSH_ANIM_COL_ADDR_L)
 		LD H, (IX+BRD_PUSH_ANIM_COL_ADDR_H)
 
-RET
+	; IF BASE == ADDR
+		LD	A, L
+		CP	(IX+BRD_PULL_ANIM_COL_BASE_L)	; Comparing for L provides for a quicker exit
+		JP	NZ,	BoardPushAnim_checkSpace
+		LD	A, H
+		CP	(IX+BRD_PULL_ANIM_COL_BASE_H)
+		JP	NZ, BoardPushAnim_checkSpace
+
+	;	Check CNT and Exit
+		JP	BoardPushAnim_checkCountExit
+
+BoardPushAnim_checkSpace	
+	; 	Update ADDR = ADDR-1
+		DEC HL
+
+	; IF Free Space is NOT available (POSITON != EMPTY) at (ADDR-1)
+		LD	A, (HL)
+		AND	A							; 0 = B_0
+	;	Check CNT and Exit
+		JP	NZ,	BoardPushAnim_checkCountExit
+
+	; All Required Conditions met, to Push one Ball into Column
+	; Push One Ball into Column (new ADDR)
+	;	Fill Active Color Ball
+		LD	A, (IX+BRD_PUSH_PULL_COLOR)
+		LD	(HL), A
+		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), L
+		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), H		
+
+	; IF BALL CNT == 0
+		LD	A, (IX+BRD_PUSH_PULL_CNT)
+		AND	A
+		JP	NZ,	BoardPushAnim_countDown
+
+	; 	Iterate/Find Last (Could be bottom of Column)
+		NOP
+		NOP		; TODO
+		NOP
+		RET
+
+	;	Insert Empty Spot
+		XOR	A
+		LD	(HL), A
+
+	;	EXIT
+		RET
+
+	; ELSE
+BoardPushAnim_countDown
+	;	DEC BALL CNT
+		DEC	A							; a = (IX+BRD_PUSH_PULL_CNT)
+		LD	(IX+BRD_PUSH_PULL_CNT), A	; Would there be any advantage in using "DEC (IX+n)" ?
+
+	RET
+	; ;	Check End condition
+	; ;	IF BALL CNT != 0
+	; ;		EXIT
+		; RET	NZ
+	; ;	ELSE
+	; ;		JP Stop Push
+		; JP	BoardPushStop
+
+BoardPushAnim_checkCountExit
+	; Check and Exit
+	; Assumed no spaceleft to insert Balls
+	; IF BALL CNT != 0 (> 0)
+		LD	A, (IX+BRD_PUSH_PULL_CNT)
+		AND	A
+		JR	Z, BoardPushStop	
+
+	;	Signal Player LOST and Exit
+	;	Signal Player LOST
+		LD	A, GAME_STATE_LOST;
+		CALL	BoardGameSetState
+
+	;	Stop Push
+; FALL Through
+;		CALL BoardPushStop
+;RET
 
 ;------------------------
 BoardPushStop
@@ -1233,8 +1378,22 @@ BoardPushStop
 	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
 
+	; TODO: Optimize by calculating HL = IX+BC for start location, and then clear and inc ?
+	; Clearing THESE Pointers can be optional, if they are NOT tested in any other ANIM_STATE except PUSHING (and kept EQUAL on Exit)
+	LD	(IX+BRD_PUSH_ANIM_COL_BASE_L), A		; Clear COL BASE
+	LD	(IX+BRD_PUSH_ANIM_COL_BASE_H), A
+
+	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), A		; Clear COL ADDR
+	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), A
+
+	; DEBUG
 	LD DE, DEBUG_ATTR_LOCATION2
 	CALL BoardDebugActiveColor
+
+	; DEBUG
+	LD DE, DEBUG_ATTR_LOCATION2
+	CALL BoardDebugActiveColor
+
 RET
 
 
@@ -1256,17 +1415,63 @@ BoardPushPullAnim
 RET
 
 ;------------------------
+BoardGameSetState
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	 A = New Game State 
+; Trashes: A
+
+	; Keep new State
+	LD	(IX+BRD_GAME_STATE), A
+
+	; DEBUG
+	DEBUG_ATTR_LOCATION2	EQU	+32*23+ATTR+1
+	LD DE, DEBUG_ATTR_LOCATION2
+	CALL BoardDebugBubbleColor	
+
+; BoardProcessGameState
+	; CP	GAME_STATE_ROLL_IN
+	; JP	Z, BoardRollingStart
+
+	; CP	GAME_STATE_RUNNING
+	; JP	Z, BoardRunningStart
+
+	; CP	GAME_STATE_LOST
+	; JP	Z, BoardRollingStart
+
+	; CP	GAME_STATE_DRAW
+	; JP	Z, BoardDrawStart
+
+	; CP	GAME_STATE_WON
+	; JP	Z, BoardWonStart
+
+RET
+
+;------------------------
 BoardDebugActiveColor
 ;------------------------
 ; Inputs:
 ;	IX = Board Structure
 ;	DE = Attr Address
+;	 A = Color
+; Trashes: A
+
+	LD	A, (IX+BRD_PUSH_PULL_COLOR)	; Active Color	
+; FAll Through
+
+;------------------------
+BoardDebugBubbleColor
+;------------------------
+; Inputs:
+;	DE = Attr Address
+;	 A = Color
 ; Trashes: A
 
 	PUSH HL
 		PUSH BC
 			LD	HL, BUBBLE_PAPER_COLOR_TAB
-			LD	C, (IX+BRD_PUSH_PULL_COLOR)	; Active Color	
+			LD	C, A				; Color	
 			LD	B, 0
 			ADD	HL, BC
 			LD	A, (HL)

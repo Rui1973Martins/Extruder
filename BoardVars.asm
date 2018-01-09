@@ -67,6 +67,13 @@ BRD_PUSH_ANIM_COL_ADDR		EQU 30	; PUSH Anim Columm Addr. Used to animate balls on
  BRD_PUSH_ANIM_COL_ADDR_L	EQU 30	; PUSH Anim Columm Addr (Low )
  BRD_PUSH_ANIM_COL_ADDR_H	EQU 31	; PUSH Anim Columm Addr (High)
 
+BRD_GAME_STATE				EQU 32	; Game State
+			; Possible Board Game States
+				GAME_STATE_RUNNING	EQU	0x00	; During Game Play
+				GAME_STATE_LOST		EQU 0x02	; Player LOST
+				GAME_STATE_DRAW		EQU 0x05	; It's a DRAW
+				GAME_STATE_WON		EQU 0x04	; Player WON
+
 ;----------------------
 ; Actual Board objects
 ;----------------------
@@ -145,6 +152,11 @@ BOARD2
 
 ; This arrangement, allows us to process game logic faster since vertical positions (same column rows) are adjacent
 
+; ALIGN to 256 boundary, by reaching the next boundary, when necessary
+ALIGNED_BOARD_DATA_HIGH EQU HIGH($)
+ALIGNED_BOARD_DATA_LOW EQU LOW($)
+ORG	( (ALIGNED_BOARD_DATA_LOW = 0 ? 0 : 256 ) + 256 * ALIGNED_BOARD_DATA_HIGH )
+
 BOARD1_DATA
 	REPT 11*7
 		DEFB #00
@@ -164,11 +176,13 @@ BOARD_DATA_END_MARKER
 ;include "Patterns.asm"
 
 ; Used to keep generated Ball Colors history, so that both players get the same values
-; TODO, Can't we use ROM DATA for generation ?
+; TODO, Can't we use ROM DATA, or program DATA for generation ?
+; Or use 2 PSEUDO RANDOM generators, seeded with the same seed, so that they generate the same content, in distinct time.
+; OR defined a Reference table, and use walking pointers (with pre-defined Offsets at start), so that sequence is the same for both players.
 ; Would avoid having to keep a copy of the items.
 BOARD_GEN_HISTORY
 	REPT 11*7*2	; Must be enough to keep the entire game input (MAX 250 per user ?)
-		DEFB #00
+		DEFB #00	
 	ENDM
 
 
