@@ -79,6 +79,7 @@ BRD_PUSH_PULL_INSERT_CNT	EQU 33	; Number of balls Already pushhed by clown (used
 BRD_CUR_X_LAST				EQU 34	; Last version of BRD_CUR_X
 
 BRD_POP_ANIM				EQU 35	; Pop Animation State control
+BRD_POP_CNT					EQU 36	; Counts the Number of Balls during POPing
 
 ;----------------------
 ; Actual Board objects
@@ -113,6 +114,7 @@ BOARD1
 	DEFB GAME_STATE_RUNNING; Game State
 	DEFB 0		; Last Cursor (in Chars)
 	DEFB 0		; Pop Anim State
+	DEFB 0		; Pop Count
 ;----------------------
 
 ;----------------------
@@ -146,6 +148,7 @@ BOARD2
 	DEFB GAME_STATE_RUNNING; Game State
 	DEFB 0		; Last Cursor (in Chars)
 	DEFB 0		; Pop Anim State
+	DEFB 0		; Pop Count
 ;----------------------
 
 

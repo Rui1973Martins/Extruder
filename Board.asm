@@ -1474,10 +1474,18 @@ BoardPushStop
 ;	IX = Board Structure
 ; Trashes: ?
 
+	; IF CNT reached ZERO, We injected Everything
+	; (TODO REVIEW THIS), since we can pop remaining CNT if >= 3
 	LD	A, (IX+BRD_PUSH_PULL_CNT)
 	AND	A
-	CALL Z,	BoardMatch3
+	JP	NZ, BoardPushStop_continue
 
+	; If It's Ice/Stone (B_W), it DOES NOT POPm so can never MATCH
+	LD	A, B_W
+	CP	(IX+BRD_PUSH_PULL_COLOR)
+	CALL NZ,	BoardMatch3
+
+BoardPushStop_continue
 	XOR A
 	LD	(IX+BRD_PUSH_PULL_CNT), A				; Required, when loose condition !?
 ;	LD	(IX+BRD_PUSH_PULL_INSERT_CNT), A		; Reset
@@ -1606,23 +1614,26 @@ RET
 BoardMatch3_sweepMark
 	; TODO: MUST Check Boundaries
 
+	LD	(IX+BRD_POP_CNT), 0		; Reset Pop Count
+
 	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
 
 BoardMatch3_sweepMarkCenter
 	LD	A, (HL)							; Current Ball
 	AND	BUBBLE_POP_MASK
 	CP	C
+	;TODO Check if it's ICE/Stone
 
 	RET NZ
 
+
 	; MATCH, SO MARK
-	;OR	BUBBLE_POP						; Mark
-	LD	A, BUBBLE_POP					; MARK
-	LD	(HL), A							; Update Ball
+	LD	(HL), BUBBLE_POP				; Mark Ball
+	INC	(IX+BRD_POP_CNT)				; Must INC POP Count
 
 	; Search DOWN direction
 	PUSH HL
-		INC HL
+		INC L								; 256 aligned and limited, no need INC HL
 		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
 	POP HL
 
@@ -1646,7 +1657,7 @@ BoardMatch3_sweepMarkCenter
 
 	; Search UP direction
 	PUSH HL
-		DEC HL
+		DEC L								; 256 aligned and limited, no need DEC HL
 		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
 	POP HL
 
