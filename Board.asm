@@ -1010,20 +1010,6 @@ BoardPullStart
 ;	IX = Board Structure
 ; Trashes: ?
 
-;BRD_PUSH_PULL_COLOR
-;BRD_PUSH_PULL_ANIM_STATE
-	
-	
-	
-
-;	XOR A		;	B_0
-;	CP	(IX+BRD_PUSH_PULL_COLOR)
-	
-	
-;	LD	A, (IX+BRD_PUSH_PULL_COLOR)
-	
-	
-	
 	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
 
 	; TODO: Do we need these extra tests ?
@@ -1435,9 +1421,13 @@ BoardPushStop
 ;	IX = Board Structure
 ; Trashes: ?
 
+	LD	A, (IX+BRD_PUSH_PULL_CNT)
+	AND	A
+	CALL Z,	BoardMatch3
+
 	XOR A
 	LD	(IX+BRD_PUSH_PULL_CNT), A				; Required, when loose condition !?
-	LD	(IX+BRD_PUSH_PULL_INSERT_CNT), A		; Reset
+;	LD	(IX+BRD_PUSH_PULL_INSERT_CNT), A		; Reset
 
 	;LD	A, B_0;
 	LD	(IX+BRD_PUSH_PULL_COLOR), A
@@ -1447,11 +1437,11 @@ BoardPushStop
 
 	; TODO: Optimize by calculating HL = IX+BC for start location, and then clear and inc ?
 	; Clearing THESE Pointers can be optional, if they are NOT tested in any other ANIM_STATE except PUSHING (and kept EQUAL on Exit)
-	LD	(IX+BRD_PUSH_ANIM_COL_BASE_L), A		; Clear COL BASE
-	LD	(IX+BRD_PUSH_ANIM_COL_BASE_H), A
+;	LD	(IX+BRD_PUSH_ANIM_COL_BASE_L), A		; Clear COL BASE
+;	LD	(IX+BRD_PUSH_ANIM_COL_BASE_H), A
 
-	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), A		; Clear COL ADDR
-	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), A
+;	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), A		; Clear COL ADDR
+;	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), A
 
 	; DEBUG
 	LD DE, DEBUG_ATTR_LOCATION1
@@ -1474,7 +1464,116 @@ BoardPushPullAnim
 
 	CP	PP_ANIM_STATE_PULLING
 	JP	Z,	BoardPullAnim
-	
+
+RET
+
+
+;------------------------
+BoardMatch3
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	DE = Attr Address
+
+	; We depend on last Push Stop location
+		LD	L, (IX+BRD_PUSH_ANIM_COL_ADDR_L)
+		LD	H, (IX+BRD_PUSH_ANIM_COL_ADDR_H)
+
+	; And Actual Insert Count
+		LD	A, (IX+BRD_PUSH_PULL_INSERT_CNT)
+		LD	C, A					; Save INSERT_CNT
+		CP	3;						; 3 Balls vertically is the minimum requirement
+
+
+	; Check Early exit
+		JP	P, BoardMatch3_startSweepMark		; If 3 or more, start Mark & Sweep
+
+	; IF BASE == ADDR
+		LD	A, L
+		CP	(IX+BRD_PUSH_ANIM_COL_BASE_L)	; Comparing for L provides for a quicker exit
+		JP	NZ,	BoardMatch3_extendUp
+		LD	A, H
+		CP	(IX+BRD_PUSH_ANIM_COL_BASE_H)
+		JP	NZ, BoardMatch3_extendUp
+
+	;	Impossible to POP, Exit
+		RET
+
+BoardMatch3_extendUp
+	; Check if Insert + Some balls in the board, reaches 3
+;;	PUSH HL								; Keep original Position
+
+	LD	A, L
+	SUB (IX+BRD_PUSH_ANIM_COL_BASE_L)	; BASE must be =< ADDR, to give a positive result
+	LD	B, A							; B = Difference to BASE
+
+	LD	A, (IX+BRD_PUSH_PULL_COLOR)
+BoardMatch3_checkUp
+
+	DEC	HL
+	CP	(HL)							; TODO: Account for same Color PowerUp Ball
+	JP	NZ,	BoardMatch3_checkPreMatch
+	INC C
+	DJNZ	BoardMatch3_checkUp			; TODO, Optimize, not Efficient if many balls match, we only need 3
+
+	;DEC	HL								; Compensate for next INC HL
+	JP	BoardMatch3_checkMatch
+
+BoardMatch3_checkPreMatch
+	INC HL								; Adjust to last Valid Position
+
+BoardMatch3_checkMatch
+;;	POP HL								; Restore ADDR
+;	EX	AF, AF'							; Cache Color
+
+	LD	A, C							; C = COLOR CNT
+	CP	3;								; 3 Balls vertically is the minimum requirement
+	JP	P, BoardMatch3_startSweepMark		; If 3 or more, start Mark & Sweep
+
+	RET
+
+BoardMatch3_startSweepMark
+	; (HL + C -1) points to first Match Ball
+
+	; WARNING: This data is not always true
+	; A' = Active Color
+
+	LD	A, L
+	ADD A, C
+	DEC	A
+
+	LD	L, A							; HL = First Ball of Match
+
+	CALL BoardMatch3_sweepMark
+RET
+
+;------------------------
+BoardMatch3_sweepMark
+	; TODO: MUST Check Boundaries
+
+	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
+
+BoardMatch3_sweepMarkUp
+	LD	A, (HL)							; Current Ball
+	AND	BUBBLE_POP_MASK
+	CP	C
+
+	RET NZ
+
+	; MATCH, SO MARK
+	OR	BUBBLE_POP						; Mark
+	LD	(HL), A							; Update Ball
+
+	PUSH HL
+		DEC HL							; Search UP direction
+		CALL BoardMatch3_sweepMark		; Search Depth First
+	POP HL
+RET
+
+BoardMatch3_sweepLeftMark
+RET
+
+BoardMatch3_sweepRightMark
 RET
 
 ;------------------------
