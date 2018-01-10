@@ -149,7 +149,7 @@ BoardInit_AttackTab
 BoardInit_JP0	; Clear Board Buffer Contents
 	LD	B,	H	; Restore B
 	
- BoardInit_JP1
+BoardInit_JP1
 	LD (DE), A
 	INC DE	
 	DJNZ	BoardInit_JP1
@@ -827,13 +827,12 @@ BoardProcessPop
 ; outputs:
 ; Trashes: A', BC, HL
 
-	LD	E, (IX+BRD_POP_ANIM)		; Item to replace
-	LD	A, E
-
+	LD	A, (IX+BRD_POP_ANIM)		; Item to replace
 	CP	BUBBLE_POP
 	RET	M							; Any Value Lower means Animation STOPPED
 
-	INC A							; Replacement Item 
+	LD	E, A						; E = Item to replace
+	INC A							; A = Replacement Item 
 	CP	BUBBLE_POP_END
 	JP	P,	BoardProcessPop_end
 
@@ -841,8 +840,8 @@ BoardProcessPop
 	JP	BoardTransformAll			; CALL and Exit
 
 BoardProcessPop_end
-		LD	A, B_0
-		LD	(IX+BRD_POP_ANIM), A	; Update Anim
+		LD	A, B_0					; Replace with Empty Item
+		LD	(IX+BRD_POP_ANIM), A	; Stop POP Anim
 		CALL	BoardTransformAll	; CALL and Exit
 
 		; TODO
@@ -894,17 +893,17 @@ BoardColReplace	; Replaces an item by another
 
  BoardColReplace_LOOP
 	LD A, (HL)
-	CP E					; Equal to Item to replace ?
+	CP E						; Equal to Item to replace ?
 
 	JR NZ, BoardColReplace_NEXT
 
-	EX AF, AF'		; Swap Existing with Replacement
+	EX AF, AF'					; Swap Existing with Replacement
 	LD (HL), A
-	EX AF, AF'
+	EX AF, AF'		; TODO Optimize, use D instead, since it's free.
 
 BoardColReplace_NEXT
-	CP	B_0			; B_0 = EMPTY SLOT
-	JR	Z, BoardColReplace_NEXT_COL
+;	CP	B_0			; B_0 = EMPTY SLOT
+;	JR	Z, BoardColReplace_NEXT_COL
 
 	INC HL
 
@@ -1480,7 +1479,7 @@ BoardPushStop
 	AND	A
 	JP	NZ, BoardPushStop_continue
 
-	; If It's Ice/Stone (B_W), it DOES NOT POPm so can never MATCH
+	; If It's Ice/Stone (B_W), it DOES NOT POP, so can never MATCH3
 	LD	A, B_W
 	CP	(IX+BRD_PUSH_PULL_COLOR)
 	CALL NZ,	BoardMatch3
@@ -1616,14 +1615,28 @@ BoardMatch3_sweepMark
 
 	LD	(IX+BRD_POP_CNT), 0		; Reset Pop Count
 
+	;LD	B, (IX+BRD_HEIGHT)
 	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
 
 BoardMatch3_sweepMarkCenter
 	LD	A, (HL)							; Current Ball
 	AND	BUBBLE_POP_MASK
-	CP	C
-	;TODO Check if it's ICE/Stone
+	CP	B_W								; Trigger Ice/Stone
+	JP NZ,	BoardMatch3_sweepMarkActive
 
+	PUSH HL
+		PUSH BC
+			LD	A, C					; A = C = Active Color
+			CALL BoardTransformStone
+		POP BC
+	POP HL
+	LD	A, (HL)							; Restore Current Ball
+
+	; TODO, Make this re-launch in the next frame, (same HL, C=Active Color)
+	; So that user can see the Ice/Stone Transform.
+
+BoardMatch3_sweepMarkActive
+	CP	C
 	RET NZ
 
 
@@ -1640,7 +1653,7 @@ BoardMatch3_sweepMarkCenter
 	; Search LEFT direction
 	PUSH HL
 		LD	A, L
-		SUB	(IX+BRD_HEIGHT)
+		SUB	(IX+BRD_HEIGHT)					; Use B instead
 		LD	L, A
 		; TODO: Check Bounds before call
 		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
@@ -1648,7 +1661,7 @@ BoardMatch3_sweepMarkCenter
 
 	; Search RIGHT direction
 	PUSH HL
-		LD	A, (IX+BRD_HEIGHT)
+		LD	A, (IX+BRD_HEIGHT)				; Use B instead
 		ADD	A, L
 		LD	L, A
 		; TODO: Check Bounds before call
