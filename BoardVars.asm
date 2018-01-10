@@ -76,6 +76,8 @@ BRD_GAME_STATE				EQU 32	; Game State
 
 BRD_PUSH_PULL_INSERT_CNT	EQU 33	; Number of balls Already pushhed by clown (used for animating balls)
 
+BRD_CUR_X_LAST				EQU 34	; Last version of BRD_CUR_X
+
 ;----------------------
 ; Actual Board objects
 ;----------------------
@@ -107,6 +109,8 @@ BOARD1
 	DEFW #0000	; PUSH Col Start Animation (Top)
 
 	DEFB GAME_STATE_RUNNING; Game State
+
+	DEFB 0		; Last Cursor (in Chars)
 ;----------------------
 	
 
@@ -139,6 +143,8 @@ BOARD2
 	DEFW #0000	; PUSH Col Start Animation (Top)
 
 	DEFB GAME_STATE_RUNNING; Game State
+
+	DEFB 0		; Last Cursor (in Chars)
 ;----------------------
 
 

@@ -9,5 +9,7 @@ include "_DATA_\Arrow.asm"
 
 ;include "_DATA_\Clown.asm"
 include "_DATA_\ClownIdle.asm"
+include "_DATA_\ClownErase.asm"
+
 
 

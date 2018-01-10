@@ -34,7 +34,7 @@ BUBBLE_PAPER_COLOR_TAB
 	DEFB	0x18	; MULTICOL	for B_M
 	DEFB	0x38	; Black		for B_X
 
-	
+
 OPPONENT_1P_VS_CPU_TAB_SIZE	EQU BLACK_PIERROT+1
 OPPONENT_1P_VS_CPU_TAB
 	DEFB	FOOL
@@ -132,11 +132,12 @@ BoardInit_AttackTab
 	LD	(IX+BRD_ATTACK_CNT), A
 
 	; Center Clown XPos at middle
-	LD A, C					; Cursor or Clown POS 
-	SRA A					; Integer Divide By 2
+	LD A, C						; Cursor or Clown POS 
+	SRA A						; Integer Divide By 2
 	; since we start at 0, and Sprite has width, discard this
-	;INC A					; Divide by 2, + 1 will center (with Odd Width)
-	LD (IX+BRD_CUR_X), A	; Cursor or Clown POS 
+	;INC A						; Divide by 2, + 1 will center (with Odd Width)
+	LD (IX+BRD_CUR_X), A		; Cursor or Clown POS 
+	LD (IX+BRD_CUR_X_LAST), A	; Cursor or Clown POS 
 
 	; WARNING:
 	;	Flags is not initialized YET
@@ -563,6 +564,58 @@ RET
 ; ------------------------------------------------------
 
 
+BoardClearCursor
+; Inputs:
+;	IX = Board Structure
+
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
+
+	LD A, (IX+BRD_CUR_X_LAST)	; Cursor X LAST(in Chars)
+	ADD A, A				; * 2
+	ADD A, A				; * 4
+	ADD A, A				; * 8	
+	ADD A, A				; * 16	A = ( ItemWidth * Cur_X ) (in Pixels)	
+
+	ADD A, E				;       A = ( ItemWidth * Cur_X ) + Position_X
+	LD	E, A				; ABS X   = ( ItemWidth * Cur_X ) + Position_X				
+	
+; TODO; Optimize this, by pre-calc this in BoardInit
+		LD B, (IX+BRD_HEIGHT )	; Height
+		LD C, 16				; Two chars height per Item
+		LD A, D					; Start Position Y
+
+	 BoardClearCursor_MUL
+		ADD A, C
+		DJNZ BoardClearCursor_MUL	; A = Height * ItemHeight, (in Pixels)
+
+		SUB (3*8)				; Subtract 3 Chars height (1.5 * Item Height)
+; TODO END
+	LD D, A					; Y = Position_Y + (Height * 8) , (in Pixels )
+
+	; DE has position YX
+
+	; TODO Draw Current Clown Frame	
+	LD	HL, ClownErase
+	CALL Blit0
+
+	; UPDATE Control variable
+	LD	A, (IX+BRD_CUR_X)
+	LD	(IX+BRD_CUR_X_LAST), A
+RET
+
+
+BoardUpdateCursor
+; Inputs:
+;	IX = Board Structure
+
+	LD	A, (IX+BRD_CUR_X_LAST)	; Cursor X LAST(in Chars)
+	CP	(IX+BRD_CUR_X)			; Cursor X(in Chars)
+
+	CALL NZ, BoardClearCursor		; TODO: Optimize
+; FALL Through
+
+
 BoardDrawCursor
 ; Inputs:
 ;	IX = Board Structure
@@ -579,7 +632,7 @@ BoardDrawCursor
 	ADD A, E				;       A = ( ItemWidth * Cur_X ) + Position_X
 	LD	E, A				; ABS X   = ( ItemWidth * Cur_X ) + Position_X				
 	
-; TODO; OPtimize this, by pre-calc this in BoardInit
+; TODO; Optimize this, by pre-calc this in BoardInit
 		LD B, (IX+BRD_HEIGHT )	; Height
 		LD C, 16				; Two chars height per Item
 		LD A, D					; Start Position Y
@@ -591,9 +644,9 @@ BoardDrawCursor
 		SUB (3*8)				; Subtract 3 Chars height (1.5 * Item Height)
 ; TODO END
 	LD D, A					; Y = Position_Y + (Height * 8) , (in Pixels )
-	
+
 	; DE has position YX
-	
+
 	; TODO Draw Current Clown Frame	
 	;LD	HL, ClownIdleAnimator ; Clown0
 	LD	L, (IX+BRD_ANIM)	; Low
@@ -907,15 +960,16 @@ BoardGoLeft
 ;	IX = Board Structure
 ; Trashes: ?
 ;	
-	LD	A, (IX+BRD_CUR_X)	; Load current position once	
-	AND A	; Check if position is zero
+	LD	A, (IX+BRD_CUR_X)		; Load current position once
+	LD	(IX+BRD_CUR_X_LAST), A	; Update with previous value
+	AND A						; Check if position is zero
 	JP	NZ,	BoardGoLeftNoWrap	
 
 	LD	A, (IX+BRD_FLAGS)
 	AND	BRD_FLAG_WRAP
 	RET	Z
 	
-	LD	A,	(IX+BRD_WIDTH)	; New position ( Right Most position +1 )
+	LD	A,	(IX+BRD_WIDTH)		; New position ( Right Most position +1 )
 
 BoardGoLeftNoWrap
 
@@ -931,16 +985,17 @@ BoardGoRight
 ;	IX = Board Structure
 ; Trashes: ?
 ;	
-	LD	A, (IX+BRD_CUR_X)	; Load current position once
+	LD	A, (IX+BRD_CUR_X)		; Load current position once
+	LD	(IX+BRD_CUR_X_LAST), A	; Update with previous value
 	INC	A
-	CP	(IX+BRD_WIDTH)	; Check if position is WIDTH
+	CP	(IX+BRD_WIDTH)			; Check if position is WIDTH
 	JP	NZ,	BoardGoRightNoWrap	
 
 	LD	A, (IX+BRD_FLAGS)
 	AND	BRD_FLAG_WRAP
 	RET	Z
 	
-	XOR	A					; New position ( Left Most position )
+	XOR	A						; New position ( Left Most position )
 
 BoardGoRightNoWrap
 

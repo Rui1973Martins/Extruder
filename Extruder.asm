@@ -312,21 +312,21 @@ PLAY1_LOOP
 
 		LD IX, BOARD1
 		CALL BoardStepAnim
-		CALL BoardDrawCursor
+		CALL BoardUpdateCursor
 
-	
+
 ;	CALL WaitPressAnyKey
-	
+
 ;	LD	IX, BOARD1
 	LD	DE, BOARD_PATTERN_SINGLE
 	CALL	BoardInjectLine
 
-	
+
 	; Get New Key State
 	CALL	SINCLAIR1_DRIVER	;KEMPSTON_DRIVER	;CURSOR_DRIVER
 	CALL	BoardProcessUserInput
 
-	
+
 	; Press T to TransformStone on Player 1 with RED Bubbles
 	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
 	IN A,(C)
@@ -344,7 +344,7 @@ PLAY1_LOOP
 
 	CALL Z, BoardPullAnim
 
-	
+
 	; Press SPACE to LEAVE
 	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
 	IN A,(C)
@@ -352,7 +352,7 @@ PLAY1_LOOP
 	CP KEYSP
 	RET Z
 
-		
+
 	LD A, WHITE
 	OUT (ULA),A
 
@@ -369,13 +369,13 @@ PLAY2
 	CALL CLSC
 	CALL CLS0
 
-	
+
 	LD	A, WORLD	; Player 2 Opponent Character
 	EX	AF, AF'
 	LD	A, FOOL		; Player 1 Opponent Character
 	CALL GameInitWithAnim_2Players
 
-	
+
 	; ;Add Extra line from time to time (use a frameTimer)	
 	; LD	IX, BOARD1
 	; LD	A, 1
@@ -384,27 +384,27 @@ PLAY2
 	; LD	IX, BOARD2
 	; LD	A, 1
 	; CALL BoardAddLineTotal
-	
+
 PLAY2_LOOP
 
 	LD A, BLACK
 	OUT (ULA),A
 
 	HALT	; sync before update Board
-	
+
 	LD A, RED
 	OUT (ULA),A
 
 		LD IX, BOARD1
 		CALL BoardUpdateAll
-		
+
 	LD A, MAGENTA
 	OUT (ULA),A
 
 		LD IX, BOARD2
 		CALL BoardUpdateAll
-	
-	
+
+
 	LD A, GREEN
 	OUT (ULA),A
 
@@ -412,14 +412,14 @@ PLAY2_LOOP
 
 		LD IX, BOARD1
 		CALL BoardStepAnim
-		CALL BoardDrawCursor
+		CALL BoardUpdateCursor
 
 	LD A, CYAN
 	OUT (ULA),A
 
 		LD IX, BOARD2
 		CALL BoardStepAnim
-		CALL BoardDrawCursor
+		CALL BoardUpdateCursor
 
 
 ;	CALL WaitPressAnyKey
@@ -473,7 +473,7 @@ PLAY2_LOOP
 	LD A, B_B		; BLUE Bubble
 	CALL Z, BoardTransformStone
 
-	
+
 	LD A, YELLOW
 	OUT (ULA),A
 
