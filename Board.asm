@@ -177,6 +177,8 @@ BoardInit_JP0	; Clear Board Buffer Contents
 
 	; LD A, GAME_STATE_RUNNING	; GAME_STATE_ROLL_IN
 	LD	(IX+BRD_GAME_STATE), A
+
+	LD	(IX+BRD_POP_ANIM), A	; 0 = No pop Anim active
 RET
 
 
@@ -816,10 +818,52 @@ BoardAttackNext_Value
 	;INC A
 RET
 
+
+;------------------------
+BoardProcessPop
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; outputs:
+; Trashes: A', BC, HL
+
+	LD	E, (IX+BRD_POP_ANIM)		; Item to replace
+	LD	A, E
+
+	CP	BUBBLE_POP
+	RET	M							; Any Value Lower means Animation STOPPED
+
+	INC A							; Replacement Item 
+	CP	BUBBLE_POP_END
+	JP	P,	BoardProcessPop_end
+
+	LD	(IX+BRD_POP_ANIM), A		; Update Anim
+	JP	BoardTransformAll			; CALL and Exit
+
+BoardProcessPop_end
+		LD	A, B_0
+		LD	(IX+BRD_POP_ANIM), A	; Update Anim
+		CALL	BoardTransformAll	; CALL and Exit
+
+		; TODO
+		; Acount how many were changed ?
+		; Scoring, COMBO Calcs
+RET
+
+
+;------------------------
 BoardTransformStone
+;------------------------
+	LD	E, B_W				;B_W = White Bubble = Stone
+; FALL Through
+
+;------------------------
+BoardTransformAll
+;------------------------
 ; Inputs:
 ;	IX = Board Structure
 ;	A = Replacement Item
+;	E = Item to Replace
 ; outputs:
 ; Trashes: A', BC, HL
 
@@ -829,17 +873,20 @@ BoardTransformStone
 	LD	C, (IX+BRD_WIDTH )	; Width
 
  BoardTransformStone_LOOP
-	CALL	BoardColReplace
-	
+	CALL	BoardColReplace	; TODO: Inline if possible
+
 	DEC C
 	JP NZ,	BoardTransformStone_LOOP
 RET
 
 
+;------------------------
 BoardColReplace	; Replaces an item by another
+;------------------------
 ; Inputs:
 ;	IX = Board Structure
 ; 	A = New Item (replacement)
+;	E = Item to Replace
 ;	HL = Column Start Buffer 
 
 	LD B, (IX+BRD_HEIGHT)	
@@ -847,10 +894,10 @@ BoardColReplace	; Replaces an item by another
 
  BoardColReplace_LOOP
 	LD A, (HL)
-	CP B_W			; B_W = White Bubble = Stone 
+	CP E					; Equal to Item to replace ?
 
 	JR NZ, BoardColReplace_NEXT
-	
+
 	EX AF, AF'		; Swap Existing with Replacement
 	LD (HL), A
 	EX AF, AF'
@@ -858,7 +905,7 @@ BoardColReplace	; Replaces an item by another
 BoardColReplace_NEXT
 	CP	B_0			; B_0 = EMPTY SLOT
 	JR	Z, BoardColReplace_NEXT_COL
-	
+
 	INC HL
 
 	DJNZ BoardColReplace_LOOP	; Exit if end of Column Height
@@ -1082,6 +1129,12 @@ BoardPullStart
 		JP	NZ,	BoardPullStarting_CheckNearest
 		
 		;	TODO: But we must check if it's an acceptable Color (Between 7..1)
+		; XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		EX	AF, AF'
+			LD	A, B
+			CP	BUBBLE_POP
+			RET	P			; Exit IF >= BUBBLE_POP
+		EX	AF, AF'
 		; XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 		;	Set active color to NEAREST Color
@@ -1545,6 +1598,8 @@ BoardMatch3_startSweepMark
 	LD	L, A							; HL = First Ball of Match
 
 	CALL BoardMatch3_sweepMark
+
+	LD	(IX+BRD_POP_ANIM), BUBBLE_POP
 RET
 
 ;------------------------
@@ -1553,7 +1608,7 @@ BoardMatch3_sweepMark
 
 	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
 
-BoardMatch3_sweepMarkUp
+BoardMatch3_sweepMarkCenter
 	LD	A, (HL)							; Current Ball
 	AND	BUBBLE_POP_MASK
 	CP	C
@@ -1561,16 +1616,44 @@ BoardMatch3_sweepMarkUp
 	RET NZ
 
 	; MATCH, SO MARK
-	OR	BUBBLE_POP						; Mark
+	;OR	BUBBLE_POP						; Mark
+	LD	A, BUBBLE_POP					; MARK
 	LD	(HL), A							; Update Ball
 
+	; Search DOWN direction
 	PUSH HL
-		DEC HL							; Search UP direction
-		CALL BoardMatch3_sweepMark		; Search Depth First
+		INC HL
+		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
 	POP HL
+
+	; Search LEFT direction
+	PUSH HL
+		LD	A, L
+		SUB	(IX+BRD_HEIGHT)
+		LD	L, A
+		; TODO: Check Bounds before call
+		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
+	POP HL
+
+	; Search RIGHT direction
+	PUSH HL
+		LD	A, (IX+BRD_HEIGHT)
+		ADD	A, L
+		LD	L, A
+		; TODO: Check Bounds before call
+		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
+	POP HL
+
+	; Search UP direction
+	PUSH HL
+		DEC HL
+		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
+	POP HL
+
 RET
 
 BoardMatch3_sweepLeftMark
+	
 RET
 
 BoardMatch3_sweepRightMark
