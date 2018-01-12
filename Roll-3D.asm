@@ -194,14 +194,12 @@ RollDrawCharLine
 		LD	A, (HL)					; Offset
 		INC HL
 
-		PUSH HL
+		EX	DE, HL
 			; Get New ATTR Position
-			LD	H, 0
-			LD	L, A
-			ADD HL, DE
-
-			EX	DE, HL				; DE = New Screen Position, After Offset
-		POP HL
+			LD	B, 0
+			LD	C, A
+			ADD HL, BC
+		EX	DE, HL				; DE = New Screen Position, After Offset
 
 	POP	AF							; Restore CHAR Data
 
@@ -216,7 +214,8 @@ RollDrawCharLine
 	POP HL
 	POP DE
 	POP BC
-;		CALL Roll_PASS2_Data_loop
+
+	CALL Roll_PASS2_Data_loop
 RET
 	
 Roll_PASS1_Data_loop
@@ -332,18 +331,11 @@ Roll_PASS1_Data_OFF_check
 	POP BC
 	POP HL
 
-	;DJNZ	Roll_Data_loop
-	DEC B
-	JP	NZ, Roll_PASS1_Data_loop
+	DJNZ	Roll_PASS1_Data_loop
 RET
 
 
-
-
-
 ; ###################################################################
-
-
 
 
 Roll_PASS2_Data_loop
@@ -351,8 +343,27 @@ Roll_PASS2_Data_loop
 ; HL = Indexed Table Data pointer
 ;  A' = Color
 ;  A  = CHAR Data
-	
-	PUSH HL							; Keep Start Of Data
+
+Roll_PASS2_Offset
+	PUSH BC
+	PUSH AF
+		LD	A, (HL)				; BRIGHT_LENGTH
+		INC HL
+		AND	ROLL_LENGTH_MASK
+		JP	Z, Roll_PASS2_Data_offset_JP1	; Nothing to do
+
+		LD	B, A				; Length
+
+Roll_PASS2_Offset_incLoop					; Write Color Band
+		INC	DE
+		DJNZ	Roll_PASS2_Offset_incLoop
+
+Roll_PASS2_Data_offset_JP1
+	POP AF
+	POP BC
+
+Roll_PASS2_Data_innerLoop
+;	PUSH HL							; Keep Start Of Data
 	PUSH BC
 		RLA							; Higher CHAR Data bit -> into Carry
 		PUSH AF						; Save CHAR Data
@@ -365,35 +376,7 @@ Roll_PASS2_Data_ON
 ;  A  = CHAR Data
 
 Roll_PASS2_Band1_ON			
-			LD	A, (HL)				; BRIGHT_LENGTH
-			LD	C, A				; BRIGHT_LENGTH
-			AND	ROLL_LENGTH_MASK
-			JP	Z, Roll_PASS2_Band2_ON	; Nothing to do
-
-			LD	B, A				; Length
-
-			LD	A, ROLL_BRIGHT_MASK
-			AND	C
-			LD	C, A				; Bright
-
-			EX	AF, AF'				; Restore Color
-
-				AND	ROLL_COLOR_MASK		; Clear Color Bright
-				OR	C					; Apply Bright
-;				PUSH DE
-Roll_PASS2_Band1_ON_incLoop					; Write Color Band
-					INC	DE
-					DJNZ	Roll_PASS2_Band1_ON_incLoop
-;				POP DE
-				; LD	B, C
-; Roll_Band1_ON_decLoop					; Write Color Band
-				; DEC	DE
-				; DJNZ	Roll_Band1_ON_decLoop
-
-			EX	AF, AF'				; Save Color
-
 Roll_PASS2_Band2_ON
-			INC HL
 			LD	A, (HL)				; BRIGHT_LENGTH
 			LD	C, A				; BRIGHT_LENGTH
 			AND	ROLL_LENGTH_MASK
@@ -418,44 +401,12 @@ Roll_PASS2_Band2_ON_loop					; Write Color Band
 			EX	AF, AF'				; Save Color
 
 Roll_PASS2_Band3_ON
-			; INC HL
-			; LD	A, (HL)				; BRIGHT_LENGTH
-			; LD	C, A				; BRIGHT_LENGTH
-			; AND	ROLL_LENGTH_MASK
-			; JP	Z, Roll_PASS2_Data_ON_check	; Nothing to do
-
-			; LD	B, A				; Length
-
-			; LD	A, C
-			; AND	ROLL_BRIGHT_MASK
-			; LD	C, A				; Bright
-
-			; EX	AF, AF'				; Restore Color
-
-				; AND	ROLL_COLOR_MASK		; Clear Color Bright
-				; OR	C					; Apply Bright
-
-; ;;;				LD	C, B
-				; PUSH DE
-; Roll_PASS2_Band3_ON_incLoop					; Write Color Band
-					; LD	(DE), A
-					; INC	DE
-					; DJNZ	Roll_PASS2_Band3_ON_incLoop
-				; POP DE
-
-				; ; LD B, C
-; ; Roll_Band3_ON_decLoop					; Write Color Band
-				; ; DEC	DE
-				; ; DJNZ	Roll_Band3_ON_decLoop
-
-			; EX	AF, AF'				; Save Color
-
 Roll_PASS2_Data_ON_check
-
 		POP AF
 	POP BC
-	POP HL
-	DJNZ	Roll_PASS2_Data_loop
+;	POP HL
+
+	DJNZ	Roll_PASS2_Data_innerLoop
 RET
 
 Roll_PASS2_Data_OFF
@@ -465,25 +416,8 @@ Roll_PASS2_Data_OFF
 ;  A  = CHAR Data
 
 Roll_PASS2_Band1_OFF
-		; POP	AF
-		; RRA							; Look Behind
-		; PUSH AF
-			; JP	C, Roll_Band2_OFF
-
-			; LD	A, (HL)				; BRIGHT_LENGTH
-			; AND	ROLL_LENGTH_MASK
-			; JP	Z, Roll_Band2_OFF	; Nothing to do
-				; LD	B, A				; Length
-; Roll_Band1_OFF_loop					; Write Color Band
-				; DEC	DE
-			; DJNZ	Roll_Band1_OFF_loop
-
 Roll_PASS2_Band2_OFF
-		; POP	AF
-		; RLA							; Recover
-		; PUSH AF
-
-			INC HL
+;			INC HL
 			LD	A, (HL)				; BRIGHT_LENGTH
 			AND	ROLL_LENGTH_MASK
 			JP	Z, Roll_PASS2_Band3_OFF		; Nothing to do
@@ -493,26 +427,11 @@ Roll_PASS2_Band2_OFF_loop					; Write Color Band
 			DJNZ	Roll_PASS2_Band2_OFF_loop
 
 Roll_PASS2_Band3_OFF
-		; POP	AF
-		; RLA							; Look Ahead
-		; PUSH AF
-			; JP	C, Roll_Data_OFF_check
-
-			; INC HL
-			; LD	A, (HL)				; BRIGHT_LENGTH
-			; AND	ROLL_LENGTH_MASK
-			; JP	Z, Roll_Data_OFF_check	; Nothing to do
-				; LD	B, A				; Length
-; Roll_Band3_OFF_loop					; Write Color Band
-				; DEC	DE
-			; DJNZ	Roll_Band3_OFF_loop
-
 Roll_PASS2_Data_OFF_check
 		POP AF
 		; RRA	; Recover
 	POP BC
-	POP HL
-	;DJNZ	Roll_Data_loop
-	DEC B
-	JP	NZ, Roll_PASS2_Data_loop
+;	POP HL
+
+	DJNZ	Roll_PASS2_Data_innerLoop
 RET
