@@ -15,7 +15,11 @@ ROLL_COLOR_MASK		EQU 0xBF
 ; bit4.. bit0 = length
 
 ROLL_TABLE
-	DEFB	0	, LB_+4, LB_+0, LB_+0
+; Format1 in the Beginning
+	DEFB	2	,     2,     1, LB_+1	; X Offset, Y Offset, Lines, BR_LENGTH
+	DEFB	1	,     1,     3, LB_+3	; X Offset, Y Offset, Lines, BR_LENGTH
+; Format2 in the middle
+	DEFB	0	, LB_+4, LB_+0, LB_+0	; X Offset, BR_LENGTH Left, BR_LENGTH Center, BR_LENGTH Right
 	DEFB	1	, LB_+0, HB_+1, LB_+3
 	DEFB	2	, LB_+0, HB_+2, LB_+2
 	DEFB	3	, LB_+0, HB_+3, LB_+1
@@ -23,15 +27,19 @@ ROLL_TABLE
 	DEFB	1+08, LB_+1, HB_+3, LB_+0
 	DEFB	2+12, LB_+2, HB_+2, LB_+0
 	DEFB	3+16, LB_+3, HB_+1, LB_+0
-	DEFB	4+20, LB_+4, HB_+0, LB_+0
+	DEFB	4+20, LB_+4, HB_+0, LB_+0	; X Offset, BR_LENGTH Left, BR_LENGTH Center, BR_LENGTH Right
+; Format1 in the Ending
+	DEFB	4+20,     1,     3, LB_+3	; X Offset, Y Offset, Lines, BR_LENGTH
+	DEFB	4+21,     2,     1, LB_+1	; X Offset, Y Offset, Lines, BR_LENGTH
 
-ROLL_MIN	EQU	 0
-ROLL_MAX	EQU  8
-ROLL_LEN	EQU ROLL_MAX-ROLL_MIN+1
 
-ROLL_DELTA	EQU 4
+ROLL_MIN	EQU		2
+ROLL_MAX	EQU		11
+ROLL_LEN	EQU	ROLL_MIN + ROLL_MAX-ROLL_MIN + ROLL_MIN
 
-ROLL_LENGHT EQU ROLL_LEN + (8*ROLL_DELTA) +4
+ROLL_DELTA	EQU	5
+
+ROLL_LENGTH EQU ROLL_LEN + (8*ROLL_DELTA) + 4
 
 
 Cardinal_LETTER
@@ -204,15 +212,37 @@ RollDrawChar
 			
 		DEC	A								; Dec and Check for WRAP
 		JP	P,	RollDraw_setCnt
-;			LD A, ROLL_LEN-1
-			LD A, ROLL_LENGHT
+			LD A, ROLL_LENGTH
 
 RollDraw_setCnt
 		LD	(IX+0), A					; Next count/index
-		CP	ROLL_MAX+1
-		RET P
 
-		LD	C, A
+		CP	ROLL_LEN
+		RET P	; CALL another function
+
+		LD	C, A						; Index
+
+		CP	ROLL_MIN
+		;RET M
+		;JP M, RollDrawCharEnd	; Special End Case
+		JP	P, RollDraw_continue1
+
+			;EX AF, AF'
+			LD	A,(HL)			; Set Char Data Param
+			JP	RollDrawCharEnd
+
+RollDraw_continue1
+
+		CP	ROLL_MAX
+		;RET P
+		;JP P, RollDrawCharEnd	; Special End Case
+		JP	M, RollDraw_continue2
+
+			;EX AF, AF'
+			LD	A,(HL)			; Set Char Data Param
+			JP	RollDrawCharEnd
+		
+RollDraw_continue2
 		LD	B, 5
 	EX AF, AF'
 
@@ -239,16 +269,123 @@ RollDraw_charLoop
 	DJNZ	RollDraw_charLoop
 RET
 
+
+;-----------------
+RollDrawCharEnd
+;-----------------
+; Inputs:
+; DE  = ATTR Addr Start
+;  C  = ROLL Index
+;  A' = Color
+;  A  = CHAR Data Line (do we need this ?)
+
+; Only supports 5 Bit Fonts
+; ;	AND	A		; Clear Carry
+	; RLA		; Trash Bit 7
+	; RLA		; Trash Bit 6
+	; RLA		; Trash Bit 5
+
+;	PUSH AF							; Save CHAR Data
+
+		LD	A, C					; Index
+
+		LD	HL,	ROLL_TABLE; Access Roll Table with index
+		ADD	A, A	; *2
+		ADD	A, A	; *4
+		LD	B, 0
+		LD	C, A
+		ADD	HL, BC
+
+		LD	A, (HL)					; X Offset
+		INC HL
+
+		EX	DE, HL
+			; Get New ATTR Position
+			;LD	B, 0
+			LD	C, A
+			ADD HL, BC
+		EX	DE, HL					; DE = New Screen Position, After Offset
+
+; POP AF
+
+;--------------------------------
+; DE = Char Start ATTR Addr
+; HL = Indexed Table Data pointer
+;  A' = Color
+;  A  = CHAR Data (DEPRECATED FOR NOW)
+
+	LD	B, (HL)						; Y Offset
+
+	INC HL	
+	LD	C, (HL)						; Lines
+
+	INC	HL
+	LD	A, (HL)						; BRIGHT_LENGTH
+
+	EX	DE, HL					; DE = Result
+
+		LD	D, 0
+		LD	E, 32					; Next Line
+		
+		; NOTE: Y Offset is always larger than 0, so no need to check for zero.
+RollDrawCharEnd_offsetY	
+		ADD HL, DE
+		DJNZ	RollDrawCharEnd_offsetY
+		
+	EX	DE, HL					; DE = Result
+
+	LD	L, A						; BRIGHT_LENGTH
+	AND	ROLL_LENGTH_MASK
+	RET Z	; Just to safe for now
+	;JP	Z, RollDrawCharEnd_drawBlockLineEnd	; Should Never Happen, ALWAYS > 0
+	
+	LD	B, A						; Length
+
+	LD	A, L
+	AND	ROLL_BRIGHT_MASK
+	LD	L, A						; Bright
+
+	LD	A, B
+	EX	AF, AF'						; Restore Color, Saving Counter
+
+		AND	ROLL_COLOR_MASK			; Clear Color Bright
+		OR	L						; Apply Bright
+
+		EX	DE, HL					; DE into -> HL
+
+		LD	D, 0
+		LD	E, 32
+
+RollDrawCharEnd_drawBlock
+		EX	AF, AF'						; Restore Counter, Saving Color
+		LD	B, A 
+		EX	AF, AF'						; Restore Color, Saving Counter
+
+		PUSH HL
+RollDrawCharEnd_drawBlockLine		; Write Color Band
+			LD	(HL), A
+			INC	HL
+			DJNZ	RollDrawCharEnd_drawBlockLine
+		POP HL
+
+		ADD	HL, DE					; Next Line
+		
+		DEC C
+		JP	NZ,	RollDrawCharEnd_drawBlock
+		
+	;EX	AF, AF'						; Save Color
+RET
+
+
+;-----------------
 RollDrawCharLine
+;-----------------
 ; DE  = ATTR Addr Start
 ;  C  = ROLL Index
 ;  A' = Color
 ;  A  = CHAR Data Line
 
 ; Only supports 5 Bit Fonts
-	; SLA	A
-	; SLA	A
-	; SLA	A
 ;	AND	A		; Clear Carry
 	RLA		; Trash Bit 7
 	RLA		; Trash Bit 6
