@@ -1611,11 +1611,13 @@ RET
 
 ;------------------------
 BoardMatch3_sweepMark
+;------------------------
+; NOTE: When this function is called, we already now, there are at least 3 items matching vertically
 	; TODO: MUST Check Boundaries
 
 	LD	(IX+BRD_POP_CNT), 0		; Reset Pop Count
 
-	;LD	B, (IX+BRD_HEIGHT)
+	LD	B, (IX+BRD_HEIGHT)
 	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
 
 BoardMatch3_sweepMarkCenter
@@ -1639,32 +1641,13 @@ BoardMatch3_sweepMarkActive
 	CP	C
 	RET NZ
 
-
 	; MATCH, SO MARK
-	LD	(HL), BUBBLE_POP				; Mark Ball
-	INC	(IX+BRD_POP_CNT)				; Must INC POP Count
+	LD	(HL), BUBBLE_POP					; Mark Ball
+	INC	(IX+BRD_POP_CNT)					; Must INC POP Count
 
 	; Search DOWN direction
 	PUSH HL
 		INC L								; 256 aligned and limited, no need INC HL
-		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
-	POP HL
-
-	; Search LEFT direction
-	PUSH HL
-		LD	A, L
-		SUB	(IX+BRD_HEIGHT)					; Use B instead
-		LD	L, A
-		; TODO: Check Bounds before call
-		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
-	POP HL
-
-	; Search RIGHT direction
-	PUSH HL
-		LD	A, (IX+BRD_HEIGHT)				; Use B instead
-		ADD	A, L
-		LD	L, A
-		; TODO: Check Bounds before call
 		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
 	POP HL
 
@@ -1674,14 +1657,26 @@ BoardMatch3_sweepMarkActive
 		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
 	POP HL
 
+	; Search LEFT direction
+	PUSH HL
+		LD	A, L
+		SUB	B								; = (IX+BRD_HEIGHT)
+		LD	L, A
+		; TODO: Check Bounds before call
+		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
+	POP HL
+
+	; Search RIGHT direction
+	PUSH HL
+		LD	A, B							; = (IX+BRD_HEIGHT)
+		ADD	A, L
+		LD	L, A
+		; TODO: Check Bounds before call
+		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
+	POP HL
+
 RET
 
-BoardMatch3_sweepLeftMark
-	
-RET
-
-BoardMatch3_sweepRightMark
-RET
 
 ;------------------------
 BoardGameSetState

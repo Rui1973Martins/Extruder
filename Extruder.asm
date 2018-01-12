@@ -32,8 +32,24 @@ DrawMenu
 ;	LD A,WHITE
 ;	CALL CLSC
 ;	CALL CLS0
-	
+
 Menu_REPAINT
+
+LD A, RED
+LD (ULA), A
+
+	LD HL, ATTR
+	LD DE, ATTR+1
+	LD A, WHITE
+	LD (HL), A
+
+	LD BC, 32*5-1
+	LDIR
+
+LD A, BLACK
+LD (ULA), A
+
+	CALL	RollDraw
 
 		; LD HL, borderCounter
 		; DEC (HL)
@@ -46,14 +62,34 @@ Menu_REPAINT
 
 	JP NC, Menu_PAINT
 		LD (HL), BLACK
-		
+
 Menu_PAINT
-	HALT
+
+CALL WaitPressAnyKey
+CALL WaitNoKeyPressed
+	; LD B, 0x00
+; WAIT_A_BIT
+	; NOP
+	; NOP
+	; LD A, (IX+0)
+	; NOP
+	; NOP
+	; DJNZ WAIT_A_BIT
+	
+	; LD A,(borderCounter)
+	; OUT (ULA),A
+
+
+HALT
+
+
 
 	LD A,(borderCounter)
 	OUT (ULA),A
 	; Do some drawing
 
+
+	
 	; Press AnyKey
 	XOR A
 	IN A,(ULA)	; Read All Keys - Check for any Key pressed
@@ -79,7 +115,7 @@ MENU_ENTRY
 	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
 	CALL CLSC
 	CALL CLS0
-	
+
 	CALL DrawMenu
 
 	; Read First Row (12345)
@@ -92,9 +128,9 @@ MENU_ENTRY
 
 	CP KEY2
 	JP Z, MENU_PLAY2
-	
+
 	JP MENU_ENTRY
-	
+
 MENU_PLAY1
 
 	CALL PLAY1
@@ -106,8 +142,8 @@ MENU_PLAY2
 
 	CALL PLAY2
 	CALL WaitNoKeyPressed
-	
-    JP MENU_ENTRY
+
+	JP MENU_ENTRY
 ;RET
 
 
@@ -517,3 +553,4 @@ include "_DATA_.symbol"
 incbin "_DATA_.bin"
 
 include "BoardVars.asm"
+include "Roll-3D.asm"

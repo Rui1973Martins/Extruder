@@ -173,19 +173,34 @@ ALIGNED_BOARD_DATA_HIGH EQU HIGH($)
 ALIGNED_BOARD_DATA_LOW EQU LOW($)
 ORG	( (ALIGNED_BOARD_DATA_LOW = 0 ? 0 : 256 ) + 256 * ALIGNED_BOARD_DATA_HIGH )
 
+BOARD1_LEFT_FENCE
+	REPT 11
+		DEFB #00	; These will never be changed in 1 or 2 Player mode
+	ENDM
+;Buffer FENCES are used to simplify and speed up POP MATCH search
+; hence avoiding to check for left and right margins
+
 BOARD1_DATA
 	REPT 11*7
 		DEFB #00
 	ENDM
 
+BOARDS_INTER_FENCE
+	REPT 11
+		DEFB #00	; These will never be changed in 2 Player mode, Must be cleared before
+	ENDM
 
 BOARD2_DATA
 	REPT 11*7
 		DEFB #00
 	ENDM
 
+BOARD2_RIGHT_FENCE
+	REPT 11
+		DEFB #00	; These will never be changed in 1 or 2 Player mode
+	ENDM
 
-BOARD_DATA_END_MARKER
+BOARDS_DATA_END_MARKER
 	DEFB #FF	
 
 	

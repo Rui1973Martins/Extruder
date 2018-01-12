@@ -1,0 +1,70 @@
+- FIX FENCE BUG
+
+- Support Popping partially outside on bottom (adjust POP count with remaining unseen items
+
+- Roll up all balls
+
+- Reminder of ATTACK Lines, using Character patterns
+
+- Set Board State Machine
+
+	MOVING
+	PULLING
+	PUSHING
+		POPPING
+		ICE TRANSFORM
+		ROLL-UP
+		INJECTING/ATTACKING
+	------	------
+	Only 1	Only 1
+	Above	Above
+
+		MOVING
+
+	LOOSE
+	WIN
+	DRAW
+	
+
+- Player and Input Selection Screen
+	Player 1	Player 2
+	1 Kempston	1 Kempston
+	2 Fuller	2 Fuller
+	3 Cursor/Protek	3 Cursor/Protek
+	4 Sinclair1	4 Sinclair1
+	5 Sinclair2	5 Sinclair2
+	6 Keyboard	6 Keyboard
+	7 CPU		7 CPU
+	  -------------
+	  1234567890123	
+  
+ 
+- LOOSE WALL Animation
+
+- Help Screen
+
+- Help Screen Tutorial
+
+- Statues Screen Animation
+
+- 1 Player Scenery Screen
+
+- 2 Player scenery Screen
+
+- 2 Player OSD stuff (QUOTA) and ATTACK Lines
+
+- Clown Sprite with Color Ball
+
+- CPU PLay
+
+- Extruder FONT (Use ROM or SteelBall)
+
+
+- Update Board Slide Down with Lower Edge Visible
+
+- Implement a split update of board color, running horizontally, painting odd and even half-rows
+
+
+Optional
+
+- Reverse Board internal strcture from columns to rows (Could be faster)
