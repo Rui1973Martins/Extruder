@@ -282,7 +282,7 @@ RollDrawCharLine
 	; SLA	A
 	; SLA	A
 	; SLA	A
-	AND	A		; Clear Carry
+;	AND	A		; Clear Carry
 	RLA		; Trash Bit 7
 	RLA		; Trash Bit 6
 	RLA		; Trash Bit 5
@@ -303,24 +303,24 @@ RollDrawCharLine
 
 		EX	DE, HL
 			; Get New ATTR Position
-			LD	B, 0
+			;LD	B, 0
 			LD	C, A
 			ADD HL, BC
-		EX	DE, HL				; DE = New Screen Position, After Offset
+		EX	DE, HL					; DE = New Screen Position, After Offset
 
 	POP	AF							; Restore CHAR Data
 
 	LD	B, 5						; Total of 5 bits to process
 
+	PUSH AF
 	PUSH BC
 	PUSH DE
 	PUSH HL
-	PUSH AF
 		CALL Roll_PASS1_Data_loop
-	POP AF
 	POP HL
 	POP DE
 	POP BC
+	POP AF
 
 	CALL Roll_PASS2_Data_loop
 RET
@@ -331,7 +331,7 @@ Roll_PASS1_Data_loop
 ;  A' = Color
 ;  A  = CHAR Data
 	
-	PUSH HL							; Keep Start Of Data
+;;;	PUSH HL							; Keep Start Of Data
 	PUSH BC
 		RLA							; Higher CHAR Data bit -> into Carry
 		PUSH AF						; Save CHAR Data
@@ -351,8 +351,8 @@ Roll_PASS1_Band1_ON
 
 			LD	B, A				; Length
 
-			LD	A, ROLL_BRIGHT_MASK
-			AND	C
+			LD	A, C
+			AND	ROLL_BRIGHT_MASK
 			LD	C, A				; Bright
 
 			EX	AF, AF'				; Restore Color
@@ -411,7 +411,9 @@ Roll_PASS1_Band3_ON_incLoop					; Write Color Band
 Roll_PASS1_Data_ON_check
 		POP AF
 	POP BC
-	POP HL
+;;;	POP HL
+	DEC HL
+	DEC HL
 	DJNZ	Roll_PASS1_Data_loop
 RET
 
@@ -436,8 +438,9 @@ Roll_PASS1_Band3_OFF
 Roll_PASS1_Data_OFF_check
 		POP AF
 	POP BC
-	POP HL
-
+;;;	POP HL
+	DEC HL
+	
 	DJNZ	Roll_PASS1_Data_loop
 RET
 
@@ -452,7 +455,8 @@ Roll_PASS2_Data_loop
 ;  A  = CHAR Data
 
 Roll_PASS2_Offset
-	PUSH BC
+;	PUSH BC
+	LD	C, B
 	PUSH AF
 		LD	A, (HL)				; BRIGHT_LENGTH
 		INC HL
@@ -467,7 +471,8 @@ Roll_PASS2_Offset_incLoop					; Write Color Band
 
 Roll_PASS2_Data_offset_JP1
 	POP AF
-	POP BC
+;	POP BC
+	LD B, C
 
 Roll_PASS2_Data_innerLoop
 ;	PUSH HL							; Keep Start Of Data
