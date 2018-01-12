@@ -38,18 +38,27 @@ Menu_REPAINT
 LD A, RED
 LD (ULA), A
 
-	LD HL, ATTR
-	LD DE, ATTR+1
-	LD A, WHITE
-	LD (HL), A
+	LD A,(borderCounter)
+	AND	0x03
+	XOR	0x02
+	JP NZ, NON_multiple
 
-	LD BC, 32*5-1
-	LDIR
+	; Clear TOP BAND of 5 lines of screen
+		LD HL, ATTR
+		LD DE, ATTR+1
+		LD A, WHITE
+		LD (HL), A
 
-LD A, BLACK
-LD (ULA), A
+		LD BC, 32*5-1
+		LDIR
 
-	CALL	RollDraw
+	LD A, BLACK
+	LD (ULA), A
+
+		CALL	RollDraw
+
+NON_multiple
+
 
 		; LD HL, borderCounter
 		; DEC (HL)
@@ -65,27 +74,14 @@ LD (ULA), A
 
 Menu_PAINT
 
-CALL WaitPressAnyKey
-CALL WaitNoKeyPressed
-	; LD B, 0x00
-; WAIT_A_BIT
-	; NOP
-	; NOP
-	; LD A, (IX+0)
-	; NOP
-	; NOP
-	; DJNZ WAIT_A_BIT
-	
-	; LD A,(borderCounter)
-	; OUT (ULA),A
-
+ ; CALL WaitPressAnyKey
+ ; CALL WaitNoKeyPressed
 
 HALT
 
-
-
-	LD A,(borderCounter)
-	OUT (ULA),A
+	; LD A,(borderCounter)
+	; OUT (ULA),A
+	
 	; Do some drawing
 
 

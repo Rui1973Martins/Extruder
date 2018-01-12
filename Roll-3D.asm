@@ -29,9 +29,28 @@ ROLL_MIN	EQU	 0
 ROLL_MAX	EQU  8
 ROLL_LEN	EQU ROLL_MAX-ROLL_MIN+1
 
-ROLL_DELTA	EQU 8
+ROLL_DELTA	EQU 4
 
-ROLL_LENGHT EQU ROLL_LEN + (3*ROLL_DELTA)
+ROLL_LENGHT EQU ROLL_LEN + (8*ROLL_DELTA) +4
+
+;  # # #
+;   # #  
+;  # # #
+;   # #
+;  # # #
+
+Cardinal_LETTER
+	DEFB	0x15
+	DEFB	0x0A
+	DEFB	0x15
+	DEFB	0x0A
+	DEFB	0x15
+
+;  #####
+;  #
+;  ###
+;  #
+;  #####
 
 E_LETTER
 	DEFB	0x1F
@@ -40,6 +59,12 @@ E_LETTER
 	DEFB	0x10
 	DEFB	0x1F
 
+;  #   #
+;   # #
+;    #
+;   # #
+;  #   #
+
 X_LETTER
 	DEFB	0x11
 	DEFB	0x0A
@@ -47,19 +72,57 @@ X_LETTER
 	DEFB	0x0A
 	DEFB	0x11
 
+;  #####
+;    #  
+;    #
+;    #
+;    #
+
 T_LETTER
-	DEFB	0x0E
+	DEFB	0x1F
 	DEFB	0x04
 	DEFB	0x04
 	DEFB	0x04
 	DEFB	0x04
 
-O_LETTER
-	DEFB	0x15
-	DEFB	0x0A
-	DEFB	0x15
-	DEFB	0x0A
-	DEFB	0x15
+;  ####
+;  #   #
+;  ####
+;  #  #
+;  #   #
+
+R_LETTER
+	DEFB	0x1E
+	DEFB	0x11
+	DEFB	0x1E
+	DEFB	0x12
+	DEFB	0x11
+
+;  #   #
+;  #   #
+;  #   #
+;  #   #
+;   ###
+
+U_LETTER
+	DEFB	0x11
+	DEFB	0x11
+	DEFB	0x11
+	DEFB	0x11
+	DEFB	0x0E
+
+;  ####
+;  #   #
+;  #   #
+;  #   #
+;  ####
+
+D_LETTER
+	DEFB	0x1E
+	DEFB	0x11
+	DEFB	0x11
+	DEFB	0x11
+	DEFB	0x1E
 
 
 ROLL_COUNTERS
@@ -67,10 +130,11 @@ ROLL_COUNTERS
 		DEFB	ROLL_LEN
 		DEFB	RED<<3+BLACK
 		DEFW	E_LETTER
+
 	ROLL2_CNT
 		DEFB	ROLL_LEN + (1*ROLL_DELTA)
 		DEFB	GREEN<<3+BLACK
-		DEFW	E_LETTER
+		DEFW	X_LETTER
 
 	ROLL3_CNT
 		DEFB	ROLL_LEN + (2*ROLL_DELTA)
@@ -80,35 +144,79 @@ ROLL_COUNTERS
 	ROLL4_CNT
 		DEFB	ROLL_LEN + (3*ROLL_DELTA)
 		DEFB	YELLOW<<3+BLACK
-		DEFW	O_LETTER
+		DEFW	R_LETTER
+
+	ROLL5_CNT
+		DEFB	ROLL_LEN + (4*ROLL_DELTA)
+		DEFB	WHITE<<3+BLACK
+		DEFW	U_LETTER
+
+	ROLL6_CNT
+		DEFB	ROLL_LEN + (5*ROLL_DELTA)
+		DEFB	RED<<3+BLACK
+		DEFW	D_LETTER
+
+	ROLL7_CNT
+		DEFB	ROLL_LEN + (6*ROLL_DELTA)
+		DEFB	GREEN<<3+BLACK
+		DEFW	E_LETTER
+
+	ROLL8_CNT
+		DEFB	ROLL_LEN + (7*ROLL_DELTA)
+		DEFB	CYAN<<3+BLACK
+		DEFW	R_LETTER
+
 
 ;-----------------
 RollDraw
 ;-----------------
 	LD	DE, ATTR+2
 	LD	IX, ROLL1_CNT
-		LD	A, RED<<3+BLACK
+		LD	A, (IX+1)
 		LD	HL, E_LETTER
 	CALL	RollDrawChar
 
 	LD	DE, ATTR+2
 	LD	IX, ROLL2_CNT
-		LD	A, GREEN<<3+BLACK
+		LD	A, (IX+1)
 		LD	HL, X_LETTER
 	CALL	RollDrawChar
 
 	LD	DE, ATTR+2
 	LD	IX, ROLL3_CNT
-		LD	A, CYAN<<3+BLACK
+		LD	A, (IX+1)
 		LD	HL, T_LETTER
 	CALL	RollDrawChar
 
 	LD	DE, ATTR+2
 	LD	IX, ROLL4_CNT
-		LD	A, YELLOW<<3+BLACK
-		LD	HL, O_LETTER
+		LD	A, (IX+1)
+		LD	HL, R_LETTER
 	CALL	RollDrawChar
 	
+	LD	DE, ATTR+2
+	LD	IX, ROLL5_CNT
+		LD	A, (IX+1)
+		LD	HL, U_LETTER
+	CALL	RollDrawChar
+	
+	LD	DE, ATTR+2
+	LD	IX, ROLL6_CNT
+		LD	A, (IX+1)
+		LD	HL, D_LETTER
+	CALL	RollDrawChar
+	
+	LD	DE, ATTR+2
+	LD	IX, ROLL7_CNT
+		LD	A, (IX+1)
+		LD	HL, E_LETTER
+	CALL	RollDrawChar
+	
+	LD	DE, ATTR+2
+	LD	IX, ROLL8_CNT
+		LD	A, (IX+1)
+		LD	HL, R_LETTER
+	CALL	RollDrawChar
 RET
 
 ;-----------------
@@ -121,24 +229,23 @@ RollDrawChar
 
 	EX	AF, AF'
 		LD	A, (IX+0)					; Get count/index
-		LD	C, A
 
 		; INC	A								; Inc and Check for WRAP
-		; CP	ROLL_LEN
+		; CP	ROLL_LENGHT
 		; JP	M,	RollDraw_setCnt
 			; XOR A
 			
 		DEC	A								; Dec and Check for WRAP
 		JP	P,	RollDraw_setCnt
-
 ;			LD A, ROLL_LEN-1
 			LD A, ROLL_LENGHT
 
 RollDraw_setCnt
 		LD	(IX+0), A					; Next count/index
-		CP	ROLL_MAX
+		CP	ROLL_MAX+1
 		RET P
 
+		LD	C, A
 		LD	B, 5
 	EX AF, AF'
 
