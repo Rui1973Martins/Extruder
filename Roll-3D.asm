@@ -73,7 +73,7 @@ T_LETTER
 R_LETTER
 	DEFB	0x1E;  ####
 	DEFB	0x11;  #   #
-	DEFB	0x1E;  ####
+	DEFB	0x1F;  #####
 	DEFB	0x12;  #  #
 	DEFB	0x11;  #   #
 
