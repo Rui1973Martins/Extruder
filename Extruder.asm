@@ -6,6 +6,8 @@ include "_REF_\KEYBOARD.asm"
 ORG #6000
 JP MENU_ENTRY
 
+borderCounter DEFB BLACK
+
 DrawCredits
 
 	HALT
@@ -23,8 +25,6 @@ DrawCredits
 
 RET
 
-borderCounter DEFB BLACK
-
 DrawMenu
 
 	HALT
@@ -35,29 +35,10 @@ DrawMenu
 
 Menu_REPAINT
 
-LD A, RED
-LD (ULA), A
-
-	LD A,(borderCounter)
-	AND	0x03
-	XOR	0x02
-	JP NZ, NON_multiple
-
-	; Clear TOP BAND of 5 lines of screen
-		LD HL, ATTR
-		LD DE, ATTR+1
-		LD A, WHITE
-		LD (HL), A
-
-		LD BC, 32*5-1
-		LDIR
+	HALT
 
 	LD A, BLACK
-	LD (ULA), A
-
-		CALL	RollDraw
-
-NON_multiple
+	OUT (ULA), A
 
 
 		; LD HL, borderCounter
@@ -74,10 +55,47 @@ NON_multiple
 
 Menu_PAINT
 
+	; LD A, RED
+	; OUT (ULA), A
+
+	; WAIT so that we can draw, at the right moment to avoid flicker
+	LD	BC, 0xF205
+Menu_WAIT0
+	DJNZ Menu_WAIT0
+	DEC C
+	JP NZ, Menu_WAIT0
+
+	; Control Speed of Animation
+	LD A,(borderCounter)
+	AND	0x03
+	XOR	0x02
+	JP NZ, NON_multiple
+
+	; LD A, WHITE
+	; OUT (ULA), A
+
+		; Clear TOP BAND of 5 lines of screen
+			LD HL, ATTR
+			LD DE, ATTR+1
+			LD A, WHITE
+			LD (HL), A
+
+			LD BC, 32*5-1
+			LDIR
+
+	; LD A, GREEN
+	; OUT (ULA), A
+	
+		CALL	RollDraw
+
+NON_multiple
+	LD A, BLACK
+	OUT (ULA), A
+
  ; CALL WaitPressAnyKey
  ; CALL WaitNoKeyPressed
 
-HALT
+;	HALT
 
 	; LD A,(borderCounter)
 	; OUT (ULA),A
