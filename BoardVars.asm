@@ -1,5 +1,6 @@
 ;Shared Vars
-BOARDS_DROP_ANIM_CNT	DEFB	#00		; Used to control Board Vertical Drop Animation
+BOARDS_DROP_ANIM_CNT		DEFB	#00		; Used to control Board Vertical Drop Animation
+BOARDS_DROP_EDGE_ANIM_CNT	DEFB	#00		; Used to control Board Vertical Drop EDGE Animation
 
 ; Board Object definion
 ;=======================

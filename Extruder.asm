@@ -2,6 +2,7 @@
 include "_REF_\REF.asm"
 include "_REF_\KEYBOARD.asm"
 
+include "Macros.asm"
 	
 ORG #6000
 JP MENU_ENTRY
@@ -200,33 +201,135 @@ GameInitWithAnim_1Player
 		CALL BoardAddLineTotal
 
 GameDropAnim_1Player
-	CALL BoardsResetDropAnim
-	
-	JP PLAY1_DROP_ANIM
 
+;###############################
+;     Animation Logic STEPS
+;###############################
+
+; Counters
+;	E	Brd
+;-------------------------------
+;			HALT
+;	1	0		EDGE PX
+;			HALT
+;	1			EDGE CL
+;	2			INC EDGE
+;			HALT
+;		0		; BRD PX odd - Do nothing
+;		0		; INC BRD - DO nothing
+; GOTO JUMP START
+;			HALT
+;	2			EDGE PX
+;			HALT
+;		0		BRD CL even
+;	2			EDGE CL
+;	3			INC EDGE
+;	;------------------------------- LOOP Start
+;			HALT
+;		0		BRD PX even
+;		1		INC BRD
+;			HALT
+;	3			EDGE PX
+;			HALT
+;		1		BRD CL odd
+;	3			EDGE CL
+;	4			INC EDGE
+;			HALT
+;		1		BRD PX odd
+;		2		INC BRD
+; JUMP START
+;			HALT
+;	4			EDGE PX
+;			HALT
+;		2		BRD CL even
+;	4			EDGE CL
+;	5			INC EDGE
+;	;------------------------------- LOOP End, NOTE: Must end on BRD even
+
+
+
+; Implementation
+;-------------------------------
+			BOARDS_DROP_BRD_ANIM_Reset
+			BOARDS_DROP_EDGE_ANIM_Reset
+
+;	E	Brd
+			HALT
+;	1	0		EDGE PX
+					CALL_DROP_EDGE_ANIM_PIXELS
+			HALT
+;		0		; BRD CL odd - Do nothing
+;	1			EDGE CL
+					CALL_DROP_EDGE_ANIM_COLOR
+;	1			INC EDGE
+					BOARDS_DROP_EDGE_ANIM_NextLine
+
+ ; CALL WaitPressAnyKey
+ ; CALL WaitNoKeyPressed
+
+			HALT
+;				; BRD PX odd - Do nothing
+;		0		; INC BRD - DO nothing
+; GOTO JUMP START
+			JR	PLAY1_JUMP_START
+;			HALT
+;	1			EDGE PX
+;			HALT
+;		0		BRD CL even
+;	1			EDGE CL
+;	2			INC EDGE
+;	;------------------------------- LOOP Start
 PLAY1_DROP_ANIM_NEXT
 
-	CALL BoardsNextDropAnimLine
+ ; CALL WaitPressAnyKey
+ ; CALL WaitNoKeyPressed
 
-PLAY1_DROP_ANIM
-	
-	LD A, BLACK
-	OUT (ULA),A
+			HALT
+;		0		BRD PX even
+					CALL_DROP_BRD_ANIM_PIXELS_EVEN
+;		1		INC BRD
+					BOARDS_DROP_BRD_ANIM_NextLine
+			HALT
+;	3			EDGE PX
+					CALL_DROP_EDGE_ANIM_PIXELS
+			HALT
+;		1		BRD CL odd
+					CALL_DROP_BRD_ANIM_COLOR_ODD
+;	3			EDGE CL
+					CALL_DROP_EDGE_ANIM_COLOR
+;	4			INC EDGE
+					BOARDS_DROP_EDGE_ANIM_NextLine
 
-	HALT 
+ ; CALL WaitPressAnyKey
+ ; CALL WaitNoKeyPressed
 
-	LD A, CYAN
-	OUT (ULA),A
+			HALT
+;		1		BRD PX odd
+					CALL_DROP_BRD_ANIM_PIXELS_ODD
+;		2		INC BRD
+					BOARDS_DROP_BRD_ANIM_NextLine
 
-	LD IX, BOARD1
-		CALL BoardDropAnimLineColor
+PLAY1_JUMP_START
 
-	LD A, BLUE
-	OUT (ULA),A
+			HALT
+;	4			EDGE PX
+					CALL_DROP_EDGE_ANIM_PIXELS
+					
+			HALT
+;		2		BRD CL even
+					CALL_DROP_BRD_ANIM_COLOR_EVEN
+;	4			EDGE CL
+					CALL_DROP_EDGE_ANIM_COLOR
+;	5			INC EDGE
+					BOARDS_DROP_EDGE_ANIM_NextLine
 
-		CALL BoardDropAnimLinePixels
-
-	JP NZ, PLAY1_DROP_ANIM_NEXT
+			; Check for End of Board HEIGHT
+			LD	B, (IX+BRD_HEIGHT)			; Height
+			SLA	B							; Multiply by 2 (using half Ball height)
+			LD	A, (BOARDS_DROP_EDGE_ANIM_CNT)	
+			CP	B
+		JP NZ, PLAY1_DROP_ANIM_NEXT
+;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
 RET
 
 
@@ -271,38 +374,180 @@ GameInitWithAnim_2Players
 		CALL BoardAddLineTotal
 
 GameDropAnim_2Players
-	CALL BoardsResetDropAnim
-	
-	JP PLAY2_DROP_ANIM
-	
+
+;###############################
+;     Animation Logic STEPS
+;###############################
+
+; Counters
+;	E	Brd
+;-------------------------------
+;			HALT
+;	1	0		EDGE PX1
+;	1	0		EDGE PX2
+;			HALT
+;	1			EDGE CL1
+;	1			EDGE CL2
+;	2			INC EDGE
+;			HALT
+;		0		; BRD PX1 odd - Do nothing
+;		0		; BRD PX2 odd - Do nothing
+;		0		; INC BRD - DO nothing
+; GOTO JUMP START
+;			HALT
+;	2			EDGE PX1
+;	2			EDGE PX2
+;			HALT
+;		0		BRD CL1 even
+;		0		BRD CL2 even
+;	2			EDGE CL1
+;	2			EDGE CL1
+;	3			INC EDGE
+;	;------------------------------- LOOP Start
+;			HALT
+;		0		BRD PX1 even
+;		0		BRD PX2 even
+;		1		INC BRD
+;			HALT
+;	3			EDGE PX1
+;	3			EDGE PX2
+;			HALT
+;		1		BRD CL1 odd
+;		1		BRD CL2 odd
+;	3			EDGE CL1
+;	3			EDGE CL2
+;	4			INC EDGE
+;			HALT
+;		1		BRD PX1 odd
+;		1		BRD PX2 odd
+;		2		INC BRD
+; JUMP START
+;			HALT
+;	4			EDGE PX1
+;	4			EDGE PX2
+;			HALT
+;		2		BRD CL1 even
+;		2		BRD CL2 even
+;	4			EDGE CL1
+;	4			EDGE CL2
+;	5			INC EDGE
+;	;------------------------------- LOOP End, NOTE: Must end on BRD even
+
+
+
+; Implementation
+;-------------------------------
+			BOARDS_DROP_BRD_ANIM_Reset
+			BOARDS_DROP_EDGE_ANIM_Reset
+
+;	E	Brd
+			HALT
+;	1	0		EDGE PX
+				LD	IX, BOARD1
+					CALL_DROP_EDGE_ANIM_PIXELS
+				LD	IX, BOARD2
+					CALL_DROP_EDGE_ANIM_PIXELS
+			HALT
+;		0		; BRD CL odd - Do nothing
+;	1			EDGE CL
+				LD	IX, BOARD1
+					CALL_DROP_EDGE_ANIM_COLOR
+				LD	IX, BOARD2
+					CALL_DROP_EDGE_ANIM_COLOR
+;	1			INC EDGE
+					BOARDS_DROP_EDGE_ANIM_NextLine
+
+ ; CALL WaitPressAnyKey
+ ; CALL WaitNoKeyPressed
+
+			HALT
+;				; BRD PX odd - Do nothing
+;		0		; INC BRD - DO nothing
+; GOTO JUMP START
+			JP	PLAY2_JUMP_START
+;			HALT
+;	1			EDGE PX
+;			HALT
+;		0		BRD CL even
+;	1			EDGE CL
+;	2			INC EDGE
+;	;------------------------------- LOOP Start
+
 PLAY2_DROP_ANIM_NEXT
 
-	CALL BoardsNextDropAnimLine
+ ; CALL WaitPressAnyKey
+ ; CALL WaitNoKeyPressed
 
-PLAY2_DROP_ANIM
+			HALT
+;		0		BRD PX even
+				LD	IX, BOARD1
+					CALL_DROP_BRD_ANIM_PIXELS_EVEN
+				LD	IX, BOARD2
+					CALL_DROP_BRD_ANIM_PIXELS_EVEN
+;		1		INC BRD
+					BOARDS_DROP_BRD_ANIM_NextLine
+			HALT
+;	3			EDGE PX
+				LD	IX, BOARD1
+					CALL_DROP_EDGE_ANIM_PIXELS
+				LD	IX, BOARD2
+					CALL_DROP_EDGE_ANIM_PIXELS
+			HALT
+;		1		BRD CL odd
+				LD	IX, BOARD1
+					CALL_DROP_BRD_ANIM_COLOR_ODD
+				LD	IX, BOARD2
+					CALL_DROP_BRD_ANIM_COLOR_ODD
+;	3			EDGE CL
+				LD	IX, BOARD1
+					CALL_DROP_EDGE_ANIM_COLOR
+				LD	IX, BOARD2
+					CALL_DROP_EDGE_ANIM_COLOR
+;	4			INC EDGE
+					BOARDS_DROP_EDGE_ANIM_NextLine
 
-	LD A, BLACK
-	OUT (ULA),A
+ ; CALL WaitPressAnyKey
+ ; CALL WaitNoKeyPressed
 
-	HALT 
-	
-	LD A, CYAN
-	OUT (ULA),A
+			HALT
+;		1		BRD PX odd
+				LD	IX, BOARD1
+					CALL_DROP_BRD_ANIM_PIXELS_ODD
+				LD	IX, BOARD2
+					CALL_DROP_BRD_ANIM_PIXELS_ODD
+;		2		INC BRD
+					BOARDS_DROP_BRD_ANIM_NextLine
 
-	LD IX, BOARD1
-		CALL BoardDropAnimLineColor
-	LD IX, BOARD2
-		CALL BoardDropAnimLineColor
+PLAY2_JUMP_START
 
-	LD A, BLUE
-	OUT (ULA),A
+			HALT
+;	4			EDGE PX
+				LD	IX, BOARD1
+					CALL_DROP_EDGE_ANIM_PIXELS
+				LD	IX, BOARD2
+					CALL_DROP_EDGE_ANIM_PIXELS
+					
+			HALT
+;		2		BRD CL even
+				LD	IX, BOARD1
+					CALL_DROP_BRD_ANIM_COLOR_EVEN
+				LD	IX, BOARD2
+					CALL_DROP_BRD_ANIM_COLOR_EVEN
+;	4			EDGE CL
+				LD	IX, BOARD1
+					CALL_DROP_EDGE_ANIM_COLOR
+				LD	IX, BOARD2
+					CALL_DROP_EDGE_ANIM_COLOR
+;	5			INC EDGE
+					BOARDS_DROP_EDGE_ANIM_NextLine
 
-	LD IX, BOARD1
-		CALL BoardDropAnimLinePixels
-	LD IX, BOARD2
-		CALL BoardDropAnimLinePixels
-	
-	JP NZ, PLAY2_DROP_ANIM_NEXT
+			; Check for End of Board HEIGHT
+			LD	B, (IX+BRD_HEIGHT)			; Height
+			SLA	B							; Multiply by 2 (using half Ball height)
+			LD	A, (BOARDS_DROP_EDGE_ANIM_CNT)	
+			CP	B
+		JP NZ, PLAY2_DROP_ANIM_NEXT
+;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
 RET
 
 
@@ -321,7 +566,6 @@ GameInitDraw_2Players
 
 
 ORG #8000
-
 	
 include "_LIB_\ClearScreen.asm"
 include "_LIB_\Screen.asm"

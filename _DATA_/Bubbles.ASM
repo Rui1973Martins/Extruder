@@ -25,7 +25,7 @@ BUBBLE_POP_MASK	EQU 0x0F
 BUBBLE_POP_END	EQU	BUBBLE_POP + 6
 
 
-BUBBLE_TAB_C	; DEPRECATED ? Using BUBBLE_TAB_C_COMPACT instead, avoids indirection of BUBBLE_color ?
+BUBBLE_TAB_C	; DEPRECATED ? Using BUBBLE_TAB_C_COMPACT instead, avoids indirection of BUBBLE_color
 BubbleEmptyC	
 	DEFW BUBBLE_EMPTY
 BubbleRedC
@@ -42,9 +42,10 @@ BubbleBlackC
 	DEFW BUBBLE_BLACK
 BubbleMagentaC
 	DEFW BUBBLE_MAGENTA
-	
 
+	
 BUBBLE_TAB_REG_SIZE EQU 8
+
 
 BUBBLE_TAB	
 BubbleEmpty
@@ -87,6 +88,17 @@ BubbleMagenta
 	DEFW BUBBLE_MAGENTA, BUBBLE_PX
 	DEFW #0000 	; Dummy, to make Strut 8x multiple
 
+; Used For Board Fill	
+BubbleEmptyTop
+	DEFB 2,8;WxH
+	DEFW BUBBLE_EMPTY, BUBBLE_TOP_PX
+	DEFW #0000 	; Dummy, to make Strut 8x multiple
+
+BubbleEmptyBottom
+	DEFB 2,8;WxH
+	DEFW BUBBLE_EMPTY+2, BUBBLE_BOTTOM_PX
+	DEFW #0000 	; Dummy, to make Strut 8x multiple
+
 ; ----- Pixel Data and Colors -----
 
 ;GRAPHIC DATA:
@@ -97,9 +109,16 @@ BubbleMagenta
 ;Interleave:      Sprite
 ;Mask:            No
 
-BUBBLE_PX
+;BUBBLE_PX
+;BUBBLE_TOP_PX
 ;	DEFB	0x03,0xC0,0x0C,0x30,0x30,0x0C,0x20,0x04,0x4C,0x02,0x4C,0x02,0x80,0x01,0x80,0x01
+;BUBBLE_BOTTOM_PX
 ;	DEFB	0x80,0x01,0x80,0x01,0x40,0x02,0x40,0x12,0x20,0x24,0x31,0x8C,0x0C,0x30,0x03,0xC0
+
 ;alternative
+
+BUBBLE_PX
+BUBBLE_TOP_PX
 	DEFB	0x03,0xC0,0x0C,0x30,0x10,0x08,0x20,0x04,0x4C,0x02,0x4C,0x02,0x80,0x01,0x80,0x01
+BUBBLE_BOTTOM_PX
 	DEFB	0x80,0x01,0x80,0x01,0x40,0x02,0x40,0x12,0x20,0x24,0x11,0x88,0x0C,0x30,0x03,0xC0

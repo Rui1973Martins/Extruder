@@ -190,56 +190,40 @@ BoardSetFlags				; TODO: This could be inlined, using a MACRO
 RET
 
 
-BoardsResetDropAnim			; TODO: This could be inlined, using a MACRO
-	XOR A
-	LD (BOARDS_DROP_ANIM_CNT), A
-RET
-
-
-BoardsNextDropAnimLine		; TODO: This could be inlined, using a MACRO
-	LD HL, BOARDS_DROP_ANIM_CNT 
-	INC (HL)
-RET
-
-
-BoardDropAnimLineColor
+;--------------------
+BoardDropAnimLine_Color
+;--------------------
 ; Inputs:
 ;	IX = Board Structure
+;	HL = Bubble Sprite Addr (ODD/EVEN)
+; 	 A = Anim Line
 	
-	LD A, (BOARDS_DROP_ANIM_CNT)
-	CP (IX+BRD_HEIGHT)			; Height
-	RET Z
-
-	LD B, (IX+BRD_WIDTH )	; Width
-
 	ADD A, A	; *2
 	ADD A, A	; *4
-	ADD A, A	; *8
-	ADD A, A	; *16	Actual Ball height 
-	; TODO optimize, Add 16 iteratively, instead of multiply, in less than 16T ?
+	ADD A, A	; *8	Half Ball height
+;	ADD A, A	; *16	Actual Ball height 
 	
 	ADD A, (IX+BRD_POS_Y)	; Start Position Y
 	LD D, A
 	LD E, (IX+BRD_POS_X)	; Start Position X
 	
-	JP BoardDropAnimLineColor_JP1
-
+	LD B, (IX+BRD_WIDTH )	; Width
+	
  BoardDropAnimLineColor_JP0
-	;CALC Next Column
-	LD HL, #0010			; Width of a Ball
-	ADD HL,DE
-	EX DE, HL				; DE = New (Column) Position
 
- BoardDropAnimLineColor_JP1
+	PUSH BC							; Save Counters
+		PUSH HL						; Sprite
+			PUSH DE					; POSITION YX
+				CALL B_CBlitM_W2_0
+			POP DE
+			
+			;CALC Next Column
+			LD HL, #0010			; Width of a Ball
+			ADD HL,DE
+			EX DE, HL				; DE = New (Column) Position
 
-	PUSH BC	; Save Counters
-	PUSH DE	; POSITION YX
-
-		LD HL, BubbleEmpty
-		CALL B_CBlitM_W2_0
-
-	POP DE
-	POP BC
+		POP HL
+	POP BC		; TODO: Optimize this out, using DEC (var) instead
 
 	DJNZ BoardDropAnimLineColor_JP0
 
@@ -248,54 +232,52 @@ BoardDropAnimLineColor
 RET
 
 
-BoardDropAnimLinePixels
+;--------------------
+BoardDropAnimLine_Pixels
+;--------------------
 ; Inputs:
 ;	IX = Board Structure
+;	HL = Sprite
+;	 A = Anim Line
 	
-	LD A, (BOARDS_DROP_ANIM_CNT)
-	CP (IX+BRD_HEIGHT)			; Height
-	RET Z
-
-	LD B, (IX+BRD_WIDTH )	; Width
-
 	ADD A, A	; *2
 	ADD A, A	; *4
-	ADD A, A	; *8
-	ADD A, A	; *16	Actual Ball height 
-	; TODO optimize, Add 16 iteratively, instead of multiply, in less than 16T ?
+	ADD A, A	; *8	Half Ball height
+;	ADD A, A	; *16	Actual Ball height 
 	
 	ADD A, (IX+BRD_POS_Y)	; Start Position Y
 	LD D, A
 	LD E, (IX+BRD_POS_X)	; Start Position X
+
+	LD B, (IX+BRD_WIDTH )	; Width
 	
-	JP BoardDropAnimLinePx_JP1
-
  BoardDropAnimLinePx_JP0
-	;CALC Next Column
-	LD HL, #0010			; Width of a Ball
-	ADD HL,DE
-	EX DE, HL				; DE = New (Column) Position
 
- BoardDropAnimLinePx_JP1
+	PUSH BC						; Save Counters
+		PUSH HL					; Sprite
+			PUSH DE				; POSITION YX
+				CALL PxBlit0	; Blits Pixels Only
+			POP DE
 
-	PUSH BC	; Save Counters
-	PUSH DE	; POSITION YX
+			;CALC Next Column
+			LD HL, #0010		; Width of a Ball
+			ADD HL,DE
+			EX DE, HL			; DE = New (Column) Position
 
-		LD HL, BubbleEmpty
-		CALL PxBlit0	; Blits Single Ball, Pixels Only
-
-	POP DE
-	POP BC
+		POP HL
+	POP BC			; TODO: Optimize this out, using DEC (var) instead
 
 	DJNZ BoardDropAnimLinePx_JP0
 
-	XOR A
-	CP #FF	; Make sure we return a NON ZERO Flag
+	; XOR A
+	; CP #FF	; Make sure we return a NON ZERO Flag
 RET
 
 
 ; DEPRECATED
+;--------------------
 BoardInitDraw;
+;--------------------
 ; Inputs:
 ;	IX = Board Structure
 	
@@ -315,22 +297,22 @@ BoardInitDraw;
 
  BoardInitDraw_JP1
 	LD A, C
-	DEC A	; amount of times to repeat
+	DEC A					; amount of times to repeat
 
-	PUSH BC	; Save Counters
-	PUSH DE	; POSITION YX
-
-	LD HL, BubbleEmpty
-	CALL Blit	; Blits Full Column (1 + A times)
-
-	POP DE
+	PUSH BC					; Save Counters
+		PUSH DE				; POSITION YX
+			LD HL, BubbleEmpty
+			CALL Blit	; Blits Full Column (1 + A times)
+		POP DE
 	POP BC
 
 	DJNZ BoardInitDraw_JP0
 RET
 
 
+;--------------------
 BoardColNextPos
+;--------------------
 ; Inputs:
 ;	DE = Column Start Position (Y, X)
 
@@ -341,7 +323,9 @@ BoardColNextPos
 RET	; FALLTHROUGH ?
 
 
+;--------------------
 BoardColNextBuf
+;--------------------
 ; Inputs:
 ;	HL = Column Start Buffer
 
@@ -351,7 +335,9 @@ BoardColNextBuf
 RET
 
 
+;--------------------
 BoardUpdateAll
+;--------------------
 ; Inputs:
 ;	IX = Board Structure
 
@@ -1376,6 +1362,7 @@ BoardPushStart
 		;CALL	BoardPushAnim
 ;RET
 
+
 ;------------------------
 BoardPushAnim
 ;------------------------
@@ -1524,6 +1511,115 @@ BoardPushPullAnim
 
 	CP	PP_ANIM_STATE_PULLING
 	JP	Z,	BoardPullAnim
+
+RET
+
+
+;------------------------
+BoardAutoColUpStart
+;------------------------
+; Inputs:
+;	IX = Board Structure
+
+RET
+
+;------------------------
+BoardAutoColUpAnim
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; 	HK = Column BASE Addr
+; Trashes: ?
+
+	; Get Addr
+		LD L, (IX+BRD_PUSH_ANIM_COL_ADDR_L)
+		LD H, (IX+BRD_PUSH_ANIM_COL_ADDR_H)
+
+	; IF BASE == ADDR
+		LD	A, L
+		CP	(IX+BRD_PUSH_ANIM_COL_BASE_L)	; Comparing for L provides for a quicker exit
+		JP	NZ,	BoardAutoColUpAnim_checkSpace
+		LD	A, H
+		CP	(IX+BRD_PUSH_ANIM_COL_BASE_H)
+		JP	NZ, BoardAutoColUpAnim_checkSpace
+
+	;	Check CNT and Exit
+		JP	BoardAutoColUpAnim_checkCountExit
+
+BoardAutoColUpAnim_checkSpace	
+	; 	Update ADDR = ADDR-1
+		DEC HL
+
+	; IF Free Space is NOT available (POSITON != EMPTY) at (ADDR-1)
+		LD	A, (HL)
+		AND	A							; 0 = B_0
+	;	Check CNT and Exit
+		JP	NZ,	BoardAutoColUpAnim_checkCountExit
+
+	; All Required Conditions met, to Push one Ball into Column
+	; Push One Ball into Column (new ADDR)
+	;	Fill Active Color Ball
+		LD	A, (IX+BRD_PUSH_PULL_COLOR)
+		LD	(HL), A
+		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), L
+		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), H		
+
+	; IF BALL CNT == 0
+		LD	A, (IX+BRD_PUSH_PULL_CNT)
+		AND	A
+		JP	NZ,	BoardAutoColUpAnim_countDown
+
+	; 	Iterate/Find Last (Could be bottom of Column)
+		LD	C, (IX+BRD_PUSH_PULL_INSERT_CNT)
+		LD	B, 0
+		ADD	HL, BC
+
+	;	Insert Empty Spot
+		XOR	A
+		LD	(HL), A
+
+	;	EXIT
+		RET
+
+	; ELSE
+BoardAutoColUpAnim_countDown
+	;	DEC BALL CNT
+		DEC	A							; a = (IX+BRD_PUSH_PULL_CNT)
+		LD	(IX+BRD_PUSH_PULL_CNT), A	; Would there be any advantage in using "DEC (IX+n)" ?
+		INC	(IX+BRD_PUSH_PULL_INSERT_CNT)
+	RET
+	; ;	Check End condition
+	; ;	IF BALL CNT != 0
+	; ;		EXIT
+		; RET	NZ
+	; ;	ELSE
+	; ;		JP Stop Push
+		; JP	BoardPushStop
+
+BoardAutoColUpAnim_checkCountExit
+	; Check and Exit
+	; Assumed no spaceleft to insert Balls
+	; IF BALL CNT != 0 (> 0)
+		LD	A, (IX+BRD_PUSH_PULL_CNT)
+		AND	A
+		JR	Z, BoardAutoColUpStop	
+
+	;	Signal Player LOST and Exit
+	;	Signal Player LOST
+		LD	A, GAME_STATE_LOST;
+		CALL	BoardGameSetState
+
+	;	Stop Push
+; FALL Through
+;		CALL BoardPushStop
+;RET
+
+
+;------------------------
+BoardAutoColUpStop
+;------------------------
+; Inputs:
+;	IX = Board Structure
 
 RET
 

@@ -106,7 +106,7 @@ B_CBlitM_W2
 	; FallTrough
 
 ; WARNING: Entry Point
-B_CBlit_W2		; Specific Ottimized code for Width 2
+B_CBlit_W2		; Specific Optimized code for Width 2
 	LD A,(HL)	; Color
 	INC HL
 	LD H,(HL)
