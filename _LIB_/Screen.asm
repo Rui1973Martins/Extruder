@@ -315,7 +315,8 @@ PBlitLoop
 			INC A
 			JP NZ,PBlit_X1
 				CALL INCSY543
-				JP PBlit_X2
+				;JP PBlit_X2		; REPLACED BY -=> DEC D
+					DEC D
 			PBlit_X1
 				INC D
 			PBlit_X2
@@ -455,7 +456,8 @@ RPBlitLoop
 		INC A
 		JP NZ,RPBLIT_X1
 			CALL INCSY543
-			JP RPBLIT_X2
+			;JP RPBLIT_X2		; REPLACED BY -=> DEC D
+				DEC D
 	RPBLIT_X1
 			INC D
 	RPBLIT_X2
@@ -499,7 +501,8 @@ XLINEL	 	LD (DE),A
 			INC A
 			JP NZ,XBlit_X1
 				CALL INCSY543
-				JP XBlit_X2
+				;JP XBlit_X2	; REPLACED BY -=> DEC D
+					DEC	D
 		XBlit_X1
 				INC D
 		XBlit_X2
@@ -596,7 +599,8 @@ PBlitClipLoop
 		INC A
 		JP NZ,PBlitClip_X1
 			CALL INCSY543
-			JP PBlitClip_X2
+			;JP PBlitClip_X2	; REPLACED BY -=> DEC D
+				DEC D
 	PBlitClip_X1
 			INC D
 	PBlitClip_X2
