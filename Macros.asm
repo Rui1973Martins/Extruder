@@ -1,0 +1,114 @@
+;####################
+;    BOARD MACROS
+;####################
+
+; ===== BRD =====
+; ----- CNT -----
+
+MACRO BOARDS_DROP_BRD_ANIM_Reset
+	XOR A
+	LD (BOARDS_DROP_ANIM_CNT), A
+ENDM
+
+MACRO BOARDS_DROP_BRD_ANIM_NextLine
+; LD	A, WHITE
+; OUT (ULA), A 
+	LD HL, BOARDS_DROP_ANIM_CNT 
+	INC (HL)
+ENDM
+
+; ----- BRD EVEN -----
+
+MACRO CALL_DROP_BRD_ANIM_COLOR_EVEN
+	LD HL, BubbleEmptyTop			; EVEN
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Color
+ENDM
+
+MACRO CALL_DROP_BRD_ANIM_PIXELS_EVEN
+	LD HL, BubbleEmptyTop			; EVEN
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Pixels
+ENDM
+
+; ----- BRD ODD -----
+
+MACRO CALL_DROP_BRD_ANIM_COLOR_ODD
+; LD	A, MAGENTA
+; OUT (ULA), A 
+	LD HL, BubbleEmptyBottom		; ODD
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Color
+ENDM
+
+MACRO CALL_DROP_BRD_ANIM_PIXELS_ODD
+; LD	A, CYAN
+; OUT (ULA), A 
+	LD HL, BubbleEmptyBottom		; ODD
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Pixels
+ENDM
+
+
+; ===== LOST =====
+; ----- LOST EVEN -----
+
+MACRO CALL_LOST_ANIM_COLOR_EVEN
+	LD HL, Tile0_Wall1			; EVEN
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Color
+ENDM
+
+MACRO CALL_LOST_ANIM_PIXELS_EVEN
+	LD HL, Tile0_Wall1			; EVEN
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Pixels
+ENDM
+
+; ----- LOST ODD -----
+
+MACRO CALL_LOST_ANIM_COLOR_ODD
+	LD HL, Tile1_Wall2		; ODD
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Color
+ENDM
+
+MACRO CALL_LOST_ANIM_PIXELS_ODD
+	LD HL, Tile1_Wall2		; ODD
+	LD A, (BOARDS_DROP_ANIM_CNT)
+	CALL BoardDropAnimLine_Pixels
+ENDM
+
+
+; ===== EDGE =====
+; ----- CNT -----
+
+MACRO BOARDS_DROP_EDGE_ANIM_Reset
+	XOR A
+	LD (BOARDS_DROP_EDGE_ANIM_CNT), A
+ENDM
+
+MACRO BOARDS_DROP_EDGE_ANIM_NextLine
+; LD	A, BLACK
+; OUT (ULA), A 
+	LD HL, BOARDS_DROP_EDGE_ANIM_CNT 
+	INC (HL)
+ENDM
+
+; ----- EDGE -----
+
+MACRO CALL_DROP_EDGE_ANIM_COLOR
+; LD	A, GREEN
+; OUT (ULA), A 
+	LD HL, BottomEdge
+	LD A, (BOARDS_DROP_EDGE_ANIM_CNT)
+	CALL BoardDropAnimLine_Color
+ENDM
+
+MACRO CALL_DROP_EDGE_ANIM_PIXELS
+; LD	A, RED
+; OUT (ULA), A 
+	LD HL, BottomEdge
+	LD A, (BOARDS_DROP_EDGE_ANIM_CNT)
+	CALL BoardDropAnimLine_Pixels
+ENDM
