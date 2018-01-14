@@ -800,6 +800,89 @@ PLAY2_LOOP
 	LD	IX, BOARD2
 	CALL BoardPushPullAnim
 
+	
+		; ; FLASH GREEN/BLACK
+		; LD	HL, BUBBLE_GREEN
+		; LD	B, GREEN
+
+		; LD	A, (HL)
+		; XOR	B
+		; LD	(HL), A
+		; INC HL
+
+		; LD	A, (HL)
+		; XOR	B
+		; LD	(HL), A
+		; INC HL
+
+		; LD	A, (HL)
+		; XOR	B
+		; LD	(HL), A
+		; INC HL
+
+		; LD	A, (HL)
+		; XOR	B
+		; LD	(HL), A
+		; INC HL
+
+
+	; POWER UP LIGHT
+		;LD	HL, POWER_UP_BUBBLES+1
+		LD	HL, BUBBLE_RED+1		
+		LD	B, BRIGHT
+
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
+			INC L
+
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
+			INC L
+			INC L
+			INC L
+
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
+			INC L
+
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
+			INC L
+			INC L
+			INC L
+			
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
+			INC L
+
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
+			INC L
+			INC L
+			INC L
+			
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
+			INC L
+
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A
+			
 	JP PLAY2_LOOP
 ;RET
 
