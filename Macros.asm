@@ -54,13 +54,13 @@ ENDM
 ; ----- LOST EVEN -----
 
 MACRO CALL_LOST_ANIM_COLOR_EVEN
-	LD HL, Tile0_Wall1			; EVEN
+	LD HL, WideTile0_Wall			; EVEN
 	LD A, (BOARDS_DROP_ANIM_CNT)
 	CALL BoardDropAnimLine_Color
 ENDM
 
 MACRO CALL_LOST_ANIM_PIXELS_EVEN
-	LD HL, Tile0_Wall1			; EVEN
+	LD HL, WideTile0_Wall			; EVEN
 	LD A, (BOARDS_DROP_ANIM_CNT)
 	CALL BoardDropAnimLine_Pixels
 ENDM
@@ -68,13 +68,13 @@ ENDM
 ; ----- LOST ODD -----
 
 MACRO CALL_LOST_ANIM_COLOR_ODD
-	LD HL, Tile1_Wall2		; ODD
+	LD HL, WideTile1_Wall		; ODD
 	LD A, (BOARDS_DROP_ANIM_CNT)
 	CALL BoardDropAnimLine_Color
 ENDM
 
 MACRO CALL_LOST_ANIM_PIXELS_ODD
-	LD HL, Tile1_Wall2		; ODD
+	LD HL, WideTile1_Wall		; ODD
 	LD A, (BOARDS_DROP_ANIM_CNT)
 	CALL BoardDropAnimLine_Pixels
 ENDM

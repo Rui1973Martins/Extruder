@@ -343,6 +343,82 @@ GameInitDraw_1Player
 ;RET
 
 
+;--------------------
+GameLost_1Player
+;--------------------
+	LD IX, BOARD1
+	
+;###############################
+;     Animation Logic STEPS
+;###############################
+
+; Counters
+;	Brd
+;-------------------------------
+;	RESET Anim Counter
+;	GOTO JUMP START (Must start ODD)
+;	;------------------------------- LOOP Start
+;		HALT
+;	1		BRD CL odd
+;	1		BRD PX odd
+;	2		INC BRD
+; JUMP START
+;		HALT
+;	2		BRD CL even
+;	2		BRD PX odd
+;	3		INC BRD
+;	;------------------------------- LOOP End, NOTE: Must end on BRD even
+
+
+; Implementation
+;-------------------------------
+;	Brd
+;	0
+			BOARDS_DROP_BRD_ANIM_Reset
+			JP PLAY1_LOST_ANIM_START
+
+;	;------------------------------- LOOP Start
+PLAY1_LOST_ANIM_NEXT
+		HALT
+;	1		BRD CL odd
+				CALL_LOST_ANIM_COLOR_EVEN
+;	1		BRD PX odd
+				CALL_LOST_ANIM_PIXELS_ODD
+;	2		INC BRD
+				BOARDS_DROP_BRD_ANIM_NextLine
+
+  ; CALL WaitPressAnyKey
+  ; CALL WaitNoKeyPressed
+
+PLAY1_LOST_ANIM_START
+		HALT
+;	2		BRD CL even
+				CALL_LOST_ANIM_COLOR_EVEN
+;	2		BRD PX even
+				CALL_LOST_ANIM_PIXELS_EVEN
+;	3		INC BRD
+				BOARDS_DROP_BRD_ANIM_NextLine
+
+  ; CALL WaitPressAnyKey
+  ; CALL WaitNoKeyPressed
+
+			; Check for End of Board HEIGHT
+			LD	B, (IX+BRD_HEIGHT)			; Height
+			SLA	B							; Multiply by 2 (using half Ball height)
+			DEC	B							; We stop on an EVEN boundary
+			LD	A, (BOARDS_DROP_ANIM_CNT)
+			CP	B
+		JP NZ, PLAY1_LOST_ANIM_NEXT
+;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
+
+	; CALL CLOWN_LOOSE_ANIM
+
+	CALL WaitPressAnyKey
+	;CALL WaitNoKeyPressed
+;RET
+	JP WaitNoKeyPressed
+
+
 ; ===== 2 Players =====
 
 GameInitWithAnim_2Players
@@ -669,9 +745,21 @@ PLAY1_LOOP
 	OUT (ULA),A
 
 	CALL BoardPushPullAnim
-
-	JP PLAY1_LOOP
-;RET
+	
+	; Check Game State
+		LD	A, (IX+BRD_GAME_STATE)
+		CP	GAME_STATE_RUNNING	
+	JP Z, PLAY1_LOOP
+	
+	CP	GAME_STATE_LOST
+	JP	Z, GameLost_1Player
+	
+	; CP	GAME_STATE_DRAW
+	; JP	Z, GameLost_1Player
+	
+	; CP	GAME_STATE_WON
+	; JP	Z, GameWon_1Player
+RET
 
 
 ; ===== Dual Player Game Loop =====

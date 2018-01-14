@@ -1,11 +1,23 @@
-Tile0_Wall1
+Tiles:
+Tile0_Wall
 	DEFB 1,9;WxH
 	DEFW TILE0_C, TILE0_PX
 	DEFW #0000 	; Dummy, to make Strut 8x multiple
 
-Tile1_Wall2
+Tile1_Wall
 	DEFB 1,8;WxH
 	DEFW TILE1_C, TILE1_PX
+	DEFW #0000 	; Dummy, to make Strut 8x multiple
+
+WideTiles:
+WideTile0_Wall
+	DEFB 2,8;WxH
+	DEFW WIDETILE0_C, WIDETILE0_PX
+	DEFW #0000 	; Dummy, to make Strut 8x multiple
+
+WideTile1_Wall
+	DEFB 2,8;WxH
+	DEFW WIDETILE1_C, WIDETILE1_PX
 	DEFW #0000 	; Dummy, to make Strut 8x multiple
 	
 ;GRAPHIC DATA:
@@ -16,27 +28,52 @@ Tile1_Wall2
 ;Interleave:      Sprite
 ;Mask:            No
 
-TILES_PX:
-TILE0_PX:
-	DEFB	$FF,$55,$00,$00,$00,$00,$00,$00
+WIDETILES_PX:
+WIDETILE0_PX:; WALL_0_1 ; Identical to TILE0 and TILE1 Side by side
+	DEFB	0xFF,0xFF
+	DEFB	0x55,0x55
+	DEFB	0x00,0x18
+	DEFB	0x00,0x10
+	DEFB	0x00,0x18
+	DEFB	0x00,0x10
+	DEFB	0x00,0x18
+	DEFB	0x00,0x10
 
-TILE1_PX:
-	DEFB	$FF,$55,$18,$10,$18,$10,$18,$10
+WIDETILE1_PX:; WALL_1_0 ; Identical to TILE0 and TILE1 Side by side
+	DEFB	0xFF,0xFF
+	DEFB	0x55,0x55
+	DEFB	0x18,0x00
+	DEFB	0x10,0x00
+	DEFB	0x18,0x00
+	DEFB	0x10,0x00
+	DEFB	0x18,0x00
+	DEFB	0x10,0x00
+
+TILES_PX:
+TILE0_PX:	; WALL1
+	DEFB	0xFF,0x55,0x00,0x00,0x00,0x00,0x00,0x00
+
+TILE1_PX:	; WALL2
+	DEFB	0xFF,0x55,0x18,0x10,0x18,0x10,0x18,0x10
 
 TILE_n_PX:
-	DEFB	$00,$00,$00,$00,$00,$00,$00,$00
-	DEFB	$00,$00,$00,$00,$00,$00,$00,$00
-	DEFB	$00,$00,$00,$00,$00,$00,$00,$00
-	DEFB	$00,$00,$00,$00,$00,$00,$00,$00
-	DEFB	$00,$00,$00,$00,$00,$00,$00,$00
-	DEFB	$00,$00,$00,$00,$00,$00,$00,$00
+	DEFB	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	DEFB	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	DEFB	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	DEFB	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	DEFB	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	DEFB	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 
+WIDETILES_C:
+WIDETILE0_C:; 2 Bytes (overflows to WIDETILE1_C
+	DEFB	0x17
+WIDETILE1_C:; 2 Bytes (overflows to next 2 Bytes)
 TILES_C:
 TILE0_C:
-	DEFB	$16
+	DEFB	0x16
 
 TILE1_C:
-	DEFB	$17
+	DEFB	0x17
 
 TILE_n_C:	
-	DEFB	$38,$38,$38,$38,$38,$38
+	DEFB	0x38,0x38,0x38,0x38,0x38,0x38
