@@ -1,21 +1,42 @@
-- FIX Vertical FENCE BUG
-	Could add an Extra Empty ROW, on TOP or bottom.
-	Or Use the Last (Eleventh) Row, to validate this.
+- Update Board Slide Down with Lower Edge Visible
+	DONE
 
-- Support Popping partially outside on bottom (adjust POP count with remaining unseen items
+- Implement a split update of board color, running horizontally, painting odd and even half-rows
+	DONE 
+
+- FIX Vertical FENCE BUG
+			- Could add an Extra Empty ROW, on TOP or bottom.
+	DONE	- Or Use the Last (Eleventh) Row, to validate this.
+
+^ ^ ^ ---------- DONE ---------- ^ ^ ^
+
+
+- Support Popping partially
+			- outside on bottom
+			- adjust POP count with remaining unseen items
+
+- Support a Control input Queue, to make game feel responsive
+	- Include 16 transitions per player.
+	- Insert and keep only entries, that provide a change in control input
 
 - LOSE test
-	Inject Balls
-	DONE	PUSHING
+			- Inject Balls
+	DONE	- PUSHING
   
 - LOOSE WALL Animation
-	DONE	PLAY1
-	DONE	PLAY2
-	Show LOOSE Image
+	DONE	- PLAY1
+	DONE	- PLAY2
+	- Show LOOSE TEXT Image
+	- OnDraw -=> Parallel Double Wall Animation, on DRAW
+
+- Support PowerUp Balls
+	DONE	- Show them
+			- generate them ( what frequency ?, related with character power ?)
 
 - Roll-up all balls, After POP with Holes
 
-- Stone Transform, in 2 passes
+- Stone Transform, in 2 or 3 passes
+	PASS0 . BLACK background (Optional)
 	PASS1 - COLOR ALL BRIGHT
 	PASS2 - COLOR Regular BALL Brightness
 
@@ -56,10 +77,6 @@
 
 - Help Screen
 
-- Help Screen Tutorial
-
-- Statues Screen Animation
-
 - 1 Player Scenery Screen
 
 - 2 Player scenery Screen
@@ -68,14 +85,14 @@
 
 - Clown Sprite with Color Ball
 
-- CPU PLay
+- Statues Screen Animation
+
+- Help Screen Tutorial
 
 - Extruder FONT (Use ROM or SteelBall)
 
 
-- Update Board Slide Down with Lower Edge Visible
-
-- Implement a split update of board color, running horizontally, painting odd and even half-rows
+- CPU Play
 
 
 Optional

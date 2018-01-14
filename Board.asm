@@ -1102,6 +1102,10 @@ BoardPullStart
 		ADD	A, C
 		DJNZ	BoardPullStarting_MULT_1
 
+		;--------------------
+		DEC	A	; WARNING: We use the LAST ROW as FENCE, so DO NOT TOUCH.
+		;--------------------
+
 		LD	E, A
 		LD	D, 0		
 		ADD	HL, DE				; Get Address of intended Column last element +1 
@@ -1109,7 +1113,9 @@ BoardPullStart
 		
 		; Get Column NEAREST Color
 		LD B, C					; Height
-
+		;--------------------
+		DEC B	; WARNING: We use the LAST ROW as FENCE, so DO NOT TOUCH.
+		;--------------------
 		
 		; Save Col Anim BASE Addr
 		DEC	HL
@@ -1354,6 +1360,10 @@ BoardPushStart
 		; NOTE: B is always > 0, due to the INC B above.
 		ADD	A, C
 		DJNZ	BoardPushStarting_MULT_1	; TODO: One loop could be saved, by LD A, C, and remove INC B
+
+		;--------------------
+		DEC	A	; WARNING: We use the LAST ROW as FENCE, so DO NOT TOUCH.
+		;--------------------
 
 		LD	E, A
 		LD	D, 0				; TODO: Optimize this ADD, since 256 byte aligned
