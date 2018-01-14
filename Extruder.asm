@@ -381,7 +381,7 @@ GameLost_1Player
 PLAY1_LOST_ANIM_NEXT
 		HALT
 ;	1		BRD CL odd
-				CALL_LOST_ANIM_COLOR_EVEN
+				CALL_LOST_ANIM_COLOR_ODD
 ;	1		BRD PX odd
 				CALL_LOST_ANIM_PIXELS_ODD
 ;	2		INC BRD
@@ -667,6 +667,10 @@ PLAY1_LOOP
 	LD A,BLACK
 	OUT (ULA),A
 
+	; Update Frame Counter
+	LD HL, borderCounter
+	INC (HL)
+
 	HALT	; sync before update Board
 	
 	LD A, RED
@@ -681,6 +685,7 @@ PLAY1_LOOP
 		;LD A, ; BRD_ANIM_STATE
 
 		LD IX, BOARD1
+		LD	A, (borderCounter) 
 		CALL BoardStepAnim
 		CALL BoardUpdateCursor
 
@@ -706,13 +711,13 @@ PLAY1_LOOP
 	CALL Z, BoardTransformStone
 
 
-		; Press E to BoardPullAnim on Player 1
-	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYE
+	; ; Press E to BoardPullAnim on Player 1
+	; LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	; IN A,(C)
+	; OR #E0			;Set Bits765
+	; CP KEYE
 
-	CALL Z, BoardProcessPop
+	; CALL Z, BoardProcessPop
 
 
 	; Press W to BoardPullAnim on Player 1
@@ -746,6 +751,8 @@ PLAY1_LOOP
 
 	CALL BoardPushPullAnim
 	
+	CALL PowerUpFlash
+
 	; Check Game State
 		LD	A, (IX+BRD_GAME_STATE)
 		CP	GAME_STATE_RUNNING	
@@ -790,6 +797,10 @@ PLAY2_LOOP
 	LD A, BLACK
 	OUT (ULA),A
 
+	; Update Frame Counter
+	LD HL, borderCounter
+	INC (HL)
+
 	HALT	; sync before update Board
 
 	LD A, RED
@@ -811,6 +822,7 @@ PLAY2_LOOP
 		;LD A, ; BRD_ANIM_STATE
 
 		LD IX, BOARD1
+		LD	A, (borderCounter)
 		CALL BoardStepAnim
 		CALL BoardUpdateCursor
 
@@ -818,6 +830,8 @@ PLAY2_LOOP
 	OUT (ULA),A
 
 		LD IX, BOARD2
+		LD	A, (borderCounter)
+		DEC A					; Force P2 to update in different frame (1 sooner)
 		CALL BoardStepAnim
 		CALL BoardUpdateCursor
 
@@ -888,58 +902,64 @@ PLAY2_LOOP
 	LD	IX, BOARD2
 	CALL BoardPushPullAnim
 
+	CALL PowerUpFlash			
 
-	; POWER UP LIGHT
-		LD	B, BRIGHT
-
-		LD	HL, BUBBLE_RED+1
-		;LD	HL, POWER_UP_BUBBLES+1
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A			
-			INC L
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
-			
-			INC L	; 4T
-			INC L	; 4T
-			INC L	; 4T
-			;LD	L, LOW(POWER_UP_BUBBLE_GREEN)	; 7T < 12T = 3*4T
-				LD	A, (HL)
-				XOR	B
-				LD	(HL), A
-			INC L
-				LD	A, (HL)
-				XOR	B
-				LD	(HL), A
-			
-			INC L
-			INC L
-			INC L
-			;LD	L, LOW(POWER_UP_BUBBLE_BLUE)			
-				LD	A, (HL)
-				XOR	B
-				LD	(HL), A		
-			INC L
-				LD	A, (HL)
-				XOR	B
-				LD	(HL), A
-			
-			INC L
-			INC L
-			INC L
-			;LD	L, LOW(POWER_UP_BUBBLE_YELLOW)			
-				LD	A, (HL)
-				XOR	B
-				LD	(HL), A
-			INC L
-				LD	A, (HL)
-				XOR	B
-				LD	(HL), A
-			
 	JP PLAY2_LOOP
 ;RET
+
+PowerUpFlash
+	LD A, BLUE
+	OUT (ULA),A
+
+	LD	B, BRIGHT
+
+	LD	HL, BUBBLE_RED+1
+	;LD	HL, POWER_UP_BUBBLES+1
+
+	LD	A, (HL)
+	XOR	B
+	LD	(HL), A			
+	INC L
+	LD	A, (HL)
+	XOR	B
+	LD	(HL), A
+	
+	INC L	; 4T
+	INC L	; 4T
+	INC L	; 4T
+	;LD	L, LOW(POWER_UP_BUBBLE_GREEN)	; 7T < 12T = 3*4T
+		LD	A, (HL)
+		XOR	B
+		LD	(HL), A
+	INC L
+		LD	A, (HL)
+		XOR	B
+		LD	(HL), A
+	
+	INC L
+	INC L
+	INC L
+	;LD	L, LOW(POWER_UP_BUBBLE_BLUE)			
+		LD	A, (HL)
+		XOR	B
+		LD	(HL), A		
+	INC L
+		LD	A, (HL)
+		XOR	B
+		LD	(HL), A
+	
+	INC L
+	INC L
+	INC L
+	;LD	L, LOW(POWER_UP_BUBBLE_YELLOW)			
+		LD	A, (HL)
+		XOR	B
+		LD	(HL), A
+	INC L
+		LD	A, (HL)
+		XOR	B
+		LD	(HL), A
+RET
 
 include "Board.asm"
 

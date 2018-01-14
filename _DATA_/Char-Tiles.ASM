@@ -65,9 +65,11 @@ TILE_n_PX:
 	DEFB	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 
 WIDETILES_C:
-WIDETILE0_C:; 2 Bytes (overflows to WIDETILE1_C
+WIDETILE0_C:	; 2 Bytes (overflows to next Byte)
+	DEFB	0x16
+WIDETILE1_C:	; 2 Bytes (overflows to next Byte)
 	DEFB	0x17
-WIDETILE1_C:; 2 Bytes (overflows to next 2 Bytes)
+
 TILES_C:
 TILE0_C:
 	DEFB	0x16

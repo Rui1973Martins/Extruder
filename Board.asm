@@ -515,6 +515,17 @@ RET
 
 
 BoardStepAnim
+; Inputs:
+;	IX = Board Structure
+;	 A = Frame Counter
+
+	;Only change frame in multiples of 4
+	; TODO: Better use a frame count down for each Clown frame,
+	; since it provides speed control
+	AND 0x07
+	XOR 0x04
+	RET NZ
+	
 	INC	(IX+BRD_ANIM_STATE)	; Step counter
 	
 	LD	HL, ClownIdleAnimFrames

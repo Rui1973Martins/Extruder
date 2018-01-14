@@ -4,7 +4,15 @@
 
 - Support Popping partially outside on bottom (adjust POP count with remaining unseen items
 
-- Roll up all balls
+- LOSE test
+	Inject Balls
+	DONE PUSHING
+  
+- LOOSE WALL Animation
+	PLAY1 DONE
+	PLAY2 ....
+
+- Roll-up all balls, After POP with Holes
 
 - Stone Transform, in 2 passes
 	PASS1 - COLOR ALL BRIGHT
@@ -44,8 +52,6 @@
 	  -------------
 	  1234567890123	
   
- 
-- LOOSE WALL Animation
 
 - Help Screen
 
