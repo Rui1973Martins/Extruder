@@ -344,7 +344,148 @@ BoardColNextBuf
 	ADD	HL, BC
 RET
 
+;--------------------
+BoardUpdateLastRow	; HalfRow
+;--------------------
+; Inputs:
+;	IX = Board Structure
 
+;Setup required startup data, in sync with BoardUpdateAll
+
+	;LD B, (IX+BRD_WIDTH )	; Width
+	LD	B, 1			; Just one Row
+	
+		LD	C, (IX+BRD_HEIGHT)	; NOTE: Optimized to be in PUSH BC
+
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
+	LD H, (IX+BRD_BUF_H)	; Col Buffer
+	LD L, (IX+BRD_BUF_L)	; Col Buffer
+
+	PUSH BC
+		; Buffer - Last Row of first column
+			LD	B, 0
+			;LD	C, (IX+BRD_HEIGHT)
+			DEC C			;Last Row of first column
+			ADD	HL, BC
+
+		; Screen Y - Last Row
+		LD	B, #10		; Increment in Pixels per Row Item (16x16)
+		LD	A, D
+BoardUpdateLastRow_multiply
+		ADD	A, C
+		DJNZ	BoardUpdateLastRow_multiply		
+		LD	D, A	
+
+	POP BC					; BC contents needed in inner loop
+	PUSH BC
+
+	JR BoardUpdateLastRow_COL	; Reuse BoardUpdateAll Main Loop
+
+BoardUpdateLastRow_LOOP
+
+	PUSH BC		; TODO, can it be further optimized ?
+		; CALL BoardColNextBuf	; Trashes BC
+		; INLINED
+			LD	B, 0
+			;LD	C, (IX+BRD_HEIGHT)	; TODO: Optimize by self modify this code into a LD C, nn, updated at start
+			ADD	HL, BC
+
+	; Next Y Row
+	; INLINED
+		LD	A, #10		; Increment in Pixels per Row
+		ADD	A, D
+		LD	D, A	
+
+ BoardUpdateLastRow_COL
+		PUSH DE
+			PUSH HL
+
+		; TODO: Optimize, by taking into account that we know how Y increment is done
+		; Hence we only NEED to CALC once the screen address, and then we can just update screen address
+		
+		; CALL BoardDrawRow
+		; INLINE Function
+			; BoardDrawRow
+			; Inputs:
+			;	IX = Board Structure
+			;	HL = Column Start Buffer 
+			;	DE = Column Start Position (Y, X)
+				
+				; CALL ColorADA	; Update DE to Color Address
+						; ; UNROLL CALL
+						LD A,D
+						RRA;Dump 3
+						RRA
+						RRA
+						RRA;->D->E
+						RR E
+						RRA;->D->E
+						RR E
+						RRA;->D->E
+						RR E
+						AND #03;High
+						OR  #58;Addr
+						LD D,A
+
+				; ALTERNATIVE to BC PUSH + POP
+				LD	A, (IX+BRD_WIDTH)		; WIDTH	; TODO: Optimize by self modify this code into a LD A, nn, updated at start
+
+				LD	B, 0					; Constant for inner Loop
+				JP	BoardUpdateLastRow_JP1	; Absolute JP is Faster
+				
+			 BoardUpdateLastRow_JP0
+						
+				;Next Data Row (Next Column)						
+				;LD	B, 0				; Moved outside inner loop, since it is constant
+				;LD	C, (IX+BRD_HEIGHT)
+				INC C
+				INC C	; Compensate for 2 LDIs
+				ADD	HL, BC
+
+			 BoardUpdateLastRow_JP1
+
+				EX AF, AF'	;  4T	; Save Counter
+
+				PUSH HL		; Start of Sprite Color Data
+
+					LD A, (HL)	; Bubble Item
+					
+					; Determine BUBBLE_TAB_C_COMPACT index LOW ADDR
+					ADD	A, A		; *2 
+					ADD	A, A		; *4 
+
+					LD L, A
+					LD H, HIGH BUBBLE_TAB_C_COMPACT	; HL Points to Bitmap Struct
+				
+					; CALL B_CBlit_H2W2
+					; INLINED, Specific Optimized code for Sprite 2x1 (half height)
+
+						; LOOP Completely UNROLLED for 2x1								
+							; --------------------
+							; NOTE: Updating ball top half ONLY 
+								LDI
+								LDI
+
+							; (DE) Next Screen ADDR (to the right) is correct
+							
+							; (HL) Update Buffer Attr Addr
+				POP HL
+
+				EX AF, AF'				; 4T	; Recover counter
+				DEC A					; 4T
+				JP NZ, BoardUpdateLastRow_JP0	; 10T				
+			;RET
+
+			POP HL	; TODO for optimization purposes, we can delay this POP into BoardUpdate_LOOP and exit, to free HL
+		POP DE	; TODO for optimization purposes, we can delay this POP into BoardUpdate_LOOP and exit, to free DE
+	POP BC
+	
+	DJNZ BoardUpdateLastRow_LOOP
+RET
+;--------------------
+
+	
 ;--------------------
 BoardUpdateAll
 ;--------------------
@@ -414,7 +555,7 @@ BoardUpdateAll
 				;LD	B, (IX+BRD_HEIGHT)	; Height
 				; ALTERNATIVE to BC PUSH + POP
 					LD	A, (IX+BRD_HEIGHT)	; Height	; TODO: Optimize by self modify this code into a LD A, nn, updated at start
-				DEC A ; HACK, avoid updating last row, since it's mostly never full, since last row is for bursting/loosing
+				DEC A ; Do not update last row, since it's used only to show when user lost by board overflow.
 
 
 				JP	BoardDrawCol_JP1	; Absolute JP is Faster

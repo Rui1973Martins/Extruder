@@ -772,13 +772,13 @@ PLAY1_LOOP
 	CALL Z, BoardTransformStone
 
 
-	; ; Press E to BoardPullAnim on Player 1
-	; LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	; IN A,(C)
-	; OR #E0			;Set Bits765
-	; CP KEYE
+	; Press E to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYE
 
-	; CALL Z, BoardProcessPop
+	CALL Z, BoardUpdateLastRow	;	BoardProcessPop
 
 
 	; Press W to BoardPullAnim on Player 1
