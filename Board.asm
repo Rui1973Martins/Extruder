@@ -131,6 +131,7 @@ BoardInit_AttackTab
 	LD	A, ATTACK_PATTERN_SIZE
 	LD	(IX+BRD_ATTACK_CNT), A
 
+
 	; Center Clown XPos at middle
 	LD A, C						; Cursor or Clown POS 
 	SRA A						; Integer Divide By 2
@@ -157,8 +158,23 @@ BoardInit_JP1
 	DEC C
 	JP NZ,	BoardInit_JP0
 
+	;--------------------
+	; CALC Cursor Y
+	;--------------------		
+		LD A, (IX+BRD_POS_Y)	; Start Position Y
+		LD B, (IX+BRD_HEIGHT )	; Height
+		LD C, 16				; Two chars height per Item
 
+	 BoardInitCur_MUL
+		ADD A, C
+		DJNZ BoardInitCur_MUL	; A = Height * ItemHeight, (in Pixels)
+
+		SUB (3*8)				; Subtract 3 Chars height (1.5 * Item Height)
+		LD	(IX+BRD_CUR_Y), A	; Cursor Y (Constant after init)
+
+	;--------------------
 	; Reset several Vars
+	;--------------------
 	XOR	A
 	LD	(IX+BRD_COMBO_CNT), A	; RESET Combo
 	LD	(IX+BRD_FLAGS), A		; RESET Flags to BRD_FLAG_NONE
@@ -226,9 +242,6 @@ BoardDropAnimLine_Color
 	POP BC		; TODO: Optimize this out, using DEC (var) instead
 
 	DJNZ BoardDropAnimLineColor_JP0
-
-	XOR A
-	CP #FF	; Make sure we return a NON ZERO Flag
 RET
 
 
@@ -268,9 +281,6 @@ BoardDropAnimLine_Pixels
 	POP BC			; TODO: Optimize this out, using DEC (var) instead
 
 	DJNZ BoardDropAnimLinePx_JP0
-
-	; XOR A
-	; CP #FF	; Make sure we return a NON ZERO Flag
 RET
 
 
@@ -343,10 +353,13 @@ BoardUpdateAll
 
 	LD B, (IX+BRD_WIDTH )	; Width
 
+		LD	C, (IX+BRD_HEIGHT)	; NOTE: Optimized to be in PUSH BC
+
 	LD D, (IX+BRD_POS_Y)	; Start Position Y
 	LD E, (IX+BRD_POS_X)	; Start Position X
 	LD H, (IX+BRD_BUF_H)	; Col Buffer
 	LD L, (IX+BRD_BUF_L)	; Col Buffer
+
 
 	PUSH BC
 
@@ -358,7 +371,7 @@ BoardUpdateAll
 		; CALL BoardColNextBuf	; Trashes BC
 		; INLINED
 			LD	B, 0
-			LD	C, (IX+BRD_HEIGHT)	; TODO: Optimize by self modify this code into a LD C, nn, updated at start
+			;LD	C, (IX+BRD_HEIGHT)	; TODO: Optimize by self modify this code into a LD C, nn, updated at start
 			ADD	HL, BC
 
 	; CALL BoardColNextPos
@@ -427,8 +440,8 @@ BoardUpdateAll
 				ADD	A, A		; *2 
 				ADD	A, A		; *4 
 
-				LD H, HIGH BUBBLE_TAB_C_COMPACT	; HL Points to Bitmap Struct
 				LD L, A
+				LD H, HIGH BUBBLE_TAB_C_COMPACT	; HL Points to Bitmap Struct
 				
 					; CALL B_CBlit_H2W2
 					; INLINED, Specific Optimized code for Sprite 2x2
@@ -441,22 +454,49 @@ BoardUpdateAll
 					;	; using special alignment, ensuring H for Ball colors would be the same for all BUBBLE_* colors
 
 						; LOOP Completely UNROLLED for 2x2								
-								LDI
-								LDI
+							; --------------------
+						
+								; LDI
+								; LDI
 
-							LD	BC,#0020-2	; Optimized for Width 2
-							EX	DE, HL		;SaveHL
-							ADD	HL, BC
-							EX	DE, HL		;RestHL and DE
+							; LD	BC,#0020-2	; Optimized for Width 2
+							; EX	DE, HL		;SaveHL
+							; ADD	HL, BC
+							; EX	DE, HL		;RestHL and DE
 
-								LDI			; 16T
-								LDI			; 16T
+								; LDI			; 16T
+								; LDI			; 16T
 
-							LD	BC,#0020-2	; 10T		Optimized for Width 2
-							EX	DE, HL		;  4T		SaveHL
-							ADD	HL, BC		; 11T
-							EX	DE, HL		;  4T		RestHL and DE
+							; LD	BC,#0020-2	; 10T		Optimized for Width 2
+							; EX	DE, HL		;  4T		SaveHL
+							; ADD	HL, BC		; 11T
+							; EX	DE, HL		;  4T		RestHL and DE
 											; 29T Total
+
+							; --------------------
+							; NOTE: Can optimize further, making use of B or C,
+							; not being use, except for LDI
+							; NOTE: B = 0 (From top), and 4 LDI, will not change that, IF C is big enough
+								LDI
+								LDI
+
+							LD A, #20-2		; 7T
+							ADD A, E		; 4T
+							LD E, A			; 4T
+							JP	NC, TEST_X1	; 10T
+								INC D
+							TEST_X1
+
+								LDI			; 16T
+								LDI			; 16T
+
+							LD A, #20-2		; 7T
+							ADD A, E		; 4T
+							LD E, A			; 4T
+;Will Never Overflow HERE	JP	NC, TEST_X2	; 10T
+;								INC D
+;							TEST_X2
+
 					;RET	
 
 				POP HL
@@ -568,18 +608,7 @@ BoardClearCursor
 	ADD A, E				;       A = ( ItemWidth * Cur_X ) + Position_X
 	LD	E, A				; ABS X   = ( ItemWidth * Cur_X ) + Position_X				
 	
-; TODO; Optimize this, by pre-calc this in BoardInit
-		LD B, (IX+BRD_HEIGHT )	; Height
-		LD C, 16				; Two chars height per Item
-		LD A, D					; Start Position Y
-
-	 BoardClearCursor_MUL
-		ADD A, C
-		DJNZ BoardClearCursor_MUL	; A = Height * ItemHeight, (in Pixels)
-
-		SUB (3*8)				; Subtract 3 Chars height (1.5 * Item Height)
-; TODO END
-	LD D, A					; Y = Position_Y + (Height * 8) , (in Pixels )
+	LD	D, (IX+BRD_CUR_Y)		; D = Cursor Y
 
 	; DE has position YX
 
@@ -603,7 +632,6 @@ BoardUpdateCursor
 	CALL NZ, BoardClearCursor		; TODO: Optimize
 ; FALL Through
 
-
 BoardDrawCursor
 ; Inputs:
 ;	IX = Board Structure
@@ -620,18 +648,7 @@ BoardDrawCursor
 	ADD A, E				;       A = ( ItemWidth * Cur_X ) + Position_X
 	LD	E, A				; ABS X   = ( ItemWidth * Cur_X ) + Position_X				
 	
-; TODO; Optimize this, by pre-calc this in BoardInit
-		LD B, (IX+BRD_HEIGHT )	; Height
-		LD C, 16				; Two chars height per Item
-		LD A, D					; Start Position Y
-
-	 BoardDrawCursor_MUL
-		ADD A, C
-		DJNZ BoardDrawCursor_MUL	; A = Height * ItemHeight, (in Pixels)
-		
-		SUB (3*8)				; Subtract 3 Chars height (1.5 * Item Height)
-; TODO END
-	LD D, A					; Y = Position_Y + (Height * 8) , (in Pixels )
+	LD	D, (IX+BRD_CUR_Y)		; D = Cursor Y
 
 	; DE has position YX
 

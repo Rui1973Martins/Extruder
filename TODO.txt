@@ -1,8 +1,14 @@
-- FIX FENCE BUG
+- FIX Vertical FENCE BUG
+	Could add an Extra Empty ROW, on TOP or bottom.
+	Or Use the Last (Eleventh) Row, to validate this.
 
 - Support Popping partially outside on bottom (adjust POP count with remaining unseen items
 
 - Roll up all balls
+
+- Stone Transform, in 2 passes
+	PASS1 - COLOR ALL BRIGHT
+	PASS2 - COLOR Regular BALL Brightness
 
 - Reminder of ATTACK Lines, using Character patterns
 
@@ -67,4 +73,4 @@
 
 Optional
 
-- Reverse Board internal strcture from columns to rows (Could be faster)
+- Reverse Board internal structure from columns to rows (Could be faster)

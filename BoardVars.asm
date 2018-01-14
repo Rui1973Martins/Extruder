@@ -75,12 +75,13 @@ BRD_GAME_STATE				EQU 32	; Game State
 				GAME_STATE_DRAW		EQU 0x03	; It's a DRAW	(Blue	Ball)
 				GAME_STATE_WON		EQU 0x02	; Player WON	(Green	Ball)
 
-BRD_PUSH_PULL_INSERT_CNT	EQU 33	; Number of balls Already pushhed by clown (used for animating balls)
+BRD_PUSH_PULL_INSERT_CNT	EQU 33	; Number of balls Already pushed by clown (used for animating balls)
 
 BRD_CUR_X_LAST				EQU 34	; Last version of BRD_CUR_X
 
 BRD_POP_ANIM				EQU 35	; Pop Animation State control
 BRD_POP_CNT					EQU 36	; Counts the Number of Balls during POPing
+BRD_CUR_Y					EQU 37	; Cursor/Clown Y Position
 
 ;----------------------
 ; Actual Board objects
@@ -113,9 +114,11 @@ BOARD1
 	DEFW #0000	; PUSH Col Start Animation (Top)
 
 	DEFB GAME_STATE_RUNNING; Game State
+	DEFB 0		; PUSH PULL Insert Count
 	DEFB 0		; Last Cursor (in Chars)
 	DEFB 0		; Pop Anim State
 	DEFB 0		; Pop Count
+	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
 ;----------------------
@@ -147,9 +150,11 @@ BOARD2
 	DEFW #0000	; PUSH Col Start Animation (Top)
 
 	DEFB GAME_STATE_RUNNING; Game State
+	DEFB 0		; PUSH PULL Insert Count
 	DEFB 0		; Last Cursor (in Chars)
 	DEFB 0		; Pop Anim State
 	DEFB 0		; Pop Count
+	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
 
