@@ -343,11 +343,77 @@ GameInitDraw_1Player
 ;RET
 
 
+
+;--------------------
+GameEnd_2Players
+;--------------------
+
+	LD	IX, BOARD1
+	LD	A, (IX+BRD_GAME_STATE)
+	CP	GAME_STATE_LOST
+	JP	NZ, GameEnd_2P_CheckP2
+
+	; Player 1 LOST
+
+	; Check if Player 2 Also Lost
+	LD	IX, BOARD2
+	LD	A, (IX+BRD_GAME_STATE)
+	CP	GAME_STATE_LOST
+	JP	Z, GameDraw
+
+; FALLTROUGH
+
 ;--------------------
 GameLost_1Player
 ;--------------------
 	LD IX, BOARD1
+
+	CALL GameLost
 	
+	; CALL CLOWN_LOOSE_ANIM P1
+
+	CALL WaitNoKeyPressed
+	CALL WaitPressAnyKey
+	CALL WaitNoKeyPressed
+RET
+	
+GameEnd_2P_CheckP2
+	LD	IX, BOARD2
+	LD	A, (IX+BRD_GAME_STATE)
+	CP	GAME_STATE_LOST
+	CALL Z, GameLost	
+
+	; CALL CLOWN_LOOSE_ANIM P2
+
+	CALL WaitNoKeyPressed
+	CALL WaitPressAnyKey
+	CALL WaitNoKeyPressed
+RET
+
+;--------------------
+GameDraw
+;--------------------
+	LD IX, BOARD1
+	CALL GameLost
+
+	LD IX, BOARD2
+	CALL GameLost
+
+	; CALL CLOWN_LOOSE_ANIM P1
+	
+	; CALL CLOWN_LOOSE_ANIM P2
+
+	CALL WaitNoKeyPressed
+	CALL WaitPressAnyKey
+	CALL WaitNoKeyPressed
+RET
+
+;--------------------
+GameLost
+;--------------------
+; Inputs:
+;	IX - Board Structure, of Player that LOST
+
 ;###############################
 ;     Animation Logic STEPS
 ;###############################
@@ -411,12 +477,7 @@ PLAY1_LOST_ANIM_START
 		JP NZ, PLAY1_LOST_ANIM_NEXT
 ;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
 
-	; CALL CLOWN_LOOSE_ANIM
-
-	CALL WaitPressAnyKey
-	;CALL WaitNoKeyPressed
-;RET
-	JP WaitNoKeyPressed
+RET
 
 
 ; ===== 2 Players =====
@@ -904,7 +965,19 @@ PLAY2_LOOP
 
 	CALL PowerUpFlash			
 
-	JP PLAY2_LOOP
+	; Check Game State (P2)
+		;LD	IX, BOARD2
+		LD	A, (IX+BRD_GAME_STATE)
+		CP	GAME_STATE_RUNNING	
+		JP	NZ, GameEnd_2Players
+
+	; Check Game State (P1)
+		LD	IX, BOARD1
+		LD	A, (IX+BRD_GAME_STATE)
+		CP	GAME_STATE_RUNNING
+	JP Z, PLAY2_LOOP
+
+	JP	GameEnd_2Players
 ;RET
 
 PowerUpFlash

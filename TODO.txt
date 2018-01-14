@@ -6,11 +6,12 @@
 
 - LOSE test
 	Inject Balls
-	DONE PUSHING
+	DONE	PUSHING
   
 - LOOSE WALL Animation
-	PLAY1 DONE
-	PLAY2 ....
+	DONE	PLAY1
+	DONE	PLAY2
+	Show LOOSE Image
 
 - Roll-up all balls, After POP with Holes
 
