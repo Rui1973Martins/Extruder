@@ -800,88 +800,55 @@ PLAY2_LOOP
 	LD	IX, BOARD2
 	CALL BoardPushPullAnim
 
-	
-		; ; FLASH GREEN/BLACK
-		; LD	HL, BUBBLE_GREEN
-		; LD	B, GREEN
-
-		; LD	A, (HL)
-		; XOR	B
-		; LD	(HL), A
-		; INC HL
-
-		; LD	A, (HL)
-		; XOR	B
-		; LD	(HL), A
-		; INC HL
-
-		; LD	A, (HL)
-		; XOR	B
-		; LD	(HL), A
-		; INC HL
-
-		; LD	A, (HL)
-		; XOR	B
-		; LD	(HL), A
-		; INC HL
-
 
 	; POWER UP LIGHT
-		;LD	HL, POWER_UP_BUBBLES+1
-		LD	HL, BUBBLE_RED+1		
 		LD	B, BRIGHT
 
+		LD	HL, BUBBLE_RED+1
+		;LD	HL, POWER_UP_BUBBLES+1
+			LD	A, (HL)
+			XOR	B
+			LD	(HL), A			
+			INC L
 			LD	A, (HL)
 			XOR	B
 			LD	(HL), A
 			
+			INC L	; 4T
+			INC L	; 4T
+			INC L	; 4T
+			;LD	L, LOW(POWER_UP_BUBBLE_GREEN)	; 7T < 12T = 3*4T
+				LD	A, (HL)
+				XOR	B
+				LD	(HL), A
 			INC L
-
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
+				LD	A, (HL)
+				XOR	B
+				LD	(HL), A
 			
 			INC L
 			INC L
 			INC L
-
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
-			
+			;LD	L, LOW(POWER_UP_BUBBLE_BLUE)			
+				LD	A, (HL)
+				XOR	B
+				LD	(HL), A		
 			INC L
-
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
-			
-			INC L
-			INC L
-			INC L
-			
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
-			
-			INC L
-
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
+				LD	A, (HL)
+				XOR	B
+				LD	(HL), A
 			
 			INC L
 			INC L
 			INC L
-			
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
-			
+			;LD	L, LOW(POWER_UP_BUBBLE_YELLOW)			
+				LD	A, (HL)
+				XOR	B
+				LD	(HL), A
 			INC L
-
-			LD	A, (HL)
-			XOR	B
-			LD	(HL), A
+				LD	A, (HL)
+				XOR	B
+				LD	(HL), A
 			
 	JP PLAY2_LOOP
 ;RET
