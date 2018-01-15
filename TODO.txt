@@ -1,15 +1,18 @@
-- Update Board Slide Down with Lower Edge Visible
-	DONE
+DONE	- Update Board Slide Down with Lower Edge Visible
 
-- Implement a split update of board color, running horizontally, painting odd and even half-rows
-	DONE 
+DONE	- Implement a split update of board color, running horizontally, painting odd and even half-rows
 
-- FIX Vertical FENCE BUG
+DONE	- FIX Vertical FENCE BUG
 			- Could add an Extra Empty ROW, on TOP or bottom.
 	DONE	- Or Use the Last (Eleventh) Row, to validate this.
 
-^ ^ ^ ---------- DONE ---------- ^ ^ ^
+DONE	- Implement show last HALF Row
 
+DONE	- LOSE test
+	DONE	- Inject Balls
+	DONE	- PUSHING
+	
+^ ^ ^ ---------- DONE ---------- ^ ^ ^
 
 - Support Popping partially
 			- outside on bottom
@@ -19,9 +22,6 @@
 	- Include 16 transitions per player.
 	- Insert and keep only entries, that provide a change in control input
 
-- LOSE test
-			- Inject Balls
-	DONE	- PUSHING
   
 - LOOSE WALL Animation
 	DONE	- PLAY1
@@ -34,6 +34,10 @@
 			- generate them ( what frequency ?, related with character power ?)
 
 - Roll-up all balls, After POP with Holes
+
+- Show Clown Animation, when lost
+	-	Draw Clown, After UpdateLastRow, before Wall LOSE Animation
+	- Show Clown LOSE Animation, after Wall LOSE Animation
 
 - Stone Transform, in 2 or 3 passes
 	PASS0 . BLACK background (Optional)

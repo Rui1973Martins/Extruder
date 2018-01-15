@@ -133,7 +133,7 @@ BoardInit_AttackTab
 
 
 	; Center Clown XPos at middle
-	LD A, C						; Cursor or Clown POS 
+	LD A, C						; Width 
 	SRA A						; Integer Divide By 2
 	; since we start at 0, and Sprite has width, discard this
 	;INC A						; Divide by 2, + 1 will center (with Odd Width)
@@ -818,32 +818,42 @@ BoardColInject	; Adds another item into specific col
 ; 	A = New Item (previous)
 ;	HL = Column Start Buffer 
 
-	LD C, (IX+BRD_HEIGHT)	; TODO: We can Load B directly, if we do not need C to have the height
-	LD B, C
-		
+	LD	B, (IX+BRD_HEIGHT)	; TODO: We can Load B directly, if we do not need C to have the height
+	
 	EX AF, AF'		; Save as previous
 
  BoardColInject_LOOP
 	LD A, (HL)
 	CP B_0			; B_0 = BOARD EMPTY SPOT
 
-	JP Z, BoardColInject_LAST
+	JP Z, BoardColInject_INSERT
 	
 	EX AF, AF'		; Swap Existing with previous
 	LD (HL), A
 
-	INC HL			; TODO, we could move this to start of loop, if it allows for faster processing on last element.
+	;INC HL			; TODO, we could move this to start of loop, if it allows for faster processing on last element.
 					; Could also be replaced with "INC L", if full board play buffer is aligned to 256, and not larger than 256 positions
-
-	DJNZ BoardColInject_LOOP	; Exit if end of Column Height
-
-	RET	
-
- BoardColInject_LAST
-	EX AF, AF'	;	Insert new Item
-	LD (HL), A
+	INC	L
 	
-RET
+	DJNZ BoardColInject_LOOP	; Exit if end of Column Height
+	
+BoardColInject_LOST
+	;IF we reached the End of the Board, user LOST
+	;-------------------------
+	LD	A, GAME_STATE_LOST
+	JP BoardGameSetState
+;RET
+
+ BoardColInject_INSERT
+	EX AF, AF'		; Insert new Item
+	LD (HL), A
+
+	; If we reached the last ROW (FENCE), user LOST
+	LD	A, B
+	CP	1			; Last Element
+	RET	NZ
+	
+JP BoardColInject_LOST
 
 
 BoardAddLineTotal

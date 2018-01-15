@@ -289,6 +289,15 @@ PLAY1_DROP_ANIM_NEXT
 					CALL_DROP_BRD_ANIM_PIXELS_EVEN
 ;		1		INC BRD
 					BOARDS_DROP_BRD_ANIM_NextLine
+
+			; Check for End of Board HEIGHT
+				LD	B, (IX+BRD_HEIGHT)			; Height
+				SLA	B							; Multiply by 2 (using half Ball height)
+					DEC	B
+				LD	A, (BOARDS_DROP_ANIM_CNT)	
+				CP	B
+				RET	Z
+		
 			HALT
 ;	3			EDGE PX
 					CALL_DROP_EDGE_ANIM_PIXELS
@@ -323,14 +332,15 @@ PLAY1_JUMP_START
 ;	5			INC EDGE
 					BOARDS_DROP_EDGE_ANIM_NextLine
 
-			; Check for End of Board HEIGHT
-			LD	B, (IX+BRD_HEIGHT)			; Height
-			SLA	B							; Multiply by 2 (using half Ball height)
-			LD	A, (BOARDS_DROP_EDGE_ANIM_CNT)	
-			CP	B
-		JP NZ, PLAY1_DROP_ANIM_NEXT
+			; ; Check for End of Board HEIGHT
+			; LD	B, (IX+BRD_HEIGHT)			; Height
+			; SLA	B							; Multiply by 2 (using half Ball height)
+			; LD	A, (BOARDS_DROP_EDGE_ANIM_CNT)	
+			; CP	B
+		; JP NZ, PLAY1_DROP_ANIM_NEXT
+		JP PLAY1_DROP_ANIM_NEXT
 ;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
-RET
+;RET
 
 
 ;DEPRECATED
@@ -413,6 +423,8 @@ GameLost
 ;--------------------
 ; Inputs:
 ;	IX - Board Structure, of Player that LOST
+
+	CALL BoardUpdateLastRow
 
 ;###############################
 ;     Animation Logic STEPS
@@ -623,6 +635,15 @@ PLAY2_DROP_ANIM_NEXT
 					CALL_DROP_BRD_ANIM_PIXELS_EVEN
 ;		1		INC BRD
 					BOARDS_DROP_BRD_ANIM_NextLine
+
+			; Check for End of Board HEIGHT
+				LD	B, (IX+BRD_HEIGHT)			; Height
+				SLA	B							; Multiply by 2 (using half Ball height)
+					DEC B
+				LD	A, (BOARDS_DROP_ANIM_CNT)	
+				CP	B
+				RET Z
+
 			HALT
 ;	3			EDGE PX
 				LD	IX, BOARD1
@@ -678,12 +699,13 @@ PLAY2_JUMP_START
 ;	5			INC EDGE
 					BOARDS_DROP_EDGE_ANIM_NextLine
 
-			; Check for End of Board HEIGHT
-			LD	B, (IX+BRD_HEIGHT)			; Height
-			SLA	B							; Multiply by 2 (using half Ball height)
-			LD	A, (BOARDS_DROP_EDGE_ANIM_CNT)	
-			CP	B
-		JP NZ, PLAY2_DROP_ANIM_NEXT
+			; ; Check for End of Board HEIGHT
+			; LD	B, (IX+BRD_HEIGHT)			; Height
+			; SLA	B							; Multiply by 2 (using half Ball height)
+			; LD	A, (BOARDS_DROP_EDGE_ANIM_CNT)	
+			; CP	B
+		;JP NZ, PLAY2_DROP_ANIM_NEXT
+		JP	PLAY2_DROP_ANIM_NEXT
 ;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
 RET
 
@@ -750,7 +772,27 @@ PLAY1_LOOP
 		CALL BoardStepAnim
 		CALL BoardUpdateCursor
 
-;	CALL WaitPressAnyKey
+	; After Visual Update, Check if user Lost
+	;------------------------------
+		; Check Game State
+			LD	A, (IX+BRD_GAME_STATE)
+			CP	GAME_STATE_RUNNING	
+			JP Z, PLAY1_RUNNING
+		
+			;CP	GAME_STATE_LOST
+			;JP	Z, GameLost_1Player
+		
+			JP GameLost_1Player
+			
+			; CP	GAME_STATE_DRAW
+			; JP	Z, GameLost_1Player
+			
+			; CP	GAME_STATE_WON
+			; JP	Z, GameWon_1Player
+
+		;RET ?
+
+PLAY1_RUNNING
 
 ;	LD	IX, BOARD1
 	LD	DE, BOARD_PATTERN_SINGLE
@@ -761,52 +803,6 @@ PLAY1_LOOP
 	CALL	BoardProcessUserInput
 	CALL	BoardProcessPop
 
-
-	; Press T to TransformStone on Player 1 with RED Bubbles
-	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYT
-
-	LD A, B_R		; RED Bubble
-	CALL Z, BoardTransformStone
-
-
-	; Press E to BoardPullAnim on Player 1
-	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYE
-
-	CALL Z, BoardUpdateLastRow	;	BoardProcessPop
-
-
-	; Press W to BoardPullAnim on Player 1
-	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYW
-
-	CALL Z, BoardPullAnim
-
-	; Press Q to BoardPullAnim on Player 1
-	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYQ
-
-	LD	A, 1
-	CALL Z,  BoardAddLineTotal
-
-
-	; Press SPACE to LEAVE
-	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYSP
-	RET Z
-
-
 	LD A, WHITE
 	OUT (ULA),A
 
@@ -814,20 +810,9 @@ PLAY1_LOOP
 	
 	CALL PowerUpFlash
 
-	; Check Game State
-		LD	A, (IX+BRD_GAME_STATE)
-		CP	GAME_STATE_RUNNING	
-	JP Z, PLAY1_LOOP
-	
-	CP	GAME_STATE_LOST
-	JP	Z, GameLost_1Player
-	
-	; CP	GAME_STATE_DRAW
-	; JP	Z, GameLost_1Player
-	
-	; CP	GAME_STATE_WON
-	; JP	Z, GameWon_1Player
-RET
+	CALL	PLAY1_DEBUG
+
+JP PLAY1_LOOP
 
 
 ; ===== Dual Player Game Loop =====
@@ -896,8 +881,21 @@ PLAY2_LOOP
 		CALL BoardStepAnim
 		CALL BoardUpdateCursor
 
+	; After Visual Update, Check if user Lost
+	;------------------------------
+		; Check Game State (P2)
+			;LD	IX, BOARD2
+			LD	A, (IX+BRD_GAME_STATE)
+			CP	GAME_STATE_RUNNING	
+			JP	NZ, GameEnd_2Players
 
-;	CALL WaitPressAnyKey
+		; Check Game State (P1)
+			LD	IX, BOARD1
+			LD	A, (IX+BRD_GAME_STATE)
+			CP	GAME_STATE_RUNNING
+			JP NZ, GameEnd_2Players
+
+PLAY2_RUNNING
 
 	LD A, BLACK
 	OUT (ULA),A
@@ -919,38 +917,6 @@ PLAY2_LOOP
 	CALL	BoardProcessUserInput
 	CALL	BoardProcessPop
 
-
-	; Press SPACE to LEAVE
-	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYSP
-	RET Z
-
-
-	; Press T to TransformStone on Player 1 with RED Bubbles
-	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYT
-
-	; TODO Optimize this out
-	LD IX, BOARD1
-	LD A, B_R		; RED Bubble
-	CALL Z, BoardTransformStone
-
-	; Press G to TransformStone on Player 2 with BLUE Bubbles
-	LD BC, KBRDAG	; Read Numbers A to G Row (G,F,D,S,A)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYG
-
-	; TODO Optimize this out
-	LD IX, BOARD2
-	LD A, B_B		; BLUE Bubble
-	CALL Z, BoardTransformStone
-
-
 	LD A, YELLOW
 	OUT (ULA),A
 
@@ -963,21 +929,15 @@ PLAY2_LOOP
 	LD	IX, BOARD2
 	CALL BoardPushPullAnim
 
-	CALL PowerUpFlash			
+	CALL PowerUpFlash
 
-	; Check Game State (P2)
-		;LD	IX, BOARD2
-		LD	A, (IX+BRD_GAME_STATE)
-		CP	GAME_STATE_RUNNING	
-		JP	NZ, GameEnd_2Players
-
-	; Check Game State (P1)
-		LD	IX, BOARD1
-		LD	A, (IX+BRD_GAME_STATE)
-		CP	GAME_STATE_RUNNING
-	JP Z, PLAY2_LOOP
-
-	JP	GameEnd_2Players
+	
+	;----------
+	; DEBUG
+	;----------
+	CALL PLAY2_DEBUG
+	
+JP PLAY2_LOOP
 ;RET
 
 PowerUpFlash
@@ -1034,7 +994,113 @@ PowerUpFlash
 		LD	(HL), A
 RET
 
+
 include "Board.asm"
+
+;----------
+PLAY1_DEBUG
+;----------
+	; Press T to TransformStone on Player 1 with RED Bubbles
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYT
+
+	LD A, B_R		; RED Bubble
+	CALL Z, BoardTransformStone
+
+
+	; Press E to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYE
+
+	CALL Z, BoardUpdateLastRow	;	BoardProcessPop
+
+	; Press W to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYW
+
+	CALL Z, BoardPullAnim
+
+
+	; Press Q to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYQ
+
+	LD	A, 1
+	CALL Z,  BoardAddLineTotal
+
+
+	; Press SPACE to LEAVE
+	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYSP
+	RET Z
+RET
+
+;----------
+PLAY2_DEBUG
+;----------
+	; Press SPACE to LEAVE
+	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYSP
+	RET Z
+
+
+	; Press T to TransformStone on Player 1 with RED Bubbles
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYT
+
+	; TODO Optimize this out
+	LD IX, BOARD1
+	LD A, B_R		; RED Bubble
+	CALL Z, BoardTransformStone
+
+	; Press G to TransformStone on Player 2 with BLUE Bubbles
+	LD BC, KBRDAG	; Read Numbers A to G Row (G,F,D,S,A)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYG
+
+	; TODO Optimize this out
+	LD IX, BOARD2
+	LD A, B_B		; BLUE Bubble
+	CALL Z, BoardTransformStone
+
+
+	; Press Q to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYQ
+
+	LD	IX, BOARD1
+	LD	A, 1
+	CALL Z,  BoardAddLineTotal	
+
+	; Press A to BoardPullAnim on Player 1
+	LD BC, KBRDAG	; Read Numbers A to G Row (G,F,D,S,A)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYA
+
+	LD	IX, BOARD2
+	LD	A, 1
+	CALL Z,  BoardAddLineTotal	
+
+RET
+
 
 ORG #A000
 
