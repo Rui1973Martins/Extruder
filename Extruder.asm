@@ -946,8 +946,8 @@ PowerUpFlash
 
 	LD	B, BRIGHT
 
-	LD	HL, BUBBLE_RED+1
-	;LD	HL, POWER_UP_BUBBLES+1
+	;LD	HL, BUBBLE_RED+1
+	LD	HL, POWER_UP_BUBBLES+1
 
 	LD	A, (HL)
 	XOR	B
@@ -1000,6 +1000,14 @@ include "Board.asm"
 ;----------
 PLAY1_DEBUG
 ;----------
+	; Press SPACE to LEAVE
+	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYSP
+	RET Z
+	
+	
 	; Press T to TransformStone on Player 1 with RED Bubbles
 	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
 	IN A,(C)
@@ -1018,13 +1026,13 @@ PLAY1_DEBUG
 
 	CALL Z, BoardUpdateLastRow	;	BoardProcessPop
 
-	; Press W to BoardPullAnim on Player 1
-	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYW
+	; ; Press W to BoardPullAnim on Player 1
+	; LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	; IN A,(C)
+	; OR #E0			;Set Bits765
+	; CP KEYW
 
-	CALL Z, BoardPullAnim
+	; CALL Z, BoardPullAnim
 
 
 	; Press Q to BoardPullAnim on Player 1
@@ -1036,13 +1044,6 @@ PLAY1_DEBUG
 	LD	A, 1
 	CALL Z,  BoardAddLineTotal
 
-
-	; Press SPACE to LEAVE
-	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYSP
-	RET Z
 RET
 
 ;----------
