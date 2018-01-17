@@ -920,13 +920,9 @@ BoardInjectLine_JP1
 	; Positive or Zero, Injects
 	PUSH BC
 
-		; Determine Next Color from History
-		;LD A, C	; Yellow
-		; Determine Next Color Randomly, (1 to 4)
-		;	LD A, R	; Yellow
-		;	AND #03	; Mask
-		;	INC A
-		CALL BoardAttackNext
+		; Determine Next Color
+		CALL BoardLevelPattern		
+		;CALL BoardAttackNext
 		
 		
 		PUSH HL	
@@ -941,6 +937,29 @@ BoardInjectLine_JP1
 
 RET
 
+
+; This function, will extract the next ball color, from History or Generator
+BoardLevelPattern		
+; Inputs:
+;	IX = Board Structure
+; outputs:
+; 	A = New Item
+
+	; Determine Next Color Randomly, (1 to 4)
+	LD A, R		; Random Source
+	CP	8		; Threshold for converting into POWER UP
+				; If < 8 Jump
+	JP	C,	BoardLevelPattern_PowerUp
+	AND #03	; Mask
+	INC A	; Keep it in the correct Range (1-4)
+RET
+
+BoardLevelPattern_PowerUp
+	AND #03	; Mask
+	INC A	; Keep it in the correct Range (1-4)
+	;SET	POWER_UP_BUBBLES_BIT, A
+	OR	POWER_UP_BUBBLES	; Using it as a Mask to SET bit
+RET
 
 ; This function, will extract the next ball color, from the "opponent" character Attack table
 BoardAttackNext
@@ -1497,7 +1516,7 @@ BoardPushStart
 
 	; Get Cursor/Clown Position
 		LD	B, (IX+BRD_CUR_X)	; Relative value
-		INC	B					; We Need to start from the end of the Column
+		INC	B					; Move down bellow as LD A, C
 
 	; Get Column Address (using Clown position)
 		LD	L, (IX+BRD_BUF_L)	; TODO: We can not Optimize to "LD L, 0" since 256 bytes aligned, due two Board 2, not starting at LOW(0)
@@ -1506,7 +1525,7 @@ BoardPushStart
 		; Multiply				; TODO Optimize using Shift Carry method, only 4 bits needed for Width
 		LD	C, (IX+BRD_HEIGHT)
 	;	XOR	A					; Init to Zero (NOTE: Code be removed, if XOR A above is present)
-
+		;LD	A, C				; We Need to start from the end of the Column, hence one more
 	BoardPushStarting_MULT_1
 		; NOTE: B is always > 0, due to the INC B above.
 		ADD	A, C
@@ -1526,8 +1545,13 @@ BoardPushStart
 
 		;PUSH HL				; Save ADDR
 
-		LD	E, C				; E = Height
-		SBC	HL, DE				; First Column Position = Subtract Height
+		;LD	E, C				; E = Height		
+		;--------------------
+		DEC	C					; One less in Height, due to FENCE
+		;--------------------
+		;SBC	HL, DE				; First Column Position = Subtract Height
+		; B is 0
+		SBC	HL, BC				; First Column Position = Subtract Height -1
 
 		LD	(IX+BRD_PUSH_ANIM_COL_BASE_L), L
 		LD	(IX+BRD_PUSH_ANIM_COL_BASE_H), H

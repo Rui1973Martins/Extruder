@@ -810,6 +810,18 @@ PLAY1_RUNNING
 	
 	CALL PowerUpFlash
 
+	;----------
+	; Press SPACE to LEAVE
+	;----------
+	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYSP
+	RET Z
+
+	;----------
+	; DEBUG
+	;----------
 	CALL	PLAY1_DEBUG
 
 JP PLAY1_LOOP
@@ -933,6 +945,15 @@ PLAY2_RUNNING
 
 	
 	;----------
+	; Press SPACE to LEAVE
+	;----------
+	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYSP
+	RET Z
+
+	;----------
 	; DEBUG
 	;----------
 	CALL PLAY2_DEBUG
@@ -947,7 +968,7 @@ PowerUpFlash
 	LD	B, BRIGHT
 
 	;LD	HL, BUBBLE_RED+1
-	LD	HL, POWER_UP_BUBBLES+1
+	LD	HL, POWER_UP_BUBBLES_START+1
 
 	LD	A, (HL)
 	XOR	B
@@ -1000,13 +1021,6 @@ include "Board.asm"
 ;----------
 PLAY1_DEBUG
 ;----------
-	; Press SPACE to LEAVE
-	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYSP
-	RET Z
-	
 	
 	; Press T to TransformStone on Player 1 with RED Bubbles
 	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
@@ -1049,13 +1063,6 @@ RET
 ;----------
 PLAY2_DEBUG
 ;----------
-	; Press SPACE to LEAVE
-	LD BC, KBRDBS ; Read Last Row Right (B,N,M,SS,Space)
-	IN A,(C)
-	OR #E0			;Set Bits765
-	CP KEYSP
-	RET Z
-
 
 	; Press T to TransformStone on Player 1 with RED Bubbles
 	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
