@@ -277,3 +277,74 @@ BOARD_ATTACK_PATTERN_TAB
 	DEFW	BOARD_ATTACK_PATTERN_EMPRESS
 	DEFW	BOARD_ATTACK_PATTERN_BLACK_PIERROT
 
+;--------------------
+;Chain/Combo Patterns
+;--------------------
+CHAIN_ATTACK_TAB0	; Very Weak/Very Strong (Fool)
+	DEFB	+1	; 1	; Lines, for 1 Chain (= no chain)
+	DEFB	+1	; 2	; Lines, for 2 Chains
+	DEFB	+1	; 3	; Lines, for 3 Chains
+	DEFB	+1	; 4	; Lines, for 4 Chains
+	DEFB	+0	; -	; Lines, for 5 Chains
+	DEFB	+2	; 6	; Lines, for 6 Chains
+	DEFB	+0	; -	; Lines, for 7 Chains
+	DEFB	+2	; 8	; Lines, for 8 Chains
+;	DEFB	+0	; -	; Lines, for 9 Chains
+;	DEFB	+2	;10	; Lines, for 10 Chains
+;	DEFB	+1	;11	; Lines, for 11 Chains
+
+CHAIN_ATTACK_TAB1	; Balanced (Chariot, Justice, Star)
+	DEFB	+0	; 0	; Lines, for 1 Chain
+	DEFB	+1	; 1	; Lines, for 2 Chains
+	DEFB	+1	; 2	; Lines, for 3 Chains
+	DEFB	+1	; 3	; Lines, for 4 Chains
+	DEFB	+1	; 4	; Lines, for 5 Chains
+	DEFB	+1	; 5	; Lines, for 6 Chains
+	DEFB	+1	; 6	; Lines, for 7 Chains
+	DEFB	+1	; 7	; Lines, for 8 Chains
+;	DEFB	+1	; 8	; Lines, for 9 Chains
+;	DEFB	+2	;10	; Lines, for 10 Chains
+;	DEFB	+1	;11	; Lines, for 11 Chains
+
+CHAIN_ATTACK_TAB2	; Weaker/Stronger (Magician, Empress, World)
+	DEFB	+0	; 0		; Lines, for 1 Chain
+	DEFB	+1	; 1		; Lines, for 2 Chains
+	DEFB	+0	; -		; Lines, for 3 Chains
+	DEFB	+2	; 3		; Lines, for 4 Chains
+	DEFB	+1	; 4		; Lines, for 5 Chains
+	DEFB	+1	; 5		; Lines, for 6 Chains
+	DEFB	+2	; 7		; Lines, for 7 Chains
+	DEFB	+1	; 8		; Lines, for 8 Chains
+;	DEFB	+1	; 9		; Lines, for 9 Chains
+;	DEFB	+2	; 11	; Lines, for 10 Chains
+;	DEFB	+0	; -		; Lines, for 11 Chains
+
+CHAIN_ATTACK_TAB3	; Gimmick (Devil, Death)
+	DEFB	+0	; 0		; Lines, for 1 Chain
+	DEFB	+1	; 1		; Lines, for 2 Chains
+	DEFB	+0	; -		; Lines, for 3 Chains
+	DEFB	+1	; 2		; Lines, for 4 Chains
+	DEFB	+0	; -		; Lines, for 5 Chains
+	DEFB	+2	; 4		; Lines, for 6 Chains
+	DEFB	+0	; -		; Lines, for 7 Chains
+	DEFB	+2	; 6		; Lines, for 8 Chains
+;	DEFB	+0	; -		; Lines, for 9 Chains
+;	DEFB	+2	; 8		; Lines, for 10 Chains
+;	DEFB	+0	; -		; Lines, for 11 Chains
+;	DEFB	+3	; 11	; Lines, for 12 Chains
+
+CHAIN_ATTACK_TAB4	; Stronger (Fortune, Black Pierrot)
+	DEFB	+0	; -		; Lines, for 1 Chain
+	DEFB	+0	; -		; Lines, for 2 Chains
+	DEFB	+0	; -		; Lines, for 3 Chains
+	DEFB	+3	; 3		; Lines, for 4 Chains
+	DEFB	+1	; 4		; Lines, for 5 Chains
+	DEFB	+1	; 5		; Lines, for 6 Chains
+	DEFB	+0	; -		; Lines, for 7 Chains
+	DEFB	+0	; -		; Lines, for 8 Chains
+;	DEFB	+3	; 8		; Lines, for 9 Chains
+;	DEFB	+1	; 9		; Lines, for 10 Chains
+;	DEFB	+1	;10		; Lines, for 11 Chains
+;	DEFB	+1	;11		; Lines, for 12 Chains
+
+
