@@ -966,10 +966,13 @@ PowerUpAnim
 	OUT (ULA),A
 	
 	LD	A, (borderCounter)	; 13T
-	AND	0x03	; 2 Bits
+	LD	B, A
+	AND	0x03		; Process once, every 4 frames
+	RET NZ
 
-	ADD	A, A	; * 2
-	ADD A, A	; * 4
+	LD	A, B
+
+	AND	0x0C	; 2 Bits
 	ADD	A, A	; * 8
 	ADD	A, A	; *16
 
