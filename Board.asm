@@ -1769,120 +1769,213 @@ RET
 
 
 ;------------------------
-BoardAutoColUpStart
+BoardRollUpStart
 ;------------------------
 ; Inputs:
 ;	IX = Board Structure
 
+	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+	CP	PP_ANIM_STATE_STOPPED
+	RET NZ
+
+	; Set Correct Animation State
+	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), PP_ANIM_STATE_ROLL_UP
 RET
 
+
 ;------------------------
-BoardAutoColUpAnim
+BoardRollUpAnim
 ;------------------------
 ; Inputs:
 ;	IX = Board Structure
-; 	HK = Column BASE Addr
-; Trashes: ?
 
-	; Get Addr
-		LD L, (IX+BRD_PUSH_ANIM_COL_ADDR_L)
-		LD H, (IX+BRD_PUSH_ANIM_COL_ADDR_H)
+	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+	CP	PP_ANIM_STATE_ROLL_UP
+	RET NZ
 
-	; IF BASE == ADDR
-		LD	A, L
-		CP	(IX+BRD_PUSH_ANIM_COL_BASE_L)	; Comparing for L provides for a quicker exit
-		JP	NZ,	BoardAutoColUpAnim_checkSpace
-		LD	A, H
-		CP	(IX+BRD_PUSH_ANIM_COL_BASE_H)
-		JP	NZ, BoardAutoColUpAnim_checkSpace
+	; Set Initial ROllCount
+	LD	(Ix+BRD_ROLL_UP_CNT), 0		; if several reset are neede, use XOR A, and then use register
 
-	;	Check CNT and Exit
-		JP	BoardAutoColUpAnim_checkCountExit
+	; LOOP through all Rows
+	;------------------------
+	; First Row
+	LD	L, (IX+BRD_BUF_L)
+	LD	H, (IX+BRD_BUF_H)
+	
+	CALL	BoardRollUpColumn
+	
+	;------------------------
 
-BoardAutoColUpAnim_checkSpace	
-	; 	Update ADDR = ADDR-1
-		DEC HL
-
-	; IF Free Space is NOT available (POSITON != EMPTY) at (ADDR-1)
-		LD	A, (HL)
-		AND	A							; 0 = B_0
-	;	Check CNT and Exit
-		JP	NZ,	BoardAutoColUpAnim_checkCountExit
-
-	; All Required Conditions met, to Push one Ball into Column
-	; Push One Ball into Column (new ADDR)
-	;	Fill Active Color Ball
-		LD	A, (IX+BRD_PUSH_PULL_COLOR)
-		LD	(HL), A
-		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), L
-		LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), H		
-
-	; IF BALL CNT == 0
-		LD	A, (IX+BRD_PUSH_PULL_CNT)
-		AND	A
-		JP	NZ,	BoardAutoColUpAnim_countDown
-
-	; 	Iterate/Find Last (Could be bottom of Column)
-		LD	C, (IX+BRD_PUSH_PULL_INSERT_CNT)
-		LD	B, 0
-		ADD	HL, BC
-
-	;	Insert Empty Spot
-		XOR	A
-		LD	(HL), A
-
-	;	EXIT
-		RET
-
-	; ELSE
-BoardAutoColUpAnim_countDown
-	;	DEC BALL CNT
-		DEC	A							; a = (IX+BRD_PUSH_PULL_CNT)
-		LD	(IX+BRD_PUSH_PULL_CNT), A	; Would there be any advantage in using "DEC (IX+n)" ?
-		INC	(IX+BRD_PUSH_PULL_INSERT_CNT)
-	RET
-	; ;	Check End condition
-	; ;	IF BALL CNT != 0
-	; ;		EXIT
-		; RET	NZ
-	; ;	ELSE
-	; ;		JP Stop Push
-		; JP	BoardPushStop
-
-BoardAutoColUpAnim_checkCountExit
-	; Check and Exit
-	; Assumed no spaceleft to insert Balls
-	; IF BALL CNT != 0 (> 0)
-		LD	A, (IX+BRD_PUSH_PULL_CNT)
-		AND	A
-		JR	Z, BoardAutoColUpStop	
-
-	;	Signal Player LOST and Exit
-	;	Signal Player LOST
-		LD	A, GAME_STATE_LOST;
-		CALL	BoardGameSetState
-
-	;	Stop Push
-; FALL Through
-;		CALL BoardPushStop
+	; Did we Roll Up?	
+	XOR	A							; Zero, means no Column was rolled up
+	CP	(IX+BRD_ROLL_UP_CNT)
+	RET NZ
+	
+	; if not we need to stop roll UP
+	; FALL THROUGH
 ;RET
 
 
 ;------------------------
-BoardAutoColUpStop
+BoardRollUpStop
 ;------------------------
 ; Inputs:
 ;	IX = Board Structure
 
+	; Should we check if there was any MATCH here ?
+	; Or must this be done on each Column, independently
+
+	; Check if we are in the correct Animation State
+	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+	CP	PP_ANIM_STATE_ROLL_UP
+	RET NZ								; WARNING: If this happens, we have a problem
+	
+	; Reset Animation State
+	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), PP_ANIM_STATE_STOPPED
 RET
 
 
 ;------------------------
-BoardMatch3
+BoardRollUpColumn
 ;------------------------
 ; Inputs:
 ;	IX = Board Structure
-;	DE = Attr Address
+; 	HL = Column BASE Addr
+; Trashes: ?
+
+	LD	C, (IX+BRD_HEIGHT)
+	DEC	C					; Proces one less row, since Last Row is FENCE
+
+	XOR	A					; A = B_0 = Empty space
+	LD	B, A				; BC = search count
+
+	LD	E, L				; Save as Base Addr
+	LD	D, H
+	
+BoardRollUpColumn_searchEmpty
+		
+		CPIR				; search Empty Space
+
+	RET	NZ					; Did we find an empty space, or did we reach the End?
+	
+	; When found, we must find the Next NON Empty (First item to Copy)
+	RET	PO					; EXIT if it was the last element
+	
+	LD	A, (HL)				; Get Next item
+	AND	A					; 0 = B_0
+	JP	Z,	BoardRollUpColumn_searchEmpty	; 0 = B_0
+	
+	; Move the next NON Empty item up.
+BoardRollUpColumn_copyNext
+	LD	B, A
+
+	XOR	A
+	LD	(HL), A				; Erase Old location
+	
+	DEC	L
+	LD	(HL), B				; Copy Item
+		
+	INC	(IX+BRD_ROLL_UP_CNT)	; Mark that we rolled one item up
+
+	; WARNING: Probably need to move the entire column at once, to be able to detect larger matches than 3
+		
+; FALL THROUGH
+	; HL has ATTR Address
+	; DE has BASE Address
+	;JP	BoardRollUpMatch3
+;RET
+
+
+;------------------------
+BoardRollUpMatch3
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	HL = Attr Address
+;	DE = Base Address
+
+
+	; IF BASE == ADDR
+		LD	A, L
+		CP	E	; Comparing for L provides for a quicker exit
+		JP	NZ,	BoardRollUpMatch3_extendUp
+		LD	A, H
+		CP	D
+		JP	NZ, BoardRollUpMatch3_extendUp
+
+	;	Impossible to POP, Exit
+		RET
+
+BoardRollUpMatch3_extendUp
+	; Check if balls Rolled up, reaches 3 or more
+;;	PUSH HL								; Keep original Position
+
+	LD	A, L
+	SUB E								; BASE must be =< ADDR, to give a positive result
+		CP	3-1							; A = Difference to BASE
+		RET	C
+	LD	B, A							; B = Difference to BASE
+
+	;Account/Discard for Active Color being a PowerUp Ball	
+	LD	A, (HL)
+	AND	NOT POWER_UP_BUBBLES			; Discard PowerUp
+
+	LD	C, 1							; RESET Match count to 1, for existing ball
+
+BoardRollUpMatch3_checkUp
+
+	DEC	L
+	EX	AF, AF'							; SAVE Active Color
+		LD	A, (HL)
+		AND	NOT POWER_UP_BUBBLES			; Discard Power Up
+		LD	E, A							; Save copy board Color
+	EX	AF, AF'	
+	;Account for same Color PowerUp Ball	
+	CP	E								; Compare Active with Board Color	
+	JP	NZ,	BoardRollUpMatch3_checkPreMatch
+
+	INC C								; Match Count
+	DJNZ	BoardRollUpMatch3_checkUp			; TODO, Optimize, not Efficient if many balls match, we only need 3
+
+	DEC	L								; Compensate for next INC L
+	;JP	BoardRollUpMatch3_checkMatch
+
+BoardRollUpMatch3_checkPreMatch
+	INC L								; Adjust to last Valid Position
+
+BoardRollUpMatch3_checkMatch
+										
+	LD	A, C							; C = Match CNT (up)
+	CP	3;								; 3 Balls vertically is the minimum requirement
+	JP	NC, BoardRollUpMatch3_startSweepMark		; If 3 or more, start Mark & Sweep
+
+	RET
+
+BoardRollUpMatch3_startSweepMark
+	; (HL + C -1) points to first Match Ball
+
+	; WARNING: This data is not always true
+	; A' = Active Color
+
+	;LD	A, C							; C = Match Count
+	ADD A, L
+	DEC	A
+
+	LD	L, A							; HL = First Ball of Match
+
+	LD	C, (HL)							; Required INPUT, Ball Color
+	CALL BoardMatch3_sweepMark_ENTRY1
+
+	LD	(IX+BRD_POP_ANIM), BUBBLE_POP
+RET
+
+
+;------------------------
+BoardMatch3				; Specific for PUSH
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	HL = Attr Address
 
 	; We depend on last Push Stop location
 		LD	L, (IX+BRD_PUSH_ANIM_COL_ADDR_L)
@@ -1970,16 +2063,22 @@ BoardMatch3_startSweepMark
 	LD	(IX+BRD_POP_ANIM), BUBBLE_POP
 RET
 
+
 ;------------------------
 BoardMatch3_sweepMark
 ;------------------------
 ; NOTE: When this function is called, we already now, there are at least 3 items matching vertically
 	; TODO: MUST Check Boundaries
 
-	LD	(IX+BRD_POP_CNT), 0		; Reset Pop Count
+	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
+
+BoardMatch3_sweepMark_ENTRY1			; Alternative ENTRY
+; Inputs:	Expected
+;  C = Ball Color
 
 	LD	B, (IX+BRD_HEIGHT)
-	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
+
+	LD	(IX+BRD_POP_CNT), 0		; Reset Pop Count
 										
 	LD	A, C
 	AND	NOT POWER_UP_BUBBLES			; Filter it it's Power Up

@@ -807,9 +807,12 @@ PLAY1_RUNNING
 	OUT (ULA),A
 
 	CALL BoardPushPullAnim
-	
+
+	CALL BoardRollUpAnim
+
 	CALL PowerUpAnim
 
+	
 	;----------
 	; Press SPACE to LEAVE
 	;----------
@@ -1016,13 +1019,13 @@ PLAY1_DEBUG
 
 	CALL Z, BoardUpdateLastRow	;	BoardProcessPop
 
-	; ; Press W to BoardPullAnim on Player 1
-	; LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
-	; IN A,(C)
-	; OR #E0			;Set Bits765
-	; CP KEYW
+	; Press W to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYW
 
-	; CALL Z, BoardPullAnim
+	CALL Z, BoardRollUpStart
 
 
 	; Press Q to BoardPullAnim on Player 1

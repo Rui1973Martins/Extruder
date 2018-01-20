@@ -49,8 +49,8 @@ BRD_PUSH_PULL_ANIM_STATE	EQU 23	; used to animate Pushing and Pulling Items
 				PP_ANIM_STATE_STOPPED		EQU 0x00
 				PP_ANIM_STATE_PULLING		EQU	0x10
 				PP_ANIM_STATE_PUSHING		EQU	0x20
-
-				POPPING_ANIM_STATE_RUNNING	EQU	0x40
+				
+				PP_ANIM_STATE_ROLL_UP		EQU 0x40
 
 BRD_PULL_ANIM_COL_BASE		EQU 24	; PULL Anim Columm BASE Addr. Points to the Bottom most row of PULL Column
  BRD_PULL_ANIM_COL_BASE_L	EQU 24	; PULL Anim Columm BASE Addr (Low )
@@ -82,7 +82,9 @@ BRD_CUR_X_LAST				EQU 34	; Last version of BRD_CUR_X
 
 BRD_POP_ANIM				EQU 35	; Pop Animation State control
 BRD_POP_CNT					EQU 36	; Counts the Number of Balls during POPing
-BRD_CUR_Y					EQU 37	; Cursor/Clown Y Position
+BRD_ROLL_UP_CNT				EQU	37	; Counts how many roll ups were done in a single frame
+BRD_CUR_Y					EQU 38	; Cursor/Clown Y Position
+
 
 ;----------------------
 ; Actual Board objects
@@ -119,6 +121,7 @@ BOARD1
 	DEFB 0		; Last Cursor (in Chars)
 	DEFB 0		; Pop Anim State
 	DEFB 0		; Pop Count
+	DEFB 0		; ROLL UP Count
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
@@ -155,6 +158,7 @@ BOARD2
 	DEFB 0		; Last Cursor (in Chars)
 	DEFB 0		; Pop Anim State
 	DEFB 0		; Pop Count
+	DEFB 0		; ROLL UP Count
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
