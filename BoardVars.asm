@@ -1,4 +1,5 @@
 ;Shared Vars
+;BOARDS_POWER_UP_ANIM_CNT	DEFB	#00		; Used to control Power Cycle Animation (0 to 3)
 BOARDS_DROP_ANIM_CNT		DEFB	#00		; Used to control Board Vertical Drop Animation
 BOARDS_DROP_EDGE_ANIM_CNT	DEFB	#00		; Used to control Board Vertical Drop EDGE Animation
 

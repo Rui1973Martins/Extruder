@@ -808,7 +808,7 @@ PLAY1_RUNNING
 
 	CALL BoardPushPullAnim
 	
-	CALL PowerUpFlash
+	CALL PowerUpAnim
 
 	;----------
 	; Press SPACE to LEAVE
@@ -941,7 +941,7 @@ PLAY2_RUNNING
 	LD	IX, BOARD2
 	CALL BoardPushPullAnim
 
-	CALL PowerUpFlash
+	CALL PowerUpAnim
 
 	
 	;----------
@@ -961,61 +961,31 @@ PLAY2_RUNNING
 JP PLAY2_LOOP
 ;RET
 
-PowerUpFlash
+PowerUpAnim
 	LD A, BLUE
 	OUT (ULA),A
 	
-	LD	A, (borderCounter)
-	AND	0x07
-	RET NZ
+	LD	A, (borderCounter)	; 13T
+	AND	0x03	; 2 Bits
 
-	; TOGGLE/XOR time Pattern
-	; 000 x
-	; 001	
-	; 010 
-	; 011 	
-	; 100 
-	; 101	
-	; 110	
-	; 111	
+	ADD	A, A	; * 2
+	ADD A, A	; * 4
+	ADD	A, A	; * 8
+	ADD	A, A	; *16
+
+	LD	HL, POWER_UP_ANIM_TAB
+	ADD A, L
+	LD	L, A	; HL points to correct Anim Frame
 	
-	; WARNING: we should also terminate, or adjust to have an even number of calls.
-	; OR alternatively, copy colors from base definition
-
-
-	;LD	DE, BUBBLE_RED
 	LD	DE, POWER_UP_BUBBLES_START
-	LD	HL, POWER_UP_XOR_TAB
+	LD	BC, 16
 
-	LD	B, 4; 4 Colors
-
-PowerUpFlash_loop
-	; Process 4 ATTRS, (unrolled)
-	LD	A, (DE)
-	XOR	(HL)
-	LD	(DE), A			
-	INC E
-	INC L
-
-	LD	A, (DE)
-	XOR	(HL)
-	LD	(DE), A			
-	INC E
-	INC L
-	
-	LD	A, (DE)
-	XOR	(HL)
-	LD	(DE), A			
-	INC E
-	INC L
-
-	LD	A, (DE)
-	XOR	(HL)
-	LD	(DE), A			
-	INC E
-	INC L
-
-	DJNZ	PowerUpFlash_loop
+PowerUpAnim_loop
+	LDI
+	LDI
+	LDI
+	LDI
+	JP	PE,	PowerUpAnim_loop
 RET
 
 
