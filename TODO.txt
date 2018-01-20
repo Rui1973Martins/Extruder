@@ -15,7 +15,7 @@ DONE	- LOSE test
 ^ ^ ^ ---------- DONE ---------- ^ ^ ^
 
 - Support Popping partially
-			- outside on bottom
+	DONE	- outside on bottom
 			- adjust POP count with remaining unseen items
 
 - Support a Control input Queue, to make game feel responsive

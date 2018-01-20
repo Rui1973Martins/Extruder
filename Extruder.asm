@@ -964,55 +964,58 @@ JP PLAY2_LOOP
 PowerUpFlash
 	LD A, BLUE
 	OUT (ULA),A
-
-	LD	B, BRIGHT
-
-	;LD	HL, BUBBLE_RED+1
-	LD	HL, POWER_UP_BUBBLES_START+1
-
-	LD	A, (HL)
-	XOR	B
-	LD	(HL), A			
-	INC L
-	LD	A, (HL)
-	XOR	B
-	LD	(HL), A
 	
-	INC L	; 4T
-	INC L	; 4T
-	INC L	; 4T
-	;LD	L, LOW(POWER_UP_BUBBLE_GREEN)	; 7T < 12T = 3*4T
-		LD	A, (HL)
-		XOR	B
-		LD	(HL), A
-	INC L
-		LD	A, (HL)
-		XOR	B
-		LD	(HL), A
+	LD	A, (borderCounter)
+	AND	0x07
+	RET NZ
+
+	; TOGGLE/XOR time Pattern
+	; 000 x
+	; 001	
+	; 010 
+	; 011 	
+	; 100 
+	; 101	
+	; 110	
+	; 111	
 	
+	; WARNING: we should also terminate, or adjust to have an even number of calls.
+	; OR alternatively, copy colors from base definition
+
+
+	;LD	DE, BUBBLE_RED
+	LD	DE, POWER_UP_BUBBLES_START
+	LD	HL, POWER_UP_XOR_TAB
+
+	LD	B, 4; 4 Colors
+
+PowerUpFlash_loop
+	; Process 4 ATTRS, (unrolled)
+	LD	A, (DE)
+	XOR	(HL)
+	LD	(DE), A			
+	INC E
 	INC L
+
+	LD	A, (DE)
+	XOR	(HL)
+	LD	(DE), A			
+	INC E
 	INC L
-	INC L
-	;LD	L, LOW(POWER_UP_BUBBLE_BLUE)			
-		LD	A, (HL)
-		XOR	B
-		LD	(HL), A		
-	INC L
-		LD	A, (HL)
-		XOR	B
-		LD	(HL), A
 	
+	LD	A, (DE)
+	XOR	(HL)
+	LD	(DE), A			
+	INC E
 	INC L
+
+	LD	A, (DE)
+	XOR	(HL)
+	LD	(DE), A			
+	INC E
 	INC L
-	INC L
-	;LD	L, LOW(POWER_UP_BUBBLE_YELLOW)			
-		LD	A, (HL)
-		XOR	B
-		LD	(HL), A
-	INC L
-		LD	A, (HL)
-		XOR	B
-		LD	(HL), A
+
+	DJNZ	PowerUpFlash_loop
 RET
 
 
