@@ -1651,17 +1651,57 @@ BoardPushAnim_countDown
 BoardPushAnim_checkCountExit
 	; Check and Exit
 	; Assumed no spaceleft to insert Balls
-	; IF BALL CNT != 0 (> 0)
+	; IF BALL CNT == 0 (> 0)
 		LD	A, (IX+BRD_PUSH_PULL_CNT)
 		AND	A
-		JR	Z, BoardPushStop	
+		JR	Z, BoardPushStop
 
+	; ELSE BALL CNT > 0
+			LD	B, A		; Save Count
+
+			; if color is not ICE/Block
+				LD	A, (IX+BRD_PUSH_PULL_COLOR)
+				CP	B_W
+				JR	Z, BoardPushLost
+
+				AND	NOT POWER_UP_BUBBLES
+				LD	C, A					; C = Color filtered Power Up
+				
+		;Check if there are enough balls to pop successfully
+			; Check Already pushed + Remaining
+				LD	A, (IX+BRD_PUSH_PULL_INSERT_CNT)
+				ADD	A, B		; PUSH_PULL_INSERT_CNT + PUSH_PULL_CNT
+				CP	3	;MINIMUM_POP
+				JR	NC,	BoardPushStopPush	; Enough Balls (>=3)	
+				
+			; if not enough, there is still a chance that
+			; already pushed + previous in the board to be enough
+				LD	B, A		; Save Total
+				JP	BoardPushCountPop
+				
+		BoardPushCountPopInc
+				INC	B
+				LD	A, 3
+				CP	B
+				JP	Z, BoardPushStopPush ; If at least 3, good to go
+
+				DEC HL	; TODO: Could use just DEC L ?
+		BoardPushCountPop ; Count Pop Count
+				; IF CURRENT position = PUSH/Active COLOR, Keep Counting
+				LD	A, (HL)				; HL points to current insert position			
+				AND	NOT POWER_UP_BUBBLES	; Get only the relevant bits
+				CP	C					; C = Filtered Active Color
+				JR	Z,	BoardPushCountPopInc
+					
+				; Lost if we couldn't count up to 3
+	BoardPushLost
 	;	Signal Player LOST and Exit
 	;	Signal Player LOST
 		LD	A, GAME_STATE_LOST;
 		CALL	BoardGameSetState
 
 	;	Stop Push
+BoardPushStopPush
 ; FALL Through
 ;		CALL BoardPushStop
 ;RET
@@ -1675,9 +1715,9 @@ BoardPushStop
 
 	; IF CNT reached ZERO, We injected Everything
 	; (TODO REVIEW THIS), since we can pop remaining CNT if >= 3
-	LD	A, (IX+BRD_PUSH_PULL_CNT)
-	AND	A
-	JP	NZ, BoardPushStop_continue
+	; LD	A, (IX+BRD_PUSH_PULL_CNT)
+	; AND	A
+	; JP	NZ, BoardPushStop_continue
 
 	; If It's Ice/Stone (B_W), it DOES NOT POP, so can never MATCH3
 	LD	A, B_W
@@ -1876,13 +1916,23 @@ BoardMatch3_extendUp
 	SUB (IX+BRD_PUSH_ANIM_COL_BASE_L)	; BASE must be =< ADDR, to give a positive result
 	LD	B, A							; B = Difference to BASE
 
+	;Account/Discard for Active Color being a PowerUp Ball	
 	LD	A, (IX+BRD_PUSH_PULL_COLOR)
+	AND	NOT POWER_UP_BUBBLES			; Discard PowerUp
+
 BoardMatch3_checkUp
 
-	DEC	HL
-	CP	(HL)							; TODO: Account for same Color PowerUp Ball
+	DEC	HL				; TODO use only INC L
+	EX	AF, AF'							; SAVE Active Color
+		LD	A, (HL)
+		AND	NOT POWER_UP_BUBBLES			; Discard Power Up
+		LD	E, A							; Save copy board Color
+	EX	AF, AF'	
+	;Account for same Color PowerUp Ball	
+	CP	E								; Compare Active with Board Color	
 	JP	NZ,	BoardMatch3_checkPreMatch
-	INC C
+
+	INC C								; Match Count
 	DJNZ	BoardMatch3_checkUp			; TODO, Optimize, not Efficient if many balls match, we only need 3
 
 	;DEC	HL								; Compensate for next INC HL
@@ -1895,7 +1945,9 @@ BoardMatch3_checkMatch
 ;;	POP HL								; Restore ADDR
 ;	EX	AF, AF'							; Cache Color
 
-	LD	A, C							; C = COLOR CNT
+										
+	LD	A, (IX+BRD_PUSH_PULL_CNT)		; Balls that were left out.
+	ADD	A, C							; C = Match CNT (insert + up)
 	CP	3;								; 3 Balls vertically is the minimum requirement
 	JP	P, BoardMatch3_startSweepMark		; If 3 or more, start Mark & Sweep
 
@@ -1928,10 +1980,15 @@ BoardMatch3_sweepMark
 
 	LD	B, (IX+BRD_HEIGHT)
 	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
+										
+	LD	A, C
+	AND	NOT POWER_UP_BUBBLES			; Filter it it's Power Up
+	LD	C, A							; C = Color, without Power Up
 
 BoardMatch3_sweepMarkCenter
+
 	LD	A, (HL)							; Current Ball
-	AND	BUBBLE_POP_MASK
+	AND	+(BUBBLE_POP_MASK XOR POWER_UP_BUBBLES)
 	CP	B_W								; Trigger Ice/Stone
 	JP NZ,	BoardMatch3_sweepMarkActive
 
