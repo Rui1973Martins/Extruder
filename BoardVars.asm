@@ -109,7 +109,11 @@ BRD_POWER_UP_BITVAR			EQU	38	; Bitwise variable to Save Activated POWER UP Color
 				POWER_UP_BIT_BLUE	EQU	2
 				POWER_UP_BIT_YELLOW	EQU	3
 
-BRD_CUR_Y					EQU 39	; Cursor/Clown Y Position
+BRD_CLOWN_ANIM_TAB			EQU 39	; Clown Animation Frames Table
+	BRD_CLOWN_ANIM_TAB_L	EQU 39	; Clown Frames Table (Low )
+	BRD_CLOWN_ANIM_TAB_H	EQU 40	; Clown Frames Table (High)
+
+BRD_CUR_Y					EQU 41	; Cursor/Clown Y Position
 
 
 ;----------------------
@@ -149,6 +153,9 @@ BOARD1
 	DEFB 0		; Pop Count
 	DEFB 0		; ROLL UP Count
 	DEFB 0		; Bitwise POWER UP Colors
+
+	DEFW #0000	; Clown Frames TAB
+
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
@@ -187,6 +194,9 @@ BOARD2
 	DEFB 0		; Pop Count
 	DEFB 0		; ROLL UP Count
 	DEFB 0		; Bitwise POWER UP Colors
+
+	DEFW #0000	; Clown Frames TAB
+
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 

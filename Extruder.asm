@@ -194,6 +194,10 @@ GameInitWithAnim_1Player
 	LD HL, #0818	; Y = 8, X = 24
 		CALL BoardInit
 
+	; Set Clown Animator
+	LD	HL, ClownAnimator1_TAB
+	CALL BoardUpdateAnimator
+
 	LD	A, BRD_FLAG_WRAP
 		CALL BoardSetFlags
 
@@ -387,8 +391,15 @@ GameLost_1Player
 	LD IX, BOARD1
 
 	CALL GameLost
+
+	; Set Clown Animator
+	LD	HL, ClownAnimator1_TAB
+	CALL	BoardUpdateAnimator
+	CALL	BoardStepAnim_Force	
+
 	
-	; CALL CLOWN_LOOSE_ANIM P1
+	; TODO: CALL CLOWN_LOOSE_ANIM P1
+	CALL	BoardUpdateCursor
 
 	CALL WaitNoKeyPressed
 	CALL WaitPressAnyKey
@@ -401,8 +412,15 @@ GameEnd_2P_CheckP2
 	CP	GAME_STATE_LOST
 	CALL Z, GameLost	
 
-	; CALL CLOWN_LOOSE_ANIM P2
+	; Set Clown Animator
+	LD	HL, ClownAnimator2_TAB
+	CALL	BoardUpdateAnimator
+	CALL	BoardStepAnim_Force	
 
+	
+	; TODO: CALL CLOWN_LOOSE_ANIM P2
+	CALL	BoardUpdateCursor
+	
 	CALL WaitNoKeyPressed
 	CALL WaitPressAnyKey
 	CALL WaitNoKeyPressed
@@ -412,14 +430,30 @@ RET
 GameDraw
 ;--------------------
 	LD IX, BOARD1
-	CALL GameLost
+		CALL	GameLost
+
+		; Set Clown Animator
+		LD	HL, ClownAnimator1_TAB
+		CALL	BoardUpdateAnimator
+		CALL	BoardStepAnim_Force	
+
+		CALL	BoardUpdateCursor
 
 	LD IX, BOARD2
-	CALL GameLost
+		CALL	GameLost
 
-	; CALL CLOWN_LOOSE_ANIM P1
+		; Set Clown Animator
+		LD	HL, ClownAnimator2_TAB
+		CALL	BoardUpdateAnimator
+		CALL	BoardStepAnim_Force	
+
+		CALL	BoardUpdateCursor
+
+
+GameDraw_Anim
+	; TODO: CALL CLOWN_LOOSE_ANIM P1
 	
-	; CALL CLOWN_LOOSE_ANIM P2
+	; TODO: CALL CLOWN_LOOSE_ANIM P2
 
 	CALL WaitNoKeyPressed
 	CALL WaitPressAnyKey
@@ -432,7 +466,9 @@ GameLost
 ; Inputs:
 ;	IX - Board Structure, of Player that LOST
 
-	CALL BoardUpdateLastRow
+	CALL	BoardUpdateLastRow
+	CALL	BoardAdjustCursorPos
+	CALL	BoardUpdateCursor
 
 ;###############################
 ;     Animation Logic STEPS
@@ -514,6 +550,10 @@ GameInitWithAnim_2Players
 	LD DE, BOARD1_DATA
 	LD HL, #0800	; Y = 8, X = 0
 		CALL BoardInit
+
+	; Set Clown Animator
+	LD	HL, ClownAnimator1_TAB
+	CALL BoardUpdateAnimator
 		
 	; Player 2
 	;LD	A, WORLD
@@ -523,6 +563,10 @@ GameInitWithAnim_2Players
 	LD DE, BOARD2_DATA
 	LD HL, #0890	; Y = 8, X = 144
 		CALL BoardInit	
+
+	; Set Clown Animator
+	LD	HL, ClownAnimator2_TAB
+	CALL BoardUpdateAnimator
 
 	; Clear all Fence buffers
 	CALL	BoardClearFenceLeft

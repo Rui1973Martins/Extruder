@@ -774,6 +774,71 @@ BoardUpdateAll
 RET
 
 
+;--------------------
+BoardUpdateAnimator
+;--------------------
+; Inputs:
+;	IX = Board Structure
+;	HL = Animator TAB
+
+	LD	A, (IX+BRD_GAME_STATE)
+	CP	GAME_STATE_WON
+	JR	Z,	BoardUpdateAnimator_data
+
+	INC	HL	; Animation Structure
+	INC	HL
+
+	INC	HL	; Frames TAB
+	INC	HL
+	
+	CP	GAME_STATE_LOST
+	JR	Z,	BoardUpdateAnimator_data
+
+	INC	HL	; Animation Structure
+	INC	HL
+
+	INC	HL	; Frames TAB
+	INC	HL
+
+	CP	GAME_STATE_RUNNING
+	JR	Z,	BoardUpdateAnimator_data
+RET ; DEFAULT
+
+
+BoardUpdateAnimator_data
+;	HL = Addr of Animator
+
+	LD	E, (HL)	; Animator Structure Low  Addr
+	INC	HL
+	LD	D, (HL)	; Animator Structure High Addr
+	INC	HL
+	LD	A, (HL)	; Animator Frames TAB Low  Addr
+	INC	HL
+	LD	H, (HL) ; Animator Frames TAB High Addr
+	LD	L, A	; Restore Low
+
+; FALL THROUGH
+	; JP BoardSetAnimator 
+;RET
+	
+
+;--------------------
+BoardSetAnimator
+;--------------------
+; Inputs:
+;	IX = Board Structure
+;	DE = Animator Structure
+;	HL = Animator Frames TAB
+
+	LD	(IX+BRD_ANIM_L), E
+	LD	(IX+BRD_ANIM_H), D
+	
+	LD	(IX+BRD_CLOWN_ANIM_TAB_L), L
+	LD	(IX+BRD_CLOWN_ANIM_TAB_H), H	
+
+	LD	(IX+BRD_ANIM_STATE), 0	; Start Frame
+RET
+
 BoardStepAnim
 ; Inputs:
 ;	IX = Board Structure
@@ -785,30 +850,44 @@ BoardStepAnim
 	AND 0x07
 	XOR 0x04
 	RET NZ
-	
+
 	INC	(IX+BRD_ANIM_STATE)	; Step counter
-	
-	LD	HL, ClownIdleAnimFrames
+
+BoardStepAnim_Force	
+	LD	L, (IX+BRD_CLOWN_ANIM_TAB_L)
+	LD	H, (IX+BRD_CLOWN_ANIM_TAB_H)
 	LD	A, (IX+BRD_ANIM_STATE)
 	AND (HL)	; MASK
 	RLA			; simplification from  SLA A, since Carry is clear
 	RLA			; x4
 	LD	E, A
 	LD	D, 0
-	INC HL
+	INC HL	; Dummy data
+
+	INC	HL	; X Offset
+;	LD	C, (HL)
+	INC	HL	; Y Offset
+;	LD	B,	(HL)
+
 	INC HL	; point to frames
 	ADD HL, DE
-	
+
 	LD	C, (IX+BRD_ANIM)
 	LD	B, (IX+BRD_ANIM+1)
+
 	LD	DE, 2
 	EX DE, HL	; Save HL
 		ADD	HL, BC			; We can optimize, by eventually keeping a direct pointer to the position.
 	EX	DE, HL
 
 	; Replace PX address in Animator
-	LDI	; CL Address
-	LDI
+	;LDI	; CL Address
+	INC HL	; CL Address never changes for Clown
+	INC DE
+	;LDI
+	INC	HL
+	INC	DE
+	
 	LDI	; Px Address
 	LDI
 	; NOTE could instead of updating animator Address, try to enter bliter with X and Y setup and HL pointing to start of CL and PX
@@ -893,15 +972,29 @@ BoardClearCursor
 RET
 
 
+BoardAdjustCursorPos	; This is need before showing LOSE Sprites (4x3 chars)
+; Inputs:
+;	IX = Board Structure
+	LD	A, (IX+BRD_CUR_X)
+	AND A
+	JP	Z, BoardGoRight
+
+	LD	B, (IX+BRD_WIDTH)
+	DEC	B
+	CP	B
+	JP	Z, BoardGoLeft	
+RET
+
+
 BoardUpdateCursor
 ; Inputs:
 ;	IX = Board Structure
-
 	LD	A, (IX+BRD_CUR_X_LAST)	; Cursor X LAST(in Chars)
 	CP	(IX+BRD_CUR_X)			; Cursor X(in Chars)
 
 	CALL NZ, BoardClearCursor		; TODO: Optimize
 ; FALL Through
+
 
 BoardDrawCursor
 ; Inputs:
@@ -921,6 +1014,20 @@ BoardDrawCursor
 	
 	LD	D, (IX+BRD_CUR_Y)		; D = Cursor Y
 
+	; Calc Offset
+	LD	L, (IX+BRD_CLOWN_ANIM_TAB_L)
+	LD	H, (IX+BRD_CLOWN_ANIM_TAB_H)
+	INC	HL
+	INC	HL
+	LD	A, (HL)		; X Offset
+	ADD	A, E
+	LD	E, A
+
+	INC	HL
+	LD	A, (HL)		; Y Offset
+	ADD	A, D
+	LD	D, A
+	
 	; DE has position YX
 
 	; TODO Draw Current Clown Frame	
@@ -928,7 +1035,7 @@ BoardDrawCursor
 	LD	L, (IX+BRD_ANIM)	; Low
 	LD	H, (IX+BRD_ANIM+1)	; High
 	CALL Blit0
-RET
+RET	
 
 
 BoardColInject	; Adds another item into specific col
