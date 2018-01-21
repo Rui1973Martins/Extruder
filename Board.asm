@@ -148,12 +148,16 @@ BoardTimingTick
 ;	IX = Board Structure
 ;	none, only uses BOARDS_NEWLINE_TIMING, as reference
 		LD HL, BOARDS_NEWLINE_TIMING_CNT 
-		DEC (HL)
-		RET	NZ
-
+		LD	A, (HL)
+		SUB	1
+		LD	(HL), A							; Save Low Byte
+		LD	B, A							; Keep copy
 		INC	HL	; Point to next Byte
-		DEC	(HL)
-		RET NZ
+		LD	A, (HL)
+		SBC	A, 0							; Add Carry only
+		LD	(HL), A							; Save High Byte
+		OR	B
+		RET NZ								; Only Insert line, if counter reaches zero
 
 		;JP	BoardTimingReset
 		LD	A, 1
