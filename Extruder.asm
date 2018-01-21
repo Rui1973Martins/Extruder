@@ -808,7 +808,7 @@ PLAY1_RUNNING
 
 	CALL BoardPushPullAnim
 
-	CALL BoardRollUpAnim
+;	CALL BoardRollUpAnim
 
 	CALL PowerUpAnim
 
@@ -938,11 +938,17 @@ PLAY2_RUNNING
 	LD	IX, BOARD1
 	CALL BoardPushPullAnim
 
+	CALL BoardRollUpAnim
+
+
 	LD A, WHITE
 	OUT (ULA),A
 
 	LD	IX, BOARD2
 	CALL BoardPushPullAnim
+
+	CALL BoardRollUpAnim
+
 
 	CALL PowerUpAnim
 
@@ -1010,6 +1016,15 @@ PLAY1_DEBUG
 	LD A, B_R		; RED Bubble
 	CALL Z, BoardTransformStone
 
+	
+	; Press R to BoardPullAnim on Player 1
+	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
+	IN A,(C)
+	OR #E0			;Set Bits765
+	CP KEYR
+
+	CALL Z, BoardUpdateLastRow	;	BoardProcessPop
+
 
 	; Press E to BoardPullAnim on Player 1
 	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)
@@ -1017,7 +1032,8 @@ PLAY1_DEBUG
 	OR #E0			;Set Bits765
 	CP KEYE
 
-	CALL Z, BoardUpdateLastRow	;	BoardProcessPop
+	CALL Z, BoardRollUpAnim	;	BoardProcessPop
+
 
 	; Press W to BoardPullAnim on Player 1
 	LD BC, KBRDQT	; Read Numbers Q to T Row (T,R,E,W,Q)

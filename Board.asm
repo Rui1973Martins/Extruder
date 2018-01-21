@@ -1,5 +1,6 @@
 DEBUG_ATTR_LOCATION1	EQU	+32*23+ATTR
 DEBUG_ATTR_LOCATION2	EQU	+32*23+ATTR+1
+DEBUG_ATTR_LOCATION3	EQU	+32*23+ATTR+2
 
 ; Characters
 DEVIL			EQU	 0
@@ -194,7 +195,11 @@ BoardInit_JP1
 	; LD A, GAME_STATE_RUNNING	; GAME_STATE_ROLL_IN
 	LD	(IX+BRD_GAME_STATE), A
 
+	; XOR A
 	LD	(IX+BRD_POP_ANIM), A	; 0 = No pop Anim active
+	
+	; XOR A
+	LD	(IX+BRD_POWER_UP_BITVAR), A ; 0 = No Power UP
 RET
 
 
@@ -947,7 +952,7 @@ BoardLevelPattern
 
 	; Determine Next Color Randomly, (1 to 4)
 	LD A, R		; Random Source
-	CP	8		; Threshold for converting into POWER UP
+	CP	4		; Threshold for converting into POWER UP
 				; If < 8 Jump
 	JP	C,	BoardLevelPattern_PowerUp
 	AND #03	; Mask
@@ -1074,11 +1079,14 @@ BoardColReplace	; Replaces an item by another
 ;	E = Item to Replace
 ;	HL = Column Start Buffer 
 
-	LD B, (IX+BRD_HEIGHT)	
-	EX AF, AF'		; Save replacement
+	LD	B, (IX+BRD_HEIGHT)
+	DEC	B						; Last Row is Fence, hence no replace required
+
+	EX	AF, AF'		; Save replacement
 
  BoardColReplace_LOOP
 	LD A, (HL)
+	AND	+(BUBBLE_POP_MASK XOR POWER_UP_BUBBLES)	; HACK ignore/Include Power Ups in transform
 	CP E						; Equal to Item to replace ?
 
 	JR NZ, BoardColReplace_NEXT
@@ -1855,6 +1863,12 @@ BoardRollUpStop
 	
 	; Reset Animation State
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), PP_ANIM_STATE_STOPPED
+
+
+	; CHECK if there are any POWER UPs activated
+	LD	A, (IX+BRD_POWER_UP_BITVAR)
+	AND	A
+	CALL NZ,	BoardPowerUpTrigger
 RET
 
 
@@ -2110,6 +2124,10 @@ BoardMatch3_sweepMark_ENTRY1			; Alternative ENTRY
 BoardMatch3_sweepMarkCenter
 
 	LD	A, (HL)							; Current Ball
+	BIT POWER_UP_BUBBLES_BIT, A	 		; Detect Power UP
+	JP	NZ,	BoardMatch3_sweepMark_PowerUp
+
+	;LD	A, (HL)							; Current Ball
 	AND	+(BUBBLE_POP_MASK XOR POWER_UP_BUBBLES)
 	CP	B_W								; Trigger Ice/Stone
 	JP NZ,	BoardMatch3_sweepMarkActive
@@ -2124,6 +2142,21 @@ BoardMatch3_sweepMarkCenter
 
 	; TODO, Make this re-launch in the next frame, (same HL, C=Active Color)
 	; So that user can see the Ice/Stone Transform.
+	
+	JP BoardMatch3_sweepMarkActive
+
+BoardMatch3_sweepMark_PowerUp	
+	AND	+(BUBBLE_POP_MASK XOR POWER_UP_BUBBLES)
+	CP	C
+	RET NZ
+
+	; IF we reached here, then it's a Power up of the correct color
+	;PUSH HL
+		CALL BoardSetPowerUp
+	;POP HL
+	
+	LD	A, (HL)							; Restore Current Ball
+	AND	+(BUBBLE_POP_MASK XOR POWER_UP_BUBBLES)	; TODO optimize this a bit, since next test is repeated
 
 BoardMatch3_sweepMarkActive
 	CP	C
@@ -2163,6 +2196,107 @@ BoardMatch3_sweepMarkActive
 		CALL BoardMatch3_sweepMarkCenter	; Search Depth First
 	POP HL
 
+RET
+
+;------------------------
+BoardSetPowerUp
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	 A = Color
+
+	LD	E, (IX+BRD_POWER_UP_BITVAR)
+
+BoardSetPowerUp_RED
+	CP	B_R
+	JP	NZ,	BoardSetPowerUp_GREEN
+	SET	POWER_UP_BIT_RED, E
+	JP	BoardSetPowerUp_MASK
+
+BoardSetPowerUp_GREEN
+	CP	B_G
+	JP	NZ,	BoardSetPowerUp_BLUE
+	SET	POWER_UP_BIT_GREEN, E
+	JP	BoardSetPowerUp_MASK
+	
+BoardSetPowerUp_BLUE
+	CP	B_B
+	JP	NZ,	BoardSetPowerUp_YELLOW
+	SET	POWER_UP_BIT_BLUE, E
+	JP	BoardSetPowerUp_MASK
+
+BoardSetPowerUp_YELLOW
+	CP	B_Y
+	;JP	NZ,	BoardSetPowerUp_END
+	RET	NZ
+	SET	POWER_UP_BIT_YELLOW, E
+	;JP	BoardSetPowerUp_MASK
+;------------------------
+; FALL THROUGH
+;------------------------
+	
+;BoardSetPowerUp_END
+;RET
+
+;------------------------
+BoardSetPowerUp_MASK
+;------------------------
+; Inputs:
+;	IX = Board Structure
+;	 A = Color
+;	 E = MASK
+
+	LD	(IX+BRD_POWER_UP_BITVAR), E
+
+	; DEBUG
+	LD DE, DEBUG_ATTR_LOCATION3
+	JP BoardDebugBubbleColor
+RET
+
+
+;------------------------
+BoardPowerUpTrigger
+;------------------------
+; Inputs:
+;	IX = Board Structure
+
+	LD	A, (IX+BRD_POWER_UP_BITVAR)
+	AND	A
+	RET	Z
+
+	; Set POP Anim to Start
+	LD	(IX+BRD_POP_ANIM), BUBBLE_POP
+
+	LD	A, (IX+BRD_POWER_UP_BITVAR)
+	BIT	POWER_UP_BIT_RED, A
+	LD	A, BUBBLE_POP	; START
+	LD	E, B_R
+	CALL NZ, BoardTransformAll
+
+	LD	A, (IX+BRD_POWER_UP_BITVAR)
+	BIT	POWER_UP_BIT_GREEN, A
+	LD	A, BUBBLE_POP	; START
+	LD	E, B_G
+	CALL NZ, BoardTransformAll
+
+	LD	A, (IX+BRD_POWER_UP_BITVAR)
+	BIT	POWER_UP_BIT_BLUE, A
+	LD	A, BUBBLE_POP	; START
+	LD	E, B_B
+	CALL NZ, BoardTransformAll
+
+	LD	A, (IX+BRD_POWER_UP_BITVAR)
+	BIT	POWER_UP_BIT_YELLOW, A
+	LD	A, BUBBLE_POP	; START
+	LD	E, B_Y
+	CALL NZ, BoardTransformAll
+
+	XOR	A
+	LD	(IX+BRD_POWER_UP_BITVAR), A
+
+	; DEBUG
+	LD DE, DEBUG_ATTR_LOCATION3
+	JP BoardDebugBubbleColor
 RET
 
 

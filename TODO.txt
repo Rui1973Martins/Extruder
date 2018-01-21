@@ -11,6 +11,17 @@ DONE	- Implement show last HALF Row
 DONE	- LOSE test
 	DONE	- Inject Balls
 	DONE	- PUSHING
+
+- Support PowerUp Balls
+	DONE	- Show them
+	DONE	- generate them ( what frequency ?, related with character power ?)
+	DONE	- POP them (Schedule convert all same color into first POP Step Anim, after any ComboChain is ended)
+
+- Roll-up all balls, After POP with Holes
+	DONE, but only indirect POPs only 3 balls, when collapsing/Rolling up	
+			NOTE: In the Arcade this is a lot slower than the regular push/pull animation
+			Animating this using ATTR only, might become noticeably choppy.
+			WARNING: must check if any PULL or PUSH is being done, in order not to mess with those operations going on at the same time.
 	
 ^ ^ ^ ---------- DONE ---------- ^ ^ ^
 
@@ -30,30 +41,17 @@ DONE	- LOSE test
 	- OnDraw -=> Parallel Double Wall Animation, on DRAW
 
 - Support Attack Patterns
-	DONE	. define patterns for each user
+	DONE	- define patterns for each user
 			- Count Combo progression (1,3,4,5,etc...).
 			- Inject According to Pattern
-	
-- Support PowerUp Balls
-	DONE	- Show them
-			- generate them ( what frequency ?, related with character power ?)
-			- POP them (Schedule convert all same color into first POP Step Anim, after any ComboChain is ended)
 
 - Support and Calc Combos/Chains/Attack count through time
 			- Use Reference Tables dependent on character being played
 			- Update Number of Attack Pattern count, when in 2 Player mode
 			- Detect when to Inject Attack Patterns (Depends on Game State Machine)
 
-- Roll-up all balls, After POP with Holes
-	DONE, but only indirect POPs only 3 balls, when collapsing/Rolling up
-	
-	NOTE: In the Arcade this is a lot slower than the regular push/pull animation
-	Animating this using ATTR only, might become noticeably choppy.
-	WARNING: must check if any PULL or PUSH is being done, in order not to mess with those operations going on at the same time.
-
-	
 - Show Clown Animation, when lost
-	-	Draw Clown, After UpdateLastRow, before Wall LOSE Animation
+	- Draw Clown, After UpdateLastRow, before Wall LOSE Animation
 	- Show Clown LOSE Animation, after Wall LOSE Animation
 
 - Stone Transform, in 2 or 3 passes

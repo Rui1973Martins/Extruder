@@ -83,7 +83,15 @@ BRD_CUR_X_LAST				EQU 34	; Last version of BRD_CUR_X
 BRD_POP_ANIM				EQU 35	; Pop Animation State control
 BRD_POP_CNT					EQU 36	; Counts the Number of Balls during POPing
 BRD_ROLL_UP_CNT				EQU	37	; Counts how many roll ups were done in a single frame
-BRD_CUR_Y					EQU 38	; Cursor/Clown Y Position
+
+BRD_POWER_UP_BITVAR			EQU	38	; Bitwise variable to Save Activated POWER UP Colors
+			; Possible POWER UP colors (more than one bit can be set)
+				POWER_UP_BIT_RED	EQU	0
+				POWER_UP_BIT_GREEN	EQU	1
+				POWER_UP_BIT_BLUE	EQU	2
+				POWER_UP_BIT_YELLOW	EQU	3
+
+BRD_CUR_Y					EQU 39	; Cursor/Clown Y Position
 
 
 ;----------------------
@@ -122,6 +130,7 @@ BOARD1
 	DEFB 0		; Pop Anim State
 	DEFB 0		; Pop Count
 	DEFB 0		; ROLL UP Count
+	DEFB 0		; Bitwise POWER UP Colors
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
@@ -159,6 +168,7 @@ BOARD2
 	DEFB 0		; Pop Anim State
 	DEFB 0		; Pop Count
 	DEFB 0		; ROLL UP Count
+	DEFB 0		; Bitwise POWER UP Colors
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
