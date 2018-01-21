@@ -3,7 +3,25 @@
 BOARDS_DROP_ANIM_CNT		DEFB	#00		; Used to control Board Vertical Drop Animation
 BOARDS_DROP_EDGE_ANIM_CNT	DEFB	#00		; Used to control Board Vertical Drop EDGE Animation
 
-; Board Object definion
+BOARDS_NEWLINE_TIMING		DEFW	#0000		; Board NewLine Drop Delay/Speed 
+BOARDS_NEWLINE_TIMING_CNT	DEFW	#0000		; Used to control Board NewLine Drop Speed
+
+; Board Timings
+;=======================
+NEWLINE_TIMING_1PLAYER_MEDIUM	EQU	50*8		; 8 Seconds	
+NEWLINE_TIMING_1PLAYER_HARD		EQU	50*6		; 6 Seconds	
+NEWLINE_TIMING_2PLAYER			EQU	50*4		; 4 Seconds	
+
+; GameMode
+GAME_MODE_1PLAYER			EQU 0x00
+GAME_MODE_2PLAYERS			EQU 0xFF
+
+; 1 Player Difficulty 
+DIFFICULTY_1PLAYER_MEDIUM	EQU 0x00
+DIFFICULTY_1PLAYER_HARD		EQU 0xFF
+
+
+; Board Object definition
 ;=======================
 BRD_HEIGHT					EQU	 0	; Height
 BRD_WIDTH					EQU	 1	; Width

@@ -103,6 +103,78 @@ BoardClearFence_loop
 RET	
 
 
+;--------------------
+BoardTimingInit
+;--------------------
+; Inputs:
+;	IX = Board Structure
+;	 A = number of players
+;	 B = Difficulty
+
+		AND	A		
+		JP	NZ,	BoardTimingInit_2Players
+
+BoardTimingInit_1Player
+; Inputs:
+;	 B = Difficulty
+		LD	A, B
+		AND	A						; == 0 -> MEDIUM, != 0 -> HARD
+		JR	NZ,	BoardTimingInit_1Player_Hard
+
+BoardTimingInit_1Player_Medium
+		LD	DE, NEWLINE_TIMING_1PLAYER_MEDIUM
+		JR	BoardTimingInit_Data
+		
+BoardTimingInit_1Player_Hard
+		LD	DE, NEWLINE_TIMING_1PLAYER_HARD
+		JR	BoardTimingInit_Data
+		
+BoardTimingInit_2Players
+		LD	DE, NEWLINE_TIMING_2PLAYER
+
+BoardTimingInit_Data
+;	DE = new timing
+		LD	HL, BOARDS_NEWLINE_TIMING
+		LD	(HL), E	; Low Part
+		INC	HL
+		LD	(HL), D	; High Part
+		
+		JP	BoardTimingReset
+
+;--------------------
+BoardTimingTick
+;--------------------
+; Inputs:
+;	IX = Board Structure
+;	none, only uses BOARDS_NEWLINE_TIMING, as reference
+		LD HL, BOARDS_NEWLINE_TIMING_CNT 
+		DEC (HL)
+		RET	NZ
+
+		INC	HL	; Point to next Byte
+		DEC	(HL)
+		RET NZ
+
+		;JP	BoardTimingReset
+		LD	A, 1
+		CALL BoardAddLineTotal
+
+; FALL THROUGH
+		
+;--------------------
+BoardTimingReset
+;--------------------
+; Inputs:
+;	none, only uses BOARDS_NEWLINE_TIMING, as reference
+		LD	A, (BOARDS_NEWLINE_TIMING+0)		; Read  Low Part
+		LD	(BOARDS_NEWLINE_TIMING_CNT+0), A	; Write Low Part	
+
+		LD	A, (BOARDS_NEWLINE_TIMING+1)		; Read  High Part
+		LD	(BOARDS_NEWLINE_TIMING_CNT+1), A	; Write High Part	
+RET
+		
+		
+		
 BoardInit
 ; Inputs:
 ; IX = GameBoard Pointer to Data Structure

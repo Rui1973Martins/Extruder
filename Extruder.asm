@@ -199,9 +199,11 @@ GameInitWithAnim_1Player
 
 	; Clear Fences
 		CALL	BoardClearFenceLeft
-	LD	HL, +( 0x0B * 0x0D + BOARD1_DATA)
+		LD	HL, +( 0x0B * 0x0D + BOARD1_DATA)
 		CALL	BoardClearFence
 
+	LD	B, 	DIFFICULTY_1PLAYER_MEDIUM
+	CALL	BoardTimingInit_1Player
 
 	LD	A, 7
 		CALL BoardAddLineTotal
@@ -527,13 +529,15 @@ GameInitWithAnim_2Players
 	CALL	BoardClearFenceInter
 	CALL	BoardClearFenceRight
 
+	CALL	BoardTimingInit_2Players
+	
 	; Insert a few lines to start
 	LD	IX, BOARD1
-	LD	A, 5
+	LD	A, 3
 		CALL BoardAddLineTotal
 
 	LD	IX, BOARD2
-	LD	A, 5
+	LD	A, 3
 		CALL BoardAddLineTotal
 
 GameDropAnim_2Players
@@ -768,6 +772,9 @@ PLAY1_LOOP
 	LD HL, borderCounter
 	INC (HL)
 
+;	LD	IX, BOARD1
+	CALL	BoardTimingTick
+	
 	HALT	; sync before update Board
 	
 	LD A, RED
