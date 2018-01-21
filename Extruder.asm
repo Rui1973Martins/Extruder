@@ -772,9 +772,14 @@ PLAY1_LOOP
 	LD HL, borderCounter
 	INC (HL)
 
-;	LD	IX, BOARD1
 	CALL	BoardTimingTick
+	JP	NZ,	PLAY1_SYNC
 	
+	;	LD	IX, BOARD1
+		LD	A, 1
+		CALL BoardAddLineTotal
+
+PLAY1_SYNC		
 	HALT	; sync before update Board
 	
 	LD A, RED
@@ -883,6 +888,18 @@ PLAY2_LOOP
 	LD HL, borderCounter
 	INC (HL)
 
+	CALL BoardTimingTick
+	JP	NZ, PLAY2_SYNC
+	
+		LD	IX, BOARD1
+		LD	A, 1
+		CALL BoardAddLineTotal
+
+		LD	IX, BOARD2
+		LD	A, 1
+		CALL BoardAddLineTotal
+
+PLAY2_SYNC
 	HALT	; sync before update Board
 
 	LD A, RED

@@ -158,11 +158,9 @@ BoardTimingTick
 		LD	(HL), A							; Save High Byte
 		OR	B
 		RET NZ								; Only Insert line, if counter reaches zero
-
+		; On exit, ENSURES Z Flag is OFF
+		
 		;JP	BoardTimingReset
-		LD	A, 1
-		CALL BoardAddLineTotal
-
 ; FALL THROUGH
 		
 ;--------------------
@@ -174,7 +172,9 @@ BoardTimingReset
 		LD	(BOARDS_NEWLINE_TIMING_CNT+0), A	; Write Low Part	
 
 		LD	A, (BOARDS_NEWLINE_TIMING+1)		; Read  High Part
-		LD	(BOARDS_NEWLINE_TIMING_CNT+1), A	; Write High Part	
+		LD	(BOARDS_NEWLINE_TIMING_CNT+1), A	; Write High Part
+		
+		XOR A	; Ensure Z Flag is ON.
 RET
 		
 		
