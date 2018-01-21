@@ -65,6 +65,44 @@ OPPONENT_1P_VS_CPU_TAB
 ; Functions/Methods for a game board
 ;====================================
 
+;--------------------
+BoardClearFenceRight
+;--------------------
+; Inputs:
+	LD	HL,	BOARD2_RIGHT_FENCE
+	JP	BoardClearFence
+
+;--------------------
+BoardClearFenceInter
+;--------------------
+; Inputs:
+	LD	HL,	BOARDS_INTER_FENCE
+	JP	BoardClearFence
+
+;--------------------
+BoardClearFenceLeft
+;--------------------
+; Inputs:
+	LD	HL,	BOARD1_LEFT_FENCE
+	;JP	BoardClearFence
+; FALL THROUGH
+
+;--------------------
+BoardClearFence
+;--------------------
+; Inputs:
+;	IX = Board Structure
+;	HL = Start Addr of Fence buffer
+
+	LD	B, (IX+BRD_HEIGHT)
+	XOR	A					; B_0
+BoardClearFence_loop
+	LD	(HL), A
+	INC	L
+	DJNZ	BoardClearFence_loop
+RET	
+
+
 BoardInit
 ; Inputs:
 ; IX = GameBoard Pointer to Data Structure
@@ -1031,7 +1069,7 @@ BoardProcessPop
 BoardProcessPop_end
 		LD	A, B_0					; Replace with Empty Item
 		LD	(IX+BRD_POP_ANIM), A	; Stop POP Anim
-		CALL	BoardTransformAll	; CALL and Exit
+		CALL	BoardTransformAll	; CALL
 
 		; TODO
 		; Acount how many were changed ?
@@ -1099,15 +1137,11 @@ BoardColReplace_NEXT
 ;	CP	B_0			; B_0 = EMPTY SLOT
 ;	JR	Z, BoardColReplace_NEXT_COL
 
-	INC HL
+	INC L
 
 	DJNZ BoardColReplace_LOOP	; Exit if end of Column Height
-	EX	AF, AF'					; Restore replacement
-RET
-BoardColReplace_NEXT_COL
-	INC HL
 
-	DJNZ BoardColReplace_NEXT_COL	; Exit if end of Column Height
+	INC L						; Compensate for DEC B above, since last Row is Fence
 	EX	AF, AF'					; Restore replacement
 RET
 

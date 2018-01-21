@@ -197,6 +197,12 @@ GameInitWithAnim_1Player
 	LD	A, BRD_FLAG_WRAP
 		CALL BoardSetFlags
 
+	; Clear Fences
+		CALL	BoardClearFenceLeft
+	LD	HL, +( 0x0B * 0x0D + BOARD1_DATA)
+		CALL	BoardClearFence
+
+
 	LD	A, 7
 		CALL BoardAddLineTotal
 
@@ -506,10 +512,7 @@ GameInitWithAnim_2Players
 	LD DE, BOARD1_DATA
 	LD HL, #0800	; Y = 8, X = 0
 		CALL BoardInit
-
-	LD	A, 9	;5
-		CALL BoardAddLineTotal
-
+		
 	; Player 2
 	;LD	A, WORLD
 	EX AF, AF'	; get Player 2 Char
@@ -519,7 +522,18 @@ GameInitWithAnim_2Players
 	LD HL, #0890	; Y = 8, X = 144
 		CALL BoardInit	
 
-	LD	A, 9	;5
+	; Clear all Fence buffers
+	CALL	BoardClearFenceLeft
+	CALL	BoardClearFenceInter
+	CALL	BoardClearFenceRight
+
+	; Insert a few lines to start
+	LD	IX, BOARD1
+	LD	A, 5
+		CALL BoardAddLineTotal
+
+	LD	IX, BOARD2
+	LD	A, 5
 		CALL BoardAddLineTotal
 
 GameDropAnim_2Players
