@@ -1031,6 +1031,8 @@ BoardProcessPop_end
 		; TODO
 		; Acount how many were changed ?
 		; Scoring, COMBO Calcs
+		
+		CALL BoardRollUpStart
 RET
 
 
@@ -1802,8 +1804,29 @@ BoardRollUpAnim
 	LD	L, (IX+BRD_BUF_L)
 	LD	H, (IX+BRD_BUF_H)
 	
-	CALL	BoardRollUpColumn
 	
+	LD	B, (IX+BRD_WIDTH)
+	LD	C, (IX+BRD_HEIGHT)
+	
+	JP	BoardRollUpAnim_loopEntry
+
+BoardRollUpAnim_loop	
+
+	; Next Column
+	LD	A, C		; C = Height
+	ADD	A, L
+	LD	L, A
+
+BoardRollUpAnim_loopEntry
+
+	PUSH BC
+		PUSH HL
+			CALL	BoardRollUpColumn
+		POP	HL
+	POP BC
+
+	DJNZ	BoardRollUpAnim_loop
+
 	;------------------------
 
 	; Did we Roll Up?	

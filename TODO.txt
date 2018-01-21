@@ -25,7 +25,8 @@ DONE	- LOSE test
 - LOOSE WALL Animation
 	DONE	- PLAY1
 	DONE	- PLAY2
-	- Show LOOSE TEXT Image
+	- Show LOSE TEXT Image
+	- Show WIN TEXT image
 	- OnDraw -=> Parallel Double Wall Animation, on DRAW
 
 - Support Attack Patterns
@@ -44,10 +45,13 @@ DONE	- LOSE test
 			- Detect when to Inject Attack Patterns (Depends on Game State Machine)
 
 - Roll-up all balls, After POP with Holes
+	DONE, but only indirect POPs only 3 balls, when collapsing/Rolling up
+	
 	NOTE: In the Arcade this is a lot slower than the regular push/pull animation
 	Animating this using ATTR only, might become noticeably choppy.
 	WARNING: must check if any PULL or PUSH is being done, in order not to mess with those operations going on at the same time.
 
+	
 - Show Clown Animation, when lost
 	-	Draw Clown, After UpdateLastRow, before Wall LOSE Animation
 	- Show Clown LOSE Animation, after Wall LOSE Animation
