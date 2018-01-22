@@ -839,6 +839,7 @@ BoardSetAnimator
 	LD	(IX+BRD_ANIM_STATE), 0	; Start Frame
 RET
 
+
 BoardStepAnim
 ; Inputs:
 ;	IX = Board Structure

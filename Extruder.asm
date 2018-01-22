@@ -365,6 +365,43 @@ GameInitDraw_1Player
 ;RET
 
 
+;--------------------
+GameEnd_1Player
+;--------------------
+	LD IX, BOARD1
+
+	CALL GameLost
+
+	; Set Clown Animator
+	LD	HL, ClownAnimator1_TAB
+	CALL	BoardUpdateAnimator
+	CALL	BoardStepAnim_Force	
+	
+GameEnd_1P_waitLoop
+	CALL	BoardUpdateCursor
+	
+	LD HL, borderCounter
+	INC (HL)
+
+	HALT
+
+	LD	A, (borderCounter) 
+	CALL	BoardStepAnim	
+
+	; Check for any key pressed
+	XOR A
+	IN A,(ULA)	; Read All Keys - Check for any Key pressed
+	AND #1F ; Test only 5 Keys
+	CP #1F	; If Not Zero, some key was pressed !
+	JR	NZ,	GameEnd_1P_waitEnd
+
+	JR GameEnd_1P_waitLoop	
+
+GameEnd_1P_waitEnd	
+
+	CALL WaitPressAnyKey
+	CALL WaitNoKeyPressed
+RET
 
 ;--------------------
 GameEnd_2Players
@@ -383,13 +420,8 @@ GameEnd_2Players
 	CP	GAME_STATE_LOST
 	JP	Z, GameDraw
 
-; FALLTROUGH
-
-;--------------------
-GameLost_1Player
-;--------------------
+; Player 1 Lost
 	LD IX, BOARD1
-
 	CALL GameLost
 
 	; Set Clown Animator
@@ -397,14 +429,7 @@ GameLost_1Player
 	CALL	BoardUpdateAnimator
 	CALL	BoardStepAnim_Force	
 
-	
-	; TODO: CALL CLOWN_LOOSE_ANIM P1
-	CALL	BoardUpdateCursor
-
-	CALL WaitNoKeyPressed
-	CALL WaitPressAnyKey
-	CALL WaitNoKeyPressed
-RET
+	JP	Game2P_waitLoop
 	
 GameEnd_2P_CheckP2
 	LD	IX, BOARD2
@@ -417,14 +442,7 @@ GameEnd_2P_CheckP2
 	CALL	BoardUpdateAnimator
 	CALL	BoardStepAnim_Force	
 
-	
-	; TODO: CALL CLOWN_LOOSE_ANIM P2
-	CALL	BoardUpdateCursor
-	
-	CALL WaitNoKeyPressed
-	CALL WaitPressAnyKey
-	CALL WaitNoKeyPressed
-RET
+	JP	Game2P_waitLoop
 
 ;--------------------
 GameDraw
@@ -448,14 +466,39 @@ GameDraw
 		CALL	BoardStepAnim_Force	
 
 		CALL	BoardUpdateCursor
+; FALL THROUGH
 
+Game2P_waitLoop
+	LD IX, BOARD1
+		CALL	BoardUpdateCursor
+		; TODO: CALL CLOWN_LOOSE_ANIM P2
+	LD IX, BOARD2
+		CALL	BoardUpdateCursor
 
-GameDraw_Anim
-	; TODO: CALL CLOWN_LOOSE_ANIM P1
-	
-	; TODO: CALL CLOWN_LOOSE_ANIM P2
+	LD HL, borderCounter
+	INC (HL)
 
-	CALL WaitNoKeyPressed
+	HALT
+
+	;LD IX, BOARD2
+	LD	A, (borderCounter) 
+	CALL	BoardStepAnim	
+
+	LD IX, BOARD1
+	LD	A, (borderCounter) 
+	CALL	BoardStepAnim	
+
+	; Check for any key pressed
+	XOR A
+	IN A,(ULA)	; Read All Keys - Check for any Key pressed
+	AND #1F ; Test only 5 Keys
+	CP #1F	; If Not Zero, some key was pressed !
+	JR	NZ,	Game2P_waitEnd
+
+	JR Game2P_waitLoop
+
+Game2P_waitEnd
+
 	CALL WaitPressAnyKey
 	CALL WaitNoKeyPressed
 RET
@@ -852,7 +895,7 @@ PLAY1_SYNC
 			;CP	GAME_STATE_LOST
 			;JP	Z, GameLost_1Player
 		
-			JP GameLost_1Player
+			JP GameEnd_1Player
 			
 			; CP	GAME_STATE_DRAW
 			; JP	Z, GameLost_1Player
