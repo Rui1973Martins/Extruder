@@ -37,9 +37,6 @@ DrawMenu
 ;	CALL CLSC
 ;	CALL CLS0
 
-	CALL BoardTextWin
-
-	CALL BoardTextLose
 			
 Menu_REPAINT
 
@@ -582,6 +579,8 @@ PLAY1_LOST_ANIM_START
 			CP	B
 		JP NZ, PLAY1_LOST_ANIM_NEXT
 ;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
+
+	CALL BoardTextLose
 
 RET
 

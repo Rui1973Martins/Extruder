@@ -465,18 +465,58 @@ RET
 
 
 ;--------------------
+BoardTextPos
+;--------------------
+; Inputs:
+;	IX = Board Structure
+;	 B = Text Width in Pixels
+
+	LD D, (IX+BRD_POS_Y)	; Start Position Y
+	LD E, (IX+BRD_POS_X)	; Start Position X
+
+	; CALC X POsition
+	LD A, (IX+BRD_WIDTH)	; Cursor X (in Chars)
+
+	ADD A, A				; * 2
+	ADD A, A				; * 4
+	ADD A, A				; * 8	
+	;ADD A, A				; * 16 /2
+							; A = ( ItemWidth * Width )/2	(in Pixels)	
+	
+	ADD A, E				;     A = ( ItemWidth * Width )/2 + Position_X 	(in Pixels)
+	SUB	B 				
+	LD	E, A				; ABS X	= ( ItemWidth * Width )/2 + Position_X - TextWidth_in_Pixels	(in Pixels)
+	
+	; CALC Y Position
+	LD	A, (IX+BRD_HEIGHT)
+
+	ADD A, A				; * 2
+	ADD A, A				; * 4
+	ADD A, A				; * 8	
+	ADD A, A				; * 16
+
+	ADD	A, D
+	SUB	9*8					; Y_OFFSET in pixels
+	LD	D, A
+RET
+
+;--------------------
 BoardTextWin
 ;--------------------
 ; Inputs:
 ;	IX = Board Structure
+
+	LD	B, 11/2*8				; WIN TextWidth in Pixels
+	CALL	BoardTextPos
+
 	LD	HL, TextTilesTab
 	LD	(RLEIndexTab),HL
 
 	LD	HL, Blit0
 	LD	(RLEBlitFunc), HL
-	
-	LD	DE,#3000			;Y,X
-	LD	HL,WinTextTabRLE	;TableData
+
+	;DE = Y,X
+	LD	HL, WinTextTabRLE	;TableData
 		JP RLETabBlit
 ; RET
 
@@ -486,15 +526,19 @@ BoardTextLose
 ;--------------------
 ; Inputs:
 ;	IX = Board Structure
+
+	LD	B, 12/2*8				; WIN TextWidth in Pixels
+	CALL	BoardTextPos
+
 	LD	HL, TextTilesTab
 	LD	(RLEIndexTab),HL
 
 	LD	HL, Blit0
 	LD	(RLEBlitFunc), HL
-	
-	LD	DE,#7000			;Y,X
-	LD	HL,LoseTextTabRLE	;TableData
-		CALL RLETabBlit
+
+	;DE = Y,X
+	LD	HL, LoseTextTabRLE	;TableData
+		JP RLETabBlit
 ; RET
 
 
