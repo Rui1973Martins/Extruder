@@ -463,6 +463,41 @@ BoardColNextBuf
 	ADD	HL, BC
 RET
 
+
+;--------------------
+BoardTextWin
+;--------------------
+; Inputs:
+;	IX = Board Structure
+	LD	HL, TextTilesTab
+	LD	(RLEIndexTab),HL
+
+	LD	HL, Blit0
+	LD	(RLEBlitFunc), HL
+	
+	LD	DE,#3000			;Y,X
+	LD	HL,WinTextTabRLE	;TableData
+		JP RLETabBlit
+; RET
+
+
+;--------------------
+BoardTextLose
+;--------------------
+; Inputs:
+;	IX = Board Structure
+	LD	HL, TextTilesTab
+	LD	(RLEIndexTab),HL
+
+	LD	HL, Blit0
+	LD	(RLEBlitFunc), HL
+	
+	LD	DE,#7000			;Y,X
+	LD	HL,LoseTextTabRLE	;TableData
+		CALL RLETabBlit
+; RET
+
+
 ;--------------------
 BoardUpdateLastRow	; HalfRow
 ;--------------------

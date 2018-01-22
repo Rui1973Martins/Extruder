@@ -9,6 +9,8 @@ JP MENU_ENTRY
 
 borderCounter DEFB BLACK
 
+include "CharBlitter.ASM"
+
 DrawCredits
 
 	HALT
@@ -26,6 +28,7 @@ DrawCredits
 
 RET
 
+
 DrawMenu
 
 	HALT
@@ -34,6 +37,10 @@ DrawMenu
 ;	CALL CLSC
 ;	CALL CLS0
 
+	CALL BoardTextWin
+
+	CALL BoardTextLose
+			
 Menu_REPAINT
 
 	HALT
