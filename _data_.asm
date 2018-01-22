@@ -108,3 +108,48 @@ LoseTextTabRLE
 	DEFB -1
 
 include "_DATA_\TilesText.asm"
+
+SingleTilesTab
+		DEFW	#0000
+ST0	EQU	1
+		DEFW	TileSingle0		
+ST1	EQU	2
+		DEFW	TileSingle1
+ST2	EQU	3
+		DEFW	TileSingle2
+ST3	EQU	4
+		DEFW	TileSingle3
+ST4	EQU	5
+		DEFW	TileSingle4
+
+
+SingleTabRLE
+	; DEFB -2
+	; DEFW Blit0
+	DEFB ST0,-28,0,ST1,0,0					;Char Line  1 ;32
+
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  2 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  3 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  4 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  5 ;32
+
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  6 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  7 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  8 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line  9 ;32
+
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 10 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 11 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 12 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 13 ;32
+
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 14 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 15 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 16 ;32
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 17 ;32
+
+	DEFB ST2,-28,0,ST2,0,0					;Char Line 18 ;32
+	DEFB ST3,-28,0,ST4						;Char Line 19 ;32
+	DEFB -1
+
+include "_DATA_\TilesSingle.asm"

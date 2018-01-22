@@ -189,6 +189,17 @@ WaitNoKeyPressed
 
 ; ===== 1 Player Init =====
 
+DrawFrame_1P
+	LD	HL, SingleTilesTab
+	LD	(RLEIndexTab),HL
+
+	LD	HL, Blit0
+	LD	(RLEBlitFunc), HL
+
+	LD	DE, 0x00;DE = Y,X
+	LD	HL, SingleTabRLE	;TableData
+		JP RLETabBlit
+
 GameInitWithAnim_1Player
 	; Player 1
 	LD	A, FOOL
@@ -210,6 +221,8 @@ GameInitWithAnim_1Player
 		LD	HL, +( 0x0B * 0x0D + BOARD1_DATA)
 		CALL	BoardClearFence
 
+	CALL DrawFrame_1P
+		
 	LD	B, 	DIFFICULTY_1PLAYER_MEDIUM
 	CALL	BoardTimingInit_1Player
 
