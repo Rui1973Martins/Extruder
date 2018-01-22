@@ -414,37 +414,50 @@ GameEnd_2Players
 	LD	IX, BOARD1
 	LD	A, (IX+BRD_GAME_STATE)
 	CP	GAME_STATE_LOST
-	JP	NZ, GameEnd_2P_CheckP2
+	JP	NZ, GameEnd_2P_WON_P1_LOST_P2
 
 	; Player 1 LOST
-
 	; Check if Player 2 Also Lost
 	LD	IX, BOARD2
 	LD	A, (IX+BRD_GAME_STATE)
 	CP	GAME_STATE_LOST
 	JP	Z, GameDraw
 
-; Player 1 Lost
+GameEnd_2P_LOST_P1_WON_P2
+
+	; Player 1 LOST
 	LD IX, BOARD1
-	CALL GameLost
+	CALL	GameLost
+	CALL	BoardTextLose
 
 	; Set Clown Animator
 	LD	HL, ClownAnimator1_TAB
 	CALL	BoardUpdateAnimator
 	CALL	BoardStepAnim_Force	
 
+	; Player 2 WON
+	LD	IX,	BOARD2
+	CALL	BoardTextWin
+	
 	JP	Game2P_waitLoop
 	
-GameEnd_2P_CheckP2
+GameEnd_2P_WON_P1_LOST_P2
+	; Player 2 LOST
 	LD	IX, BOARD2
-	LD	A, (IX+BRD_GAME_STATE)
-	CP	GAME_STATE_LOST
-	CALL Z, GameLost	
-
+	;LD	A, (IX+BRD_GAME_STATE)
+	;CP	GAME_STATE_LOST
+	;CALL Z, GameLost	
+	CALL	GameLost	
+	CALL	BoardTextLose
+	
 	; Set Clown Animator
 	LD	HL, ClownAnimator2_TAB
 	CALL	BoardUpdateAnimator
 	CALL	BoardStepAnim_Force	
+
+	; Player 1 WON
+	LD IX, BOARD1
+	CALL	BoardTextWin
 
 	JP	Game2P_waitLoop
 
@@ -579,9 +592,6 @@ PLAY1_LOST_ANIM_START
 			CP	B
 		JP NZ, PLAY1_LOST_ANIM_NEXT
 ;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
-
-	CALL BoardTextLose
-
 RET
 
 
