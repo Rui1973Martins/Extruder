@@ -1612,6 +1612,7 @@ BoardPullStart
 		DJNZ BoardPullStarting_FindColor
 
 		; TODO: Could BEEP, signaling ERROR
+	BoardPullStart_error	
 		LD	A, SFX_NOT
 		CALL	sfxPlay
 		RET				; No Ball Found, so nothing to PULL
@@ -1631,7 +1632,7 @@ BoardPullStart
 		EX	AF, AF'
 			LD	A, B
 			CP	BUBBLE_POP
-			RET	P			; Exit IF >= BUBBLE_POP
+			JP	P, BoardPullStart_error	; Exit IF >= BUBBLE_POP
 		EX	AF, AF'
 		; XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -1642,7 +1643,7 @@ BoardPullStart
 	BoardPullStarting_CheckNearest
 		; IF Active Color != NEAREST Color
 		CP	B			; 4T	; A -=> Active Color		; B -=> NEAREST Color
-		RET	NZ			; 5T or 11T	if Exit ?	SHOULD BEEP ERROR and EXIT ?
+		JR	NZ, BoardPullStart_error	; 5T or 11T	if Exit ?	SHOULD BEEP ERROR and EXIT ?
 
 	BoardPullStarting_NewPull
 		; Start New Pull
