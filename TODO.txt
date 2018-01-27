@@ -25,11 +25,19 @@ DONE	- LOSE test
 
 - Add SFX
 	DONE
+
+- Extruder FONT (Use ROM or SteelBall)
+	DONE
 	
 ^ ^ ^ ---------- DONE ---------- ^ ^ ^
 
-- Extruder FONT (Use ROM or SteelBall)
+- Control Menu Screen
+	DONE	- Text and Highlight
+			- Support selection
 
+- 1 Player Scenery Screen
+	DONE (Almost)
+	
 - Improve SFX
 	Queue SFX
 	Split POP SFX
@@ -105,9 +113,6 @@ DONE	- LOSE test
   
 
 - Help Screen
-
-- 1 Player Scenery Screen
-	DONE (Almost)
 	
 - 2 Player scenery Screen
 

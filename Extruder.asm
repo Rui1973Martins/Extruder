@@ -30,6 +30,72 @@ DrawCredits
 
 RET
 
+JOY_DRIVER_TAB
+	DEFW	KEMPSTON_DRIVER
+	DEFW	FULLER_DRIVER
+	DEFW	CURSOR_DRIVER
+	DEFW	SINCLAIR1_DRIVER
+	DEFW	SINCLAIR2_DRIVER
+	DEFW	KEYBOARD_DRIVER
+;	DEFW	CPU_DRIVER
+
+GetJoyDriver
+;	 A = Player Ctrl
+; Outputs
+;	DE = Joy Driver Addr
+
+	LD	HL, JOY_DRIVER_TAB
+	EX	DE, HL
+
+	ADD	A, A	; *2
+
+	LD	H, 0
+	LD	L, A
+	
+	ADD	HL, DE
+
+	LD	E, (HL)
+	INC	HL
+	LD	D, (HL)
+RET
+
+	
+SetJoyDrivers
+	LD	A,(CtrlP1)
+	CALL	SetJoyDriverP1
+
+	LD	A,(CtrlP2)
+	;CALL	SetJoyDriverP2
+; FALL THROUGH
+;RET
+
+	
+SetDriverP2
+;	 A = Player Ctrl
+	CALL	GetJoyDriver
+
+	LD	A, E		;DE =  Joy Driver Addr
+	LD	(PLAY2_P2_DRIVER), A	; LOW Byte
+
+	LD	A, D
+	LD	(PLAY2_P2_DRIVER+1), A	; HIGH Byte
+RET
+
+
+SetJoyDriverP1
+;	 A = Player Ctrl
+	CALL	GetJoyDriver
+
+	;DE =  Joy Driver Addr
+	LD	A, E
+	LD	(PLAY1_DRIVER), A		; LOW Byte
+	LD	(PLAY2_P1_DRIVER), A	; LOW Byte
+
+	LD	A, D
+	LD	(PLAY1_DRIVER+1), A		; HIGH Byte
+	LD	(PLAY2_P1_DRIVER+1), A	; HIGH Byte
+RET
+
 
 MENU_DELTA	EQU 4
 MENU_ROW_TITLE	EQU (( 5*8) + MENU_DELTA )
@@ -54,7 +120,7 @@ PxBlitControlMenu
 	LD	D, MENU_ROW1	; Y 
 	PUSH DE
 		LD	HL, MenuItem	
-		CALL	Blit0
+		CALL	PxBlit0
 	POP DE
 	PUSH DE
 		LD	A, 2*8
@@ -68,7 +134,7 @@ PxBlitControlMenu
 	LD	D, MENU_ROW2	; Y 
 	PUSH DE
 		LD	HL, MenuItem	
-		CALL	Blit0
+		CALL	PxBlit0
 	POP DE
 	PUSH DE
 		LD	A, 2*8
@@ -82,7 +148,7 @@ PxBlitControlMenu
 	LD	D, MENU_ROW3	; Y 
 	PUSH DE
 		LD	HL, MenuItem	
-		CALL	Blit0
+		CALL	PxBlit0
 	POP DE
 	PUSH DE
 		LD	A, 2*8
@@ -96,7 +162,7 @@ PxBlitControlMenu
 	LD	D, MENU_ROW4	; Y 
 	PUSH DE
 		LD	HL, MenuItem	
-		CALL	Blit0
+		CALL	PxBlit0
 	POP DE	
 	PUSH DE
 		LD	A, 2*8
@@ -110,7 +176,7 @@ PxBlitControlMenu
 	LD	D, MENU_ROW5	; Y
 	PUSH DE
 		LD	HL, MenuItem	
-		CALL	Blit0
+		CALL	PxBlit0
 	POP DE
 	PUSH DE
 		LD	A, 2*8
@@ -124,7 +190,7 @@ PxBlitControlMenu
 	LD	D, MENU_ROW6	; Y
 	PUSH DE
 		LD	HL, MenuItem	
-		CALL	Blit0
+		CALL	PxBlit0
 	POP DE
 	PUSH DE
 		LD	A, 2*8
@@ -138,7 +204,7 @@ PxBlitControlMenu
 	LD	D, MENU_ROW7	; Y
 	PUSH DE
 		LD	HL, MenuItem	
-		CALL	Blit0
+		CALL	PxBlit0
 	POP DE
 	;PUSH DE
 		LD	A, 2*8
@@ -171,7 +237,7 @@ CTRL_SINCLAIR2	EQU	4
 CTRL_KEYBOARD	EQU	5
 CTRL_CPU		EQU 6
 
-CTRL_SELECTION_MAX	EQU CTRL_KEYBOARD
+CTRL_SELECTION_MAX	EQU CTRL_KEYBOARD	; CTRL_CPU
 
 CtrlP1	DEFB	CTRL_SINCLAIR2	; P1 Default Control Selection
 CtrlP2	DEFB	CTRL_SINCLAIR1	; P2 Default Control Selection
@@ -336,7 +402,7 @@ RET
 
 
 DrawMenu
-	LD A, BLACK<<3 + WHITE	; BLACK INK on BLACK PAPER
+	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
 	CALL CLSC
 	CALL CLS0
 
@@ -1205,8 +1271,9 @@ PLAY1
 	CALL CLSC
 	CALL CLS0
 
-	CALL GameInitWithAnim_1Player
-	
+	CALL SetJoyDrivers
+
+	CALL GameInitWithAnim_1Player	
 
 	; ;Add Extra line from time to time (use a frameTimer)	
 	; ;LD	IX, BOARD1
@@ -1275,6 +1342,7 @@ PLAY1_RUNNING
 	CALL	BoardInjectLine
 
 	; Get New Key State
+PLAY1_DRIVER	EQU $+1
 	CALL	SINCLAIR1_DRIVER	;KEMPSTON_DRIVER	;CURSOR_DRIVER
 	CALL	BoardProcessUserInput
 	CALL	BoardProcessPop
@@ -1314,12 +1382,12 @@ PLAY2
 	CALL CLSC
 	CALL CLS0
 
+	CALL SetJoyDrivers
 
 	LD	A, WORLD	; Player 2 Opponent Character
 	EX	AF, AF'
 	LD	A, FOOL		; Player 1 Opponent Character
 	CALL GameInitWithAnim_2Players
-
 
 	; ;Add Extra line from time to time (use a frameTimer)	
 	; LD	IX, BOARD1
@@ -1408,7 +1476,8 @@ PLAY2_RUNNING
 	LD	DE, BOARD_PATTERN_DUAL	;BOARD_PATTERN1
 	CALL	BoardInjectLine
 
-	CALL	SINCLAIR1_DRIVER
+PLAY2_P1_DRIVER	EQU	$+1
+	CALL	SINCLAIR2_DRIVER
 	CALL	BoardProcessUserInput
 	CALL	BoardProcessPop
 
@@ -1417,7 +1486,8 @@ PLAY2_RUNNING
 	LD	DE, BOARD_PATTERN_DUAL	;BOARD_PATTERN_MAGICIAN
 	CALL	BoardInjectLine
 
-	CALL	SINCLAIR2_DRIVER
+PLAY2_P2_DRIVER	EQU	$+1
+	CALL	SINCLAIR1_DRIVER
 	CALL	BoardProcessUserInput
 	CALL	BoardProcessPop
 

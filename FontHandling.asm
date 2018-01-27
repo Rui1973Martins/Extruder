@@ -111,5 +111,6 @@ PrtC
 	LD (IX+4),L
 	LD (IX+5),H
 	LD HL,Font
-		JP Blit0	;CALL M_Blit0
+		JP PxBlit0	;CALL M_Blit0
+		;JP Blit0
 ;RET
