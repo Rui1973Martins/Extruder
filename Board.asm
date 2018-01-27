@@ -1612,6 +1612,8 @@ BoardPullStart
 		DJNZ BoardPullStarting_FindColor
 
 		; TODO: Could BEEP, signaling ERROR
+		LD	A, SFX_NOT
+		CALL	sfxPlay
 		RET				; No Ball Found, so nothing to PULL
 
 	BoardPullStarting_CheckColor	
@@ -1681,6 +1683,9 @@ BoardPullStart
 	BoardPullStarting_Anim			
 		; Set Anim State to PP_ANIM_STATE_PULLING
 		LD	(IX+BRD_PUSH_PULL_ANIM_STATE), PP_ANIM_STATE_PULLING
+
+		LD	A, SFX_PULL
+		CALL	sfxPlay
 	RET
 
 	BoardPulling
@@ -1878,6 +1883,9 @@ BoardPushStart
 		; NOTE: delegate this to PushAnim, since several conditions must be verified,
 		; like check if there is any free space
 
+		LD	A, SFX_PUSH
+		CALL	sfxPlay
+
 ; FALL Through
 		;CALL	BoardPushAnim
 ;RET
@@ -2025,6 +2033,9 @@ BoardPushStop
 	; LD	A, (IX+BRD_PUSH_PULL_CNT)
 	; AND	A
 	; JP	NZ, BoardPushStop_continue
+
+	LD	A, SFX_HIT
+	CALL	sfxPlay
 
 	; If It's Ice/Stone (B_W), it DOES NOT POP, so can never MATCH3
 	LD	A, B_W
@@ -2401,9 +2412,18 @@ RET
 ;------------------------
 BoardMatch3_sweepMark
 ;------------------------
+; Inputs:
+;	 A: 
+;	HL: Column Sart Position
 ; NOTE: When this function is called, we already now, there are at least 3 items matching vertically
 	; TODO: MUST Check Boundaries
 
+	PUSH HL
+		LD	A, SFX_MATCH
+		CALL	sfxPlay
+	POP HL
+
+	
 	LD	C, (IX+BRD_PUSH_PULL_COLOR)		; Get Active/Match Color
 
 BoardMatch3_sweepMark_ENTRY1			; Alternative ENTRY

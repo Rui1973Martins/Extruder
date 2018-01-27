@@ -1,3 +1,5 @@
+DEBUG		EQU 1
+DEBUG_SFX	EQU	1
 
 include "_REF_\REF.asm"
 include "_REF_\KEYBOARD.asm"
@@ -152,12 +154,16 @@ MENU_ENTRY
 
 MENU_PLAY1
 
+	CALL	sfxPlay0
+
 	CALL PLAY1
 	CALL WaitNoKeyPressed
 
 	JP MENU_ENTRY
 	
 MENU_PLAY2
+
+	CALL	sfxPlay0
 
 	CALL PLAY2
 	CALL WaitNoKeyPressed
@@ -950,7 +956,8 @@ PLAY1_RUNNING
 
 	CALL BoardPushPullAnim
 
-;	CALL BoardRollUpAnim
+	; COMMENT TO DEBUG by HAND
+	CALL BoardRollUpAnim
 
 	CALL PowerUpAnim
 
@@ -1266,3 +1273,13 @@ incbin "_DATA_.bin"
 
 include "BoardVars.asm"
 include "Roll-3D.asm"
+include "SFX.asm"
+
+SFX_MENU		EQU 0
+SFX_START		EQU 1
+SFX_DROP		EQU 2
+SFX_NOT			EQU 3
+SFX_PULL		EQU 4
+SFX_PUSH		EQU 5
+SFX_HIT			EQU 6
+SFX_MATCH		EQU 7
