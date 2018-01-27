@@ -32,6 +32,7 @@ include "_DATA_\ClownIdle.asm"
 include "_DATA_\ClownErase.asm"
 include "_DATA_\ClownLose.asm"
 include "_DATA_\Char-Tiles.asm"
+include "_DATA_\MenuItem.asm"
 
 TextTilesTab
 		DEFW	#0000

@@ -31,15 +31,339 @@ DrawCredits
 RET
 
 
+MENU_DELTA	EQU 4
+MENU_ROW_TITLE	EQU (( 5*8) + MENU_DELTA )
+MENU_ROW1		EQU (( 7*8) + MENU_DELTA )
+MENU_ROW2		EQU (( 9*8) + MENU_DELTA )
+MENU_ROW3		EQU ((11*8) + MENU_DELTA )
+MENU_ROW4		EQU ((13*8) + MENU_DELTA )
+MENU_ROW5		EQU ((15*8) + MENU_DELTA )
+MENU_ROW6		EQU ((17*8) + MENU_DELTA )
+MENU_ROW7		EQU ((19*8) + MENU_DELTA )
+
+PxBlitControlMenu
+; Inputs:
+;	 E = X position
+;	HL = Title Message Addr
+
+	PUSH DE
+		LD	D, MENU_ROW_TITLE	; Y 
+		CALL FPrtStr
+	POP DE
+
+	LD	D, MENU_ROW1	; Y 
+	PUSH DE
+		LD	HL, MenuItem	
+		CALL	Blit0
+	POP DE
+	PUSH DE
+		LD	A, 2*8
+		ADD	A, E
+		LD	E, A
+	
+		LD	HL, CtrlItem1
+			CALL FPrtStr
+	POP DE
+
+	LD	D, MENU_ROW2	; Y 
+	PUSH DE
+		LD	HL, MenuItem	
+		CALL	Blit0
+	POP DE
+	PUSH DE
+		LD	A, 2*8
+		ADD	A, E
+		LD	E, A
+
+		LD	HL, CtrlItem2
+			CALL FPrtStr
+	POP DE
+
+	LD	D, MENU_ROW3	; Y 
+	PUSH DE
+		LD	HL, MenuItem	
+		CALL	Blit0
+	POP DE
+	PUSH DE
+		LD	A, 2*8
+		ADD	A, E
+		LD	E, A
+
+		LD	HL, CtrlItem3
+			CALL FPrtStr
+	POP DE
+
+	LD	D, MENU_ROW4	; Y 
+	PUSH DE
+		LD	HL, MenuItem	
+		CALL	Blit0
+	POP DE	
+	PUSH DE
+		LD	A, 2*8
+		ADD	A, E
+		LD	E, A
+
+		LD	HL, CtrlItem4
+			CALL FPrtStr
+	POP DE
+
+	LD	D, MENU_ROW5	; Y
+	PUSH DE
+		LD	HL, MenuItem	
+		CALL	Blit0
+	POP DE
+	PUSH DE
+		LD	A, 2*8
+		ADD	A, E
+		LD	E, A
+
+		LD	HL, CtrlItem5
+			CALL FPrtStr
+	POP DE
+
+	LD	D, MENU_ROW6	; Y
+	PUSH DE
+		LD	HL, MenuItem	
+		CALL	Blit0
+	POP DE
+	PUSH DE
+		LD	A, 2*8
+		ADD	A, E
+		LD	E, A
+
+		LD	HL, CtrlItem6
+			CALL FPrtStr
+	POP DE
+
+	LD	D, MENU_ROW7	; Y
+	PUSH DE
+		LD	HL, MenuItem	
+		CALL	Blit0
+	POP DE
+	;PUSH DE
+		LD	A, 2*8
+		ADD	A, E
+		LD	E, A
+		
+		LD	HL, CtrlItem7
+
+			JP	FPrtStr ; CALL FPrtStr
+	; POP DE
+;RET
+
+STR_Z 	EQU	0x00
+CtrlPlayer1		DB	"PLAYER 1", STR_Z
+CtrlPlayer2		DB	"PLAYER 2", STR_Z
+
+CtrlItem1		DB	"KEMPSTON", STR_Z
+CtrlItem2		DB	"FULLER", STR_Z
+CtrlItem3		DB	"CURSOR PROTEK", STR_Z
+CtrlItem4		DB	"SINCLAIR 1", STR_Z
+CtrlItem5		DB	"SINCLAIR 2", STR_Z
+CtrlItem6		DB	"KEYBOARD", STR_Z
+CtrlItem7		DB	"CPU", STR_Z
+
+CTRL_KEMPSTON	EQU	0
+CTRL_FULLER		EQU	1
+CTRL_CURSOR		EQU	2
+CTRL_SINCLAIR1	EQU	3
+CTRL_SINCLAIR2	EQU	4
+CTRL_KEYBOARD	EQU	5
+CTRL_CPU		EQU 6
+
+CTRL_SELECTION_MAX	EQU CTRL_KEYBOARD
+
+CtrlP1	DEFB	CTRL_SINCLAIR2	; P1 Default Control Selection
+CtrlP2	DEFB	CTRL_SINCLAIR1	; P2 Default Control Selection
+
+
+
+MENU_LINETOP_TITLE_P1_C		DEFB	-8,0x44, #FF 
+MENU_LINEBOT_TITLE_P1_C		DEFB	-8,0x42, #FF 
+
+MENU_LINETOP_TITLE_P2_C		DEFB	-8,0x45, #FF 
+MENU_LINEBOT_TITLE_P2_C		DEFB	-8,0x42, #FF 
+
+MENU_LINETOP_HIGHLIGHT_C	DEFB	0x46,0x43,-13,0x47, #FF 
+MENU_LINEBOT_HIGHLIGHT_C	DEFB	0x44,0x45,-13,0x44, #FF 
+
+MENU_LINETOP_LOWLIGHT_C		DEFB	0x00,0x00,-13,0x07, #FF 
+MENU_LINEBOT_LOWLIGHT_C		DEFB	0x00,0x00,-13,0x05, #FF 
+
+
+LenCBlit
+;	 A = color
+;	 B = Count
+;	DE = YX
+
+	CALL ColorAD	; Only changes DE
+
+LenCBlit_loop
+;	DE = Target Addr
+	LD	(DE), A
+	INC	E
+	DJNZ	LenCBlit_loop
+RET
+
+LenRLE_CBlit
+;	HL = RLE Data Addr
+;	DE = YX
+
+	CALL ColorADA
+
+LenRLE_CBlit_loop
+	LD	A, (HL)
+	CP	0xFF
+	RET	Z
+
+	CP	0
+	JP	P, LenRLE_CBlit_copy
+	
+	; Found count
+	NEG
+	LD	B, A
+	INC	HL
+	LD	A, (HL)
+		CALL	LenCBlit_loop
+	JR	LenRLE_CBlit_next
+	
+LenRLE_CBlit_copy
+	LD	(DE), A
+	INC	E
+
+LenRLE_CBlit_next
+	INC	HL
+	JR	LenRLE_CBlit_loop	
+RET
+
+
+
+CBlitMenuIndex
+;	 A = ItemIndex
+;	 C = MenuIndex
+;	DE = YX
+	
+	LD	B, A
+	ADD	A, A	; * 2
+	ADD	A, A	; * 4
+	ADD	A, A	; * 8
+	ADD	A, A	; *16
+	
+	ADD	A, D
+	LD	D, A
+	
+	LD	A, B
+	CP	C		; If selected Menu Item, HighLight
+	JP	Z, CBlitMenuHighlight
+
+	;CALL	CBlitMenuHighlight
+; FALL THROUGH
+; RET
+
+CBlitMenuLowlight
+;	DE	; YX
+;
+		PUSH DE
+	LINETOP_C	EQU $+1
+			LD	HL, MENU_LINETOP_LOWLIGHT_C
+			CALL	LenRLE_CBlit
+		POP DE
+		LD	A, 8
+		ADD	A, D
+		LD	D, A	; Next Line	
+		;PUSH DE
+	LINEBOT_C	EQU $+1
+			LD	HL, MENU_LINEBOT_LOWLIGHT_C
+			CALL	LenRLE_CBlit
+		;POP DE
+RET
+
+CBlitMenuHighlight
+;	DE	; YX
+;
+		PUSH DE
+			LD	HL, MENU_LINETOP_HIGHLIGHT_C
+			CALL	LenRLE_CBlit
+		POP DE
+		LD	A, 8
+		ADD	A, D
+		LD	D, A	; Next Line	
+		;PUSH DE
+			LD	HL, MENU_LINEBOT_HIGHLIGHT_C
+			CALL	LenRLE_CBlit
+		;POP DE
+RET
+
+
+CBlitControlMenu
+; Inputs:
+;	 E = X position
+;	 C = CtrlType
+; 	HL = Line Tittle Color Addr
+
+	LD	A, C
+	EX AF, AF'	; Save CtrlType
+	
+	LD	D, MENU_ROW_TITLE
+	PUSH DE
+		LD	HL, MENU_LINETOP_TITLE_P1_C
+		CALL	LenRLE_CBlit
+	POP	DE
+	
+	LD	A, 8
+	ADD	A, D
+	LD	D, A	; Next Line
+	PUSH DE
+		LD	HL, MENU_LINEBOT_TITLE_P1_C
+		CALL	LenRLE_CBlit
+	POP	DE
+
+	EX AF, AF'		; Restore CtrlType
+	LD	C, A
+
+	LD	D, MENU_ROW1
+	LD	B, CTRL_SELECTION_MAX+1
+CBlitControlMenu_loop
+	PUSH	BC
+		PUSH DE
+			LD	A, CTRL_SELECTION_MAX+1
+			SUB B		; A = Index
+			CALL	CBlitMenuIndex
+		POP DE
+	POP	BC
+	DJNZ	CBlitControlMenu_loop	
+RET
+
+
 DrawMenu
+	LD A, BLACK<<3 + WHITE	; BLACK INK on BLACK PAPER
+	CALL CLSC
+	CALL CLS0
+
+	LD	E, 0*8	;	Char Column 00 
+	LD	HL, CtrlPlayer1		;   Title String Addr
+		CALL PxBlitControlMenu
+
+	LD	E, 16*8	;	Char Column 16 
+	LD	HL, CtrlPlayer2		;   Title String Addr
+		CALL PxBlitControlMenu
+
+	HALT
+
+	LD	A, (CtrlP1)
+	LD	C, A
+	LD	E, 0*8	;	Char Column 00 
+		CALL CBlitControlMenu
+
+	LD	A, (CtrlP2)
+	LD	C, A
+	LD	E, 16*8	;	Char Column 16
+		CALL CBlitControlMenu
+
+	;CALL FDraw
 
 	HALT
 	
-;	LD A,WHITE
-;	CALL CLSC
-;	CALL CLS0
-
-			
 Menu_REPAINT
 
 	HALT
@@ -133,9 +457,9 @@ MENU_ENTRY
 	OUT (ULA),A
 
 	; Clear Screen (Black on Black)
-	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
-	CALL CLSC
-	CALL CLS0
+	; LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
+	; CALL CLSC
+	; CALL CLS0
 
 	CALL DrawMenu
 
@@ -863,6 +1187,10 @@ GameInitDraw_2Players
 ;RET
 
 
+include "FontHandling.asm"
+
+include "_DATA_\font.asm"
+
 
 ORG #8000
 	
@@ -1270,6 +1598,7 @@ ORG #A000
 
 include "_DATA_.symbol"
 incbin "_DATA_.bin"
+
 
 include "BoardVars.asm"
 include "Roll-3D.asm"
