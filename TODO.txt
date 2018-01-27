@@ -22,8 +22,18 @@ DONE	- LOSE test
 			NOTE: In the Arcade this is a lot slower than the regular push/pull animation
 			Animating this using ATTR only, might become noticeably choppy.
 			WARNING: must check if any PULL or PUSH is being done, in order not to mess with those operations going on at the same time.
+
+- Add SFX
+	DONE
 	
 ^ ^ ^ ---------- DONE ---------- ^ ^ ^
+
+- Extruder FONT (Use ROM or SteelBall)
+
+- Improve SFX
+	Queue SFX
+	Split POP SFX
+
 
 - Support Popping partially
 	DONE	- outside on bottom
@@ -97,18 +107,18 @@ DONE	- LOSE test
 - Help Screen
 
 - 1 Player Scenery Screen
-
+	DONE (Almost)
+	
 - 2 Player scenery Screen
 
 - 2 Player OSD stuff (QUOTA) and ATTACK Lines
 
 - Clown Sprite with Color Ball
 
-- Statues Screen Animation
+- Status Screen Animation
 
 - Help Screen Tutorial
 
-- Extruder FONT (Use ROM or SteelBall)
 
 
 - CPU Play
