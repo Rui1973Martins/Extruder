@@ -288,12 +288,26 @@ KEYBUF
 		DEFW #FFFF		;
 		DEFW #FFFF		;
 		DEFW #FFFF		;
+
+ReadKeyboard
+		LD DE,KEYBUF
+		LD BC,#FEFE
+KeyboardLoop
+		IN A,(C)
+		OR #E0			;Set Bits765
+		LD (DE),A
+		INC DE
+		RLC B
+		JP C,KeyboardLoop
+RET
 		
 ;====================
 KEYBOARD_DRIVER
 ;--------------------
 ; outputs:
 ;	A	: UserCtrl, use CTRL_* constants to check flags
+	CALL ReadKeyboard
+
 
 		XOR A			; RESET Temporary Register
 		EX AF,AF'
