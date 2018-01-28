@@ -45,49 +45,14 @@ NxtC
     DJNZ NxtC
 RET
 
-NDraw
-	LD C,'0'
-    LD B,10
-NxtN
-	LD A,10
-	SUB B
-	RLCA;*8
-	RLCA
-	RLCA
-
-	LD D,#68;Y
-	LD E,A;X
-
-	LD A,C
-	INC C
-
-	HALT
-
-	;PUSH DE
-	PUSH BC
-		CALL FPrtN
-	POP BC
-	;POP DE
-    DJNZ NxtN
-RET
- 
-;	DE = Y,X	A = Char ['A' ... 'Z']
-FPrtN
-	CP '9'+1
-	RET P
-	SUB '0'
-	RET M
-	LD HL,FNData	; FData => Alphabet; FNData => Numbers
-		JP PrtC		;CALL PrtC
-;RET
 
 ;	DE = Y,X	A = Char ['A' ... 'Z']
 FPrtC
 	CP 'Z'+1
 	RET P
-	SUB 'A'
+	SUB '0'
 	RET M
-	LD HL,FData	; FData => Alphabet; FNData => Numbers
+	LD HL,FNData	; FData => Alphabet; FNData => Numbers and Akphabet
 ;		JP PrtC		;CALL PrtC
 ; FALL THROUGH
 ;RET
