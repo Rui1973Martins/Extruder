@@ -1326,6 +1326,15 @@ BoardProcessPop
 	CP	BUBBLE_POP_END
 	JP	P,	BoardProcessPop_end
 
+	
+BoardProcessPop_sound
+	LD	D, A
+	PUSH DE
+		SUB +(BUBBLE_POP-SFX_MATCH0)
+		;LD	A, SFX_MATCH
+		CALL	sfxPlay
+	POP DE
+	LD	A, D
 	LD	(IX+BRD_POP_ANIM), A		; Update Anim
 	JP	BoardTransformAll			; CALL and Exit
 
@@ -2420,7 +2429,7 @@ BoardMatch3_sweepMark
 	; TODO: MUST Check Boundaries
 
 	PUSH HL
-		LD	A, SFX_MATCH
+		LD	A, SFX_MATCH0
 		CALL	sfxPlay
 	POP HL
 
