@@ -180,6 +180,7 @@ M_CBlit
 	AND #1F
 	JR NZ,$+2+1
 		INC A
+M_CBlit_Loop
 	LD B,A
 	EX AF,AF';SaveA
 	LD A,B
@@ -202,7 +203,7 @@ M_CBlitL
    RET M
 	LD (M_REPCY),A
 	EX AF,AF'
-	JR M_CBlitL-1-1-1-1
+	JR M_CBlit_Loop;M_CBlitL-1-1-1-1
 	
 ; ===== ===== =====	
 
