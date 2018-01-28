@@ -11,10 +11,13 @@ FPrtStr
 		PUSH DE
 			CALL FPrtC
 		POP DE
+		
 		LD	A, 8
 		ADD	A, E
 		LD	E, A	; Next Char
+		
 	POP HL
+	
 	INC	HL
 JP FPrtStr
 
@@ -59,9 +62,6 @@ FPrtC
 
 ; HL = Font Pixel Data (FData => Alphabet; FNData => Numbers)
 PrtC
-	;LD BC,Font+6;
-	;OR A;c=0
-	;SBC HL,BC;RelPixel
 	LD B,0
 	SLA A;*8
 	RL B

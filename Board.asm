@@ -2575,9 +2575,11 @@ BoardSetPowerUp_MASK
 
 	LD	(IX+BRD_POWER_UP_BITVAR), E
 
+IF DEBUG
 	; DEBUG
 	LD DE, DEBUG_ATTR_LOCATION3
 	JP BoardDebugBubbleColor
+ENDIF
 RET
 
 
@@ -2621,9 +2623,11 @@ BoardPowerUpTrigger
 	XOR	A
 	LD	(IX+BRD_POWER_UP_BITVAR), A
 
+IF DEBUG
 	; DEBUG
 	LD DE, DEBUG_ATTR_LOCATION3
 	JP BoardDebugBubbleColor
+ENDIF
 RET
 
 
@@ -2638,9 +2642,11 @@ BoardGameSetState
 	; Keep new State
 	LD	(IX+BRD_GAME_STATE), A
 
+IF DEBUG
 	; DEBUG
 	LD DE, DEBUG_ATTR_LOCATION2
 	CALL BoardDebugBubbleColor
+ENDIF
 
 ; BoardProcessGameState
 	; CP	GAME_STATE_ROLL_IN
@@ -2672,6 +2678,8 @@ BoardDebugActiveColor
 	LD	A, (IX+BRD_PUSH_PULL_COLOR)	; Active Color	
 ; FAll Through
 
+
+IF DEBUG
 ;------------------------
 BoardDebugBubbleColor
 ;------------------------
@@ -2693,3 +2701,4 @@ BoardDebugBubbleColor
 		POP	BC
 	POP	HL
 RET
+ENDIF

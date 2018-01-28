@@ -1,5 +1,6 @@
-DEBUG		EQU 1
-DEBUG_SFX	EQU	1
+DEBUG		EQU 0
+DEBUG_3D	EQU 0
+DEBUG_SFX	EQU	0
 
 include "_REF_\REF.asm"
 include "_REF_\KEYBOARD.asm"
@@ -38,6 +39,7 @@ JOY_DRIVER_TAB
 	DEFW	SINCLAIR2_DRIVER
 	DEFW	KEYBOARD_DRIVER
 ;	DEFW	CPU_DRIVER
+
 
 GetJoyDriver
 ;	 A = Player Ctrl
@@ -237,6 +239,7 @@ CTRL_SINCLAIR2	EQU	4
 CTRL_KEYBOARD	EQU	5
 CTRL_CPU		EQU 6
 
+CTRL_SELECTION_FIRST EQU CTRL_KEMPSTON
 CTRL_SELECTION_MAX	EQU CTRL_KEYBOARD	; CTRL_CPU
 
 CtrlP1	DEFB	CTRL_SINCLAIR2	; P1 Default Control Selection
@@ -427,22 +430,15 @@ DrawMenu
 		CALL CBlitControlMenu
 
 	;CALL FDraw
+RET
 
-	HALT
-	
+
 Menu_REPAINT
 
 	HALT
 
 	LD A, BLACK
 	OUT (ULA), A
-
-
-		; LD HL, borderCounter
-		; DEC (HL)
-
-		; JP NC, Menu_PAINT
-			; LD (HL), WHITE
 
 	LD HL, borderCounter
 	INC (HL)
@@ -452,8 +448,10 @@ Menu_REPAINT
 
 Menu_PAINT
 
-	; LD A, RED
-	; OUT (ULA), A
+IF	DEBUG_3D
+	LD A, RED
+	OUT (ULA), A
+ENDIF
 
 	; WAIT so that we can draw, at the right moment to avoid flicker
 	LD	BC, 0xF205
@@ -468,9 +466,10 @@ Menu_WAIT0
 	XOR	0x02
 	JP NZ, NON_multiple
 
-	; LD A, WHITE
-	; OUT (ULA), A
-
+IF	DEBUG_3D
+	LD A, WHITE
+	OUT (ULA), A
+ENDIF
 		; Clear TOP BAND of 5 lines of screen
 			LD HL, ATTR
 			LD DE, ATTR+1
@@ -480,27 +479,20 @@ Menu_WAIT0
 			LD BC, 32*5-1
 			LDIR
 
-	; LD A, GREEN
-	; OUT (ULA), A
+IF	DEBUG_3D
+	LD A, GREEN
+	OUT (ULA), A
+ENDIF
 	
 		CALL	RollDraw
 
 NON_multiple
+
+IF	DEBUG_3D
 	LD A, BLACK
 	OUT (ULA), A
+ENDIF
 
- ; CALL WaitPressAnyKey
- ; CALL WaitNoKeyPressed
-
-;	HALT
-
-	; LD A,(borderCounter)
-	; OUT (ULA),A
-	
-	; Do some drawing
-
-
-	
 	; Press AnyKey
 	XOR A
 	IN A,(ULA)	; Read All Keys - Check for any Key pressed
@@ -527,7 +519,11 @@ MENU_ENTRY
 	; CALL CLSC
 	; CALL CLS0
 
-	CALL DrawMenu
+	CALL	DrawMenu
+
+MENU_ENTRY_LOOP
+
+	CALL	Menu_REPAINT
 
 	; Read First Row (12345)
 	LD BC, KBRD15
@@ -535,16 +531,26 @@ MENU_ENTRY
 	OR #E0			;Set Bits765
 
 	CP KEY1
-	JP Z, MENU_PLAY1
+	JP Z, MENU_PLAY1_NEXT	; MENU_PLAY1
 
 	CP KEY2
-	JP Z, MENU_PLAY2
+	JP Z, MENU_PLAY2_NEXT	; MENU_PLAY2
 
-	JP MENU_ENTRY
+	; Read First Row (67890)
+	LD BC, KBRD60
+	IN A,(C)
+	OR #E0			;Set Bits765
 
+	CP	KEY0
+	JP	NZ, MENU_ENTRY_LOOP
+
+	; TODO
+	; CHECK for 1 Player or 2 Player Mode
+	
 MENU_PLAY1
 
-	CALL	sfxPlay0
+	LD	A, 1
+	CALL	sfxPlay
 
 	CALL PLAY1
 	CALL WaitNoKeyPressed
@@ -553,7 +559,8 @@ MENU_PLAY1
 	
 MENU_PLAY2
 
-	CALL	sfxPlay0
+	LD	A, 1
+	CALL	sfxPlay
 
 	CALL PLAY2
 	CALL WaitNoKeyPressed
@@ -561,6 +568,68 @@ MENU_PLAY2
 	JP MENU_ENTRY
 ;RET
 
+
+MENU_PLAY1_NEXT
+
+	CALL	sfxPlay0
+
+	LD	A, (CtrlP1)
+	LD	B, A
+	INC	A
+	CP	CTRL_SELECTION_MAX+1
+	JR	NZ, MENU_PLAY1_NEXT_Continue
+
+		LD	A, CTRL_SELECTION_FIRST
+
+MENU_PLAY1_NEXT_Continue
+	LD	(CtrlP1), A
+
+	LD	C, A	; Set The Current selection
+
+	PUSH BC
+		LD	D, MENU_ROW1
+		LD	E, 0*8	;	Char Column 00 
+		CALL CBlitMenuIndex
+	POP BC
+	
+		LD	A, B
+		LD	D, MENU_ROW1
+		LD	E, 0*8	;	Char Column 00 
+		CALL CBlitMenuIndex
+
+	JP MENU_ENTRY_LOOP
+
+
+MENU_PLAY2_NEXT
+
+	CALL	sfxPlay0
+
+	LD	A, (CtrlP2)
+	LD	B, A
+	INC	A
+	CP	CTRL_SELECTION_MAX+1
+	JR	NZ, MENU_PLAY2_NEXT_Continue
+
+		LD	A, CTRL_SELECTION_FIRST
+
+MENU_PLAY2_NEXT_Continue
+	LD	(CtrlP2), A
+
+	LD	C, A	; Set The Current selection
+
+	PUSH BC
+		LD	D, MENU_ROW1
+		LD	E, 16*8	;	Char Column 16 
+		CALL CBlitMenuIndex
+	POP BC
+	
+		LD	A, B
+		LD	D, MENU_ROW1
+		LD	E, 16*8		;	Char Column 16 
+		CALL CBlitMenuIndex
+
+	JP MENU_ENTRY_LOOP
+	
 
 WaitPressAnyKey
 	; Press AnyKey
@@ -1298,16 +1367,18 @@ PLAY1_LOOP
 
 PLAY1_SYNC		
 	HALT	; sync before update Board
-	
+
+IF DEBUG	
 	LD A, RED
 	OUT (ULA),A
-
+ENDIF
 		LD IX, BOARD1
 		CALL BoardUpdateAll
 
+IF DEBUG	
 	LD A, YELLOW
 	OUT (ULA),A
-
+ENDIF
 		;LD A, ; BRD_ANIM_STATE
 
 		LD IX, BOARD1
@@ -1343,12 +1414,14 @@ PLAY1_RUNNING
 
 	; Get New Key State
 PLAY1_DRIVER	EQU $+1
-	CALL	SINCLAIR1_DRIVER	;KEMPSTON_DRIVER	;CURSOR_DRIVER
+	CALL	SINCLAIR2_DRIVER	;KEMPSTON_DRIVER	;CURSOR_DRIVER
 	CALL	BoardProcessUserInput
 	CALL	BoardProcessPop
 
+IF DEBUG	
 	LD A, WHITE
 	OUT (ULA),A
+ENDIF
 
 	CALL BoardPushPullAnim
 
@@ -1421,21 +1494,25 @@ PLAY2_LOOP
 PLAY2_SYNC
 	HALT	; sync before update Board
 
+IF DEBUG	
 	LD A, RED
 	OUT (ULA),A
-
+ENDIF
 		LD IX, BOARD1
 		CALL BoardUpdateAll
 
+IF DEBUG	
 	LD A, MAGENTA
 	OUT (ULA),A
+ENDIF
 
 		LD IX, BOARD2
 		CALL BoardUpdateAll
 
-
+IF DEBUG	
 	LD A, GREEN
 	OUT (ULA),A
+ENDIF
 
 		;LD A, ; BRD_ANIM_STATE
 
@@ -1444,8 +1521,10 @@ PLAY2_SYNC
 		CALL BoardStepAnim
 		CALL BoardUpdateCursor
 
+IF DEBUG	
 	LD A, CYAN
 	OUT (ULA),A
+ENDIF
 
 		LD IX, BOARD2
 		LD	A, (borderCounter)
@@ -1491,17 +1570,20 @@ PLAY2_P2_DRIVER	EQU	$+1
 	CALL	BoardProcessUserInput
 	CALL	BoardProcessPop
 
+IF DEBUG	
 	LD A, YELLOW
 	OUT (ULA),A
+ENDIF
 
 	LD	IX, BOARD1
 	CALL BoardPushPullAnim
 
 	CALL BoardRollUpAnim
 
-
+IF DEBUG	
 	LD A, WHITE
 	OUT (ULA),A
+ENDIF
 
 	LD	IX, BOARD2
 	CALL BoardPushPullAnim
@@ -1530,8 +1612,10 @@ JP PLAY2_LOOP
 ;RET
 
 PowerUpAnim
+IF DEBUG	
 	LD A, BLUE
 	OUT (ULA),A
+ENDIF
 	
 	LD	A, (borderCounter)	; 13T
 	LD	B, A
