@@ -1253,11 +1253,21 @@ BoardLevelPattern
 
 	; Determine Next Color Randomly, (1 to 4)
 	LD A, R		; Random Source
+
 	CP	4		; Threshold for converting into POWER UP
 				; If < 8 Jump
 	JP	C,	BoardLevelPattern_PowerUp
+
+	CP	15		; Threshold for converting into ICE Ball
+				; If < 10 Jump
+	JP	C, BoardLevelPattern_Ice;
+
 	AND #03	; Mask
 	INC A	; Keep it in the correct Range (1-4)
+RET
+
+BoardLevelPattern_Ice
+	LD	A, B_W
 RET
 
 BoardLevelPattern_PowerUp

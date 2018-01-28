@@ -9,7 +9,7 @@ BOARDS_NEWLINE_TIMING_CNT	DEFW	#0000		; Used to control Board NewLine Drop Speed
 ; Board Timings
 ;=======================
 NEWLINE_TIMING_1PLAYER_MEDIUM	EQU	50*8		; 8 Seconds	
-NEWLINE_TIMING_1PLAYER_HARD		EQU	50*6		; 6 Seconds	
+NEWLINE_TIMING_1PLAYER_HARD		EQU	50*3		; 4 Seconds	
 NEWLINE_TIMING_2PLAYER			EQU	50*4		; 4 Seconds	
 
 ; GameMode
