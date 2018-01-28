@@ -99,16 +99,18 @@ SetJoyDriverP1
 	LD	(PLAY2_P1_DRIVER+1), A	; HIGH Byte
 RET
 
+MENU_LEFT_COL	EQU 0
+MENU_RIGHT_COL	EQU 16
 
 MENU_DELTA	EQU 4
-MENU_ROW_TITLE	EQU (( 5*8) + MENU_DELTA )
-MENU_ROW1		EQU (( 7*8) + MENU_DELTA )
-MENU_ROW2		EQU (( 9*8) + MENU_DELTA )
-MENU_ROW3		EQU ((11*8) + MENU_DELTA )
-MENU_ROW4		EQU ((13*8) + MENU_DELTA )
-MENU_ROW5		EQU ((15*8) + MENU_DELTA )
-MENU_ROW6		EQU ((17*8) + MENU_DELTA )
-MENU_ROW7		EQU ((19*8) + MENU_DELTA )
+MENU_ROW_TITLE	EQU +(( 6*8) + MENU_DELTA )
+MENU_ROW1		EQU +(( 2*8) + MENU_ROW_TITLE)
+MENU_ROW2		EQU +(( 2*8) + MENU_ROW1)
+MENU_ROW3		EQU +(( 2*8) + MENU_ROW2)
+MENU_ROW4		EQU +(( 2*8) + MENU_ROW3)
+MENU_ROW5		EQU +(( 2*8) + MENU_ROW4)
+MENU_ROW6		EQU +(( 2*8) + MENU_ROW5)
+MENU_ROW7		EQU +(( 2*8) + MENU_ROW6)
 
 PxBlitControlMenu
 ; Inputs:
@@ -428,11 +430,11 @@ DrawMenu
 	CALL CLSC
 	CALL CLS0
 
-	LD	E, 0*8	;	Char Column 00 
+	LD	E, MENU_LEFT_COL*8	;	Char Column 00 
 	LD	HL, CtrlPlayer1		;   Title String Addr
 		CALL PxBlitControlMenu
 
-	LD	E, 16*8	;	Char Column 16 
+	LD	E, MENU_RIGHT_COL*8	;	Char Column 16 
 	LD	HL, CtrlPlayer2		;   Title String Addr
 		CALL PxBlitControlMenu
 
@@ -440,12 +442,12 @@ DrawMenu
 
 	LD	A, (CtrlP1)
 	LD	C, A
-	LD	E, 0*8	;	Char Column 00 
+	LD	E, MENU_LEFT_COL*8	;	Char Column 00 
 		CALL CBlitControlMenu
 
 	LD	A, (CtrlP2)
 	LD	C, A
-	LD	E, 16*8	;	Char Column 16
+	LD	E, MENU_RIGHT_COL*8	;	Char Column 16
 		CALL CBlitControlMenu
 
 	;CALL FDraw
@@ -610,13 +612,13 @@ MENU_PLAY1_NEXT_Continue
 
 	PUSH BC
 		LD	D, MENU_ROW1
-		LD	E, 0*8	;	Char Column 00 
+		LD	E, MENU_LEFT_COL*8 
 		CALL CBlitMenuIndex
 	POP BC
 	
 		LD	A, B
 		LD	D, MENU_ROW1
-		LD	E, 0*8	;	Char Column 00 
+		LD	E, MENU_LEFT_COL*8
 		CALL CBlitMenuIndex
 
 	JP MENU_ENTRY_LOOP
@@ -641,13 +643,13 @@ MENU_PLAY2_NEXT_Continue
 
 	PUSH BC
 		LD	D, MENU_ROW1
-		LD	E, 16*8	;	Char Column 16 
+		LD	E, MENU_RIGHT_COL*8	;	Char Column 16 
 		CALL CBlitMenuIndex
 	POP BC
 	
 		LD	A, B
 		LD	D, MENU_ROW1
-		LD	E, 16*8		;	Char Column 16 
+		LD	E, MENU_RIGHT_COL*8		;	Char Column 16 
 		CALL CBlitMenuIndex
 
 	JP MENU_ENTRY_LOOP
