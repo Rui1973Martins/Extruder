@@ -889,6 +889,9 @@ GameEnd_1P_waitLoop
 	LD HL, borderCounter
 	INC (HL)
 
+	;Blink Arrows
+	CALL	PLAY1_ARROWS
+
 	HALT
 
 	LD	A, (borderCounter) 
@@ -1371,6 +1374,23 @@ include "_LIB_\ClearScreen.asm"
 include "_LIB_\Screen.asm"
 include "_LIB_\Joystick.asm"
 
+PLAY1_ARROWS
+	;Blink Arrows
+	LD	A, 0x08	; Match every 8 Frames
+	AND (HL)
+	JR	Z,	PLAY1_ARROWS_RED
+		PLAY1_ARROWS_YELLOW
+			LD	A, YELLOW
+			JP	PLAY1_ARROWS_PAINT	
+
+		PLAY1_ARROWS_RED
+			LD	A, RED
+	
+	PLAY1_ARROWS_PAINT
+		LD	(+(ATTR+22*32+02)), A
+		LD	(+(ATTR+22*32+29)), A
+RET
+		
 ; ===== Single Player Game Loop =====
 PLAY1
 	; Clear Screen (Black on Black)
@@ -1389,13 +1409,17 @@ PLAY1
 	
 PLAY1_LOOP
 
-	LD A,BLACK
-	OUT (ULA),A
+	LD	A,BLACK
+	OUT	(ULA),A
 
 	; Update Frame Counter
-	LD HL, borderCounter
-	INC (HL)
+	LD	HL, borderCounter
+	INC	(HL)
 
+	;Blink Arrows
+	CALL	PLAY1_ARROWS
+
+	
 	CALL	BoardTimingTick
 	JP	NZ,	PLAY1_SYNC
 	
