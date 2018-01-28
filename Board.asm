@@ -860,8 +860,16 @@ BoardUpdateAnimator
 ;	IX = Board Structure
 ;	HL = Animator TAB
 
+	; Update Erase Sprite
+	LD	A, (HL)
+	LD	(IX+BRD_CLOWN_ERASE_L), A
+	INC	HL
+	LD	A, (HL)
+	LD	(IX+BRD_CLOWN_ERASE_H), A
+	INC	HL
+
 	LD	A, (IX+BRD_GAME_STATE)
-	CP	GAME_STATE_WON
+	CP	GAME_STATE_RUNNING
 	JR	Z,	BoardUpdateAnimator_data
 
 	INC	HL	; Animation Structure
@@ -870,7 +878,7 @@ BoardUpdateAnimator
 	INC	HL	; Frames TAB
 	INC	HL
 	
-	CP	GAME_STATE_LOST
+	CP	GAME_STATE_WON
 	JR	Z,	BoardUpdateAnimator_data
 
 	INC	HL	; Animation Structure
@@ -879,8 +887,9 @@ BoardUpdateAnimator
 	INC	HL	; Frames TAB
 	INC	HL
 
-	CP	GAME_STATE_RUNNING
+	CP	GAME_STATE_LOST
 	JR	Z,	BoardUpdateAnimator_data
+
 RET ; DEFAULT
 
 
@@ -1043,7 +1052,10 @@ BoardClearCursor
 	; DE has position YX
 
 	; TODO Draw Current Clown Frame	
-	LD	HL, ClownErase
+	;LD	HL, ClownErase
+	LD	L, (IX+BRD_CLOWN_ERASE_L)
+	LD	H, (IX+BRD_CLOWN_ERASE_H)
+
 	CALL Blit0
 
 	; UPDATE Control variable

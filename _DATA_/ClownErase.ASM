@@ -1,17 +1,27 @@
+ClownEraseSingle
+	DEFB 2,32;WxH
+	DEFW CLOWN_ERASE_SINGLE_C, CLOWN_ERASE_PX
+;	DEFW #0000 	; Dummy, to make Strut 8x multiple
+
+ClownEraseSingleChar
+	DEFB 1,8;WxH
+	DEFW CLOWN_LEGS_SINGLE_C, CLOWN_LEGS_PX
+
 ClownErase
 	DEFB 2,32;WxH
 	DEFW CLOWN_ERASE_C, CLOWN_ERASE_PX
-	DEFW #0000 	; Dummy, to make Strut 8x multiple
+;	DEFW #0000 	; Dummy, to make Strut 8x multiple	
+
 
 ClownBrdEdge
 	DEFB 2,16;WxH
 	DEFW CLOWN_BRD_EDGE_C, CLOWN_BRD_EDGE_PX
-	DEFW #0000 	; Dummy, to make Strut 8x multiple
+;	DEFW #0000 	; Dummy, to make Strut 8x multiple
 
 BottomEdge
 	DEFB 2,8;WxH
 	DEFW BOTTOM_EDGE_C, BOTTOM_EDGE_PX
-	DEFW #0000 	; Dummy, to make Strut 8x multiple
+;	DEFW #0000 	; Dummy, to make Strut 8x multiple
 
 ; ----- Pixel Data and Colors -----
 
@@ -43,4 +53,12 @@ CLOWN_BRD_EDGE_C
 BOTTOM_EDGE_C
 	DEFB	0x43,0x43	;DEFB	0x7B,0x7B ;
 CLOWN_LEGS_C
-	DEFB	0x07,0x07
+	DEFB	0x47,0x47
+
+
+CLOWN_ERASE_SINGLE_C
+	DEFB	0x09,0x49
+	DEFB	0x49,0x09
+	DEFB	0x43,0x43	;DEFB	0x7B,0x7B ;
+CLOWN_LEGS_SINGLE_C
+	DEFB	0x4F,0x4F

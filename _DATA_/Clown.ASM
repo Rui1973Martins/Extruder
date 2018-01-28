@@ -1,12 +1,12 @@
 Clown0
 	DEFB 2,32;WxH
 	DEFW CLOWN_0_C, CLOWN_0_PX
-	DEFW #0000 	; Dummy, to make Strut 8x multiple
+;	DEFW #0000 	; Dummy, to make Strut 8x multiple
 
 ClownBody0
 	DEFB 2,24;WxH
 	DEFW CLOWN_BODY_0_C, CLOWN_BODY_0_PX
-	DEFW #0000 	; Dummy, to make Strut 8x multiple
+;	DEFW #0000 	; Dummy, to make Strut 8x multiple
 	
 ; ----- Pixel Data and Colors -----
 
@@ -27,4 +27,7 @@ CLOWN_BODY_0_PX:
 
 CLOWN_0_C
 CLOWN_BODY_0_C
-	DEFB	0x0C,0x4A,0x4E,0x0E,0x42,0x44,0x47,0x47
+	DEFB	0x0C,0x4A
+	DEFB	0x4E,0x0E
+	DEFB	0x42,0x44
+	DEFB	0x47,0x47

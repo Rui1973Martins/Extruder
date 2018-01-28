@@ -7,25 +7,42 @@ ORG #A000
 include "_DATA_\Bubbles.asm"
 include "_DATA_\Arrow.asm"
 
+ClownAnimatorSingle_TAB
+	DEFW	ClownEraseSingle				; ERASE
+
+	DEFW	ClownIdleAnimatorSingle_running	; RUNNING
+	DEFW	ClownIdleAnimFrames				; RUNNING FRAMES TAB
+
+	DEFW	ClownIdleAnimatorSingle_win		; WIN
+	DEFW	ClownIdleAnimFrames				; WIN FRAMES TAB
+
+	DEFW	ClownLoseAnimatorSingle			; LOSE
+	DEFW	ClownLoseAnimFrames				; LOSE FRAMES TAB
+
+
 ClownAnimator1_TAB
+	DEFW	ClownErase					; ERASE
+
+	DEFW	ClownIdleAnimator1_running	; RUNNING
+	DEFW	ClownIdleAnimFrames			; RUNNING FRAMES TAB
+
 	DEFW	ClownIdleAnimator1_win		; WIN
 	DEFW	ClownIdleAnimFrames			; WIN FRAMES TAB
 
 	DEFW	ClownLoseAnimator1			; LOSE
 	DEFW	ClownLoseAnimFrames			; LOSE FRAMES TAB
 
-	DEFW	ClownIdleAnimator1_running	; RUNNING
+ClownAnimator2_TAB
+	DEFW	ClownErase					; ERASE
+
+	DEFW	ClownIdleAnimator2_running	; RUNNING
 	DEFW	ClownIdleAnimFrames			; RUNNING FRAMES TAB
 
-ClownAnimator2_TAB
 	DEFW	ClownIdleAnimator2_win		; WIN
 	DEFW	ClownIdleAnimFrames			; WIN FRAMES TAB
 
 	DEFW	ClownLoseAnimator2			; LOSE
 	DEFW	ClownLoseAnimFrames			; LOSE FRAMES TAB
-
-	DEFW	ClownIdleAnimator2_running	; RUNNING
-	DEFW	ClownIdleAnimFrames			; RUNNING FRAMES TAB
 
 ;include "_DATA_\Clown.asm"
 include "_DATA_\ClownIdle.asm"
@@ -122,35 +139,11 @@ ST3	EQU	4
 		DEFW	TileSingle3
 ST4	EQU	5
 		DEFW	TileSingle4
+ENZ	EQU	6
+		DEFW	ExtruderNozzle
+BBL	EQU	7
+		DEFW	ClownEraseSingleChar	; Single CHAR Tile with a Light Blue Paper and White Ink
 
-
-SingleTabRLE
-	; DEFB -2
-	; DEFW Blit0
-	DEFB ST0,-28,0,ST1,0,0					;Char Line  1 ;32
-
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  2 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  3 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  4 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  5 ;32
-
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  6 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  7 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  8 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line  9 ;32
-
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 10 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 11 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 12 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 13 ;32
-
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 14 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 15 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 16 ;32
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 17 ;32
-
-	DEFB ST2,-28,0,ST2,0,0					;Char Line 18 ;32
-	DEFB ST3,-28,0,ST4						;Char Line 19 ;32
-	DEFB -1
 
 include "_DATA_\TilesSingle.asm"
+include "_DATA_\ExtruderNozzle.asm"

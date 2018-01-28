@@ -113,7 +113,11 @@ BRD_CLOWN_ANIM_TAB			EQU 39	; Clown Animation Frames Table
 	BRD_CLOWN_ANIM_TAB_L	EQU 39	; Clown Frames Table (Low )
 	BRD_CLOWN_ANIM_TAB_H	EQU 40	; Clown Frames Table (High)
 
-BRD_CUR_Y					EQU 41	; Cursor/Clown Y Position
+BRD_CLOWN_ERASE				EQU 41	; Clown Erase Sprite
+	BRD_CLOWN_ERASE_L		EQU 41	; Clown Erase Sprite (Low )
+	BRD_CLOWN_ERASE_H		EQU 42	; Clown Erase Sprite (High)
+	
+BRD_CUR_Y					EQU 43	; Cursor/Clown Y Position
 
 
 ;----------------------
@@ -155,6 +159,7 @@ BOARD1
 	DEFB 0		; Bitwise POWER UP Colors
 
 	DEFW #0000	; Clown Frames TAB
+	DEFW #0000	; ClownErase Sprite
 
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
@@ -196,6 +201,7 @@ BOARD2
 	DEFB 0		; Bitwise POWER UP Colors
 
 	DEFW #0000	; Clown Frames TAB
+	DEFW #0000	; ClownErase Sprite
 
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------

@@ -699,7 +699,7 @@ GameInitWithAnim_1Player
 		CALL BoardInit
 
 	; Set Clown Animator
-	LD	HL, ClownAnimator1_TAB
+	LD	HL, ClownAnimatorSingle_TAB
 	CALL BoardUpdateAnimator
 
 	LD	A, BRD_FLAG_WRAP
@@ -879,7 +879,7 @@ GameEnd_1Player
 	CALL GameLost
 
 	; Set Clown Animator
-	LD	HL, ClownAnimator1_TAB
+	LD	HL, ClownAnimatorSingle_TAB
 	CALL	BoardUpdateAnimator
 	CALL	BoardStepAnim_Force	
 	
@@ -1099,6 +1099,17 @@ RET
 
 ; ===== 2 Players =====
 
+DrawFrame_2P
+	LD	HL, SingleTilesTab
+	LD	(RLEIndexTab),HL
+
+	LD	HL, Blit0
+	LD	(RLEBlitFunc), HL
+
+	LD	DE, 0x00;DE = Y,X
+	LD	HL, DualTabRLE	;TableData
+		JP RLETabBlit
+
 GameInitWithAnim_2Players
 ; Inputs:
 ;	A  = Player 1 Opponent Character
@@ -1125,9 +1136,12 @@ GameInitWithAnim_2Players
 	LD HL, #0890	; Y = 8, X = 144
 		CALL BoardInit	
 
+		CALL DrawFrame_2P
+
 	; Set Clown Animator
 	LD	HL, ClownAnimator2_TAB
 	CALL BoardUpdateAnimator
+
 
 	; Clear all Fence buffers
 	CALL	BoardClearFenceLeft
@@ -1330,8 +1344,8 @@ PLAY2_JUMP_START
 		;JP NZ, PLAY2_DROP_ANIM_NEXT
 		JP	PLAY2_DROP_ANIM_NEXT
 ;	;------------------------------- LOOP End, NOTE: Must end on BRD even	
-RET
 
+RET
 
 ;DEPRECATED
 GameInitDraw_2Players
@@ -1341,7 +1355,7 @@ GameInitDraw_2Players
 
 	LD IX, BOARD2
 		CALL BoardInitDraw
-	
+
 	JP WaitPressAnyKey
 ;RET
 
@@ -1782,6 +1796,44 @@ ORG #A000
 include "_DATA_.symbol"
 incbin "_DATA_.bin"
 
+SingleTabRLE
+	; DEFB -2
+	; DEFW Blit0
+	DEFB	ST0,0,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ST1,0,0					;Char Line  1 ;32
+
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  2 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  3 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  4 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  5 ;32
+
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  6 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  7 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  8 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line  9 ;32
+
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 10 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 11 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 12 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 13 ;32
+
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 14 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 15 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 16 ;32
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 17 ;32
+
+	DEFB	ST2,-28,0,ST2,0,0					;Char Line 18 ;32
+	DEFB	ST3,-28,0,ST4						;Char Line 19 ;32
+	DEFB 	-98,0		; -98 = (-2-32-32-32)
+	DEFB	-35, 0		; -35 = (-32-3)
+	;DEFB	-2,M_CBlitM0
+	DEFB	-26,BBL
+	DEFB -1
+
+DualTabRLE
+	; DEFB -2
+	; DEFW Blit0
+	DEFB ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,-5,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ,0,ENZ
+	DEFB -1
 
 include "BoardVars.asm"
 include "Roll-3D.asm"
