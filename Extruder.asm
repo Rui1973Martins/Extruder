@@ -1415,14 +1415,17 @@ PLAY1_LOOP
 		LD	A, 1
 		CALL BoardAddLineTotal
 
+		; Update Speed
+
 PLAY1_SYNC		
+	LD IX, BOARD1
+
 	HALT	; sync before update Board
 
 IF DEBUG	
 	LD A, RED
 	OUT (ULA),A
 ENDIF
-		LD IX, BOARD1
 		CALL BoardUpdateAll
 
 IF DEBUG	
@@ -1431,10 +1434,11 @@ IF DEBUG
 ENDIF
 		;LD A, ; BRD_ANIM_STATE
 
-		LD IX, BOARD1
+	;	LD IX, BOARD1
+		CALL BoardUpdateCursor
+
 		LD	A, (borderCounter) 
 		CALL BoardStepAnim
-		CALL BoardUpdateCursor
 
 	; After Visual Update, Check if user Lost
 	;------------------------------
@@ -1479,8 +1483,8 @@ ENDIF
 	CALL BoardRollUpAnim
 
 	
-	CALL IceStoneAnim
-	;CALL PowerUpAnim
+	CALL PowerUpAnim
+	CALL IceStoneAnim	; TODO: 1 Player mode doe snot have Ice/Stones
 	
 	;----------
 	; Press SPACE to LEAVE
@@ -1667,8 +1671,8 @@ ENDIF
 	CALL BoardRollUpAnim
 
 
+	CALL PowerUpAnim
 	CALL IceStoneAnim
-	;CALL PowerUpAnim
 
 	
 	;----------
@@ -1716,9 +1720,7 @@ IceStoneAnim_loop
 	LDI
 	LDI
 	LDI
-
-; FALL Through
-;RET
+RET
 
 PowerUpAnim
 IF DEBUG	
