@@ -983,52 +983,6 @@ BoardStepAnim_Force
 RET
 
 ; ------------------------------------------------------
-; NEXT CODE must be reviewed to be included
-; ------------------------------------------------------
-; LookupAlignedTabMacro MACRO ADDR
-		; LD H, HIGH(ADDR)
-		; SLA A	;*2
-		; LD L,A
-		; LD A,(HL)
-		; INC HL
-		; LD H,(HL)
-		; LD L,A
-; ENDM
-; ; ------------------------------------------------------
-; L_ANIM
-		; LD L,(IX+6)
-		; LD H,(IX+7)		; Anim Structure Addr
-		; LD A,(FRAME)	; Frame Number
-; LO_ANIM			; Alternative entry point
-		; AND (HL)		; Mask - Anim Structure,first byte
-		; LD C,A
-		; LD A,(HL)		; Shift Mask Right until first bit Set
-; ANIMSK		RRA			; While bit0 = 0
-			; JR C,ANITAB 
-				; SRL C	;   Shift right 
-			; JR ANIMSK	; end While
-; ANITAB	INC HL			; Reserved Byte
-		; INC HL			; First Frame Record Addr
-		; SLA C;*4		; Frame Record size = 4
-		; SLA C
-		; LD B,0
-		; ADD HL,BC		; New Frame Number
-		; EX DE,HL		; SaveHL
-		; LD A,(IX+REC_SPRITE)		; Graphic Index/Type
-			; ;CALL LookupSpriteTab
-			; LookupAlignedTabMacro LevelSpriteAlignedTab
-
-		; EX DE,HL		; Restore HL
-		; INC DE			; DE = Sprite Height (Pixels)
-		; INC DE			; DE = Sprite Color Addr
-		; LDI				; Replace Sprite Color Addr
-		; LDI
-		; LDI				; Replace Sprite Pixel Addr
-		; LDI
-	; RET
-; ------------------------------------------------------
-; END of to be reviewed
-; ------------------------------------------------------
 
 
 BoardClearCursor
