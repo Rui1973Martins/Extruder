@@ -1491,8 +1491,8 @@ ENDIF
 	CALL BoardRollUpAnim
 
 	
-	CALL PowerUpAnim
 	CALL IceStoneAnim
+	;CALL PowerUpAnim
 	
 	;----------
 	; Press SPACE to LEAVE
@@ -1679,8 +1679,8 @@ ENDIF
 	CALL BoardRollUpAnim
 
 
-	CALL PowerUpAnim
 	CALL IceStoneAnim
+	;CALL PowerUpAnim
 
 	
 	;----------
@@ -1710,12 +1710,12 @@ ENDIF
 	
 	LD	A, (borderCounter)	; 13T
 	LD	B, A
-	AND	0x38		; Process once, every 16/64 frames
+	AND	0x78		; Process once, every 16/128 frames
 	RET NZ
 
 	LD	A, B
-	AND	0x06	; 2 Bits
-	ADD	A, A	; * 4
+	AND	0x06	; 2 Bits (pre-shifted)
+	ADD	A, A	; *4
 
 	LD	HL, ICE_STONE_ANIM_TAB
 	ADD A, L
