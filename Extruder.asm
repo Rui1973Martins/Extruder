@@ -1490,8 +1490,9 @@ ENDIF
 	; COMMENT TO DEBUG by HAND
 	CALL BoardRollUpAnim
 
+	
 	CALL PowerUpAnim
-
+	CALL IceStoneAnim
 	
 	;----------
 	; Press SPACE to LEAVE
@@ -1507,13 +1508,36 @@ IF DEBUG_KEYS
 	; DEBUG
 	;----------
 	CALL	PLAY1_DEBUG
-ENdIF
+ENDIF
 
 JP PLAY1_LOOP
 
+DrawStoneBG
+	; Clear Screen (Black on Black)
+	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
+	CALL CLSC
+;	CALL CLS0
+
+	LD	DE, #0000	; YX
+	LD	HL, BG_Stone
+	CALL	PxBlit0
+
+	HALT
+
+	LD	DE, #0000	; YX
+	LD	HL, BG_Stone
+	CALL	M_CBlitM0
+
+	CALL	WaitNoKeyPressed
+	CALL	WaitPressAnyKey
+	;CALL	WaitNoKeyPressed
+	JP	WaitNoKeyPressed
+; RET
 
 ; ===== Dual Player Game Loop =====
 PLAY2
+	CALL DrawStoneBG
+	
 	; Clear Screen (Black on Black)
 	LD A, BLACK<<3 + BLACK	; BLACK INK on BLACK PAPER
 	CALL CLSC
@@ -1656,6 +1680,7 @@ ENDIF
 
 
 	CALL PowerUpAnim
+	CALL IceStoneAnim
 
 	
 	;----------
@@ -1674,6 +1699,37 @@ IF DEBUG_KEYS
 	CALL PLAY2_DEBUG
 ENDIF	
 JP PLAY2_LOOP
+;RET
+
+
+IceStoneAnim
+IF DEBUG	
+	LD A, WHITE
+	OUT (ULA),A
+ENDIF
+	
+	LD	A, (borderCounter)	; 13T
+	LD	B, A
+	AND	0x38		; Process once, every 16/64 frames
+	RET NZ
+
+	LD	A, B
+	AND	0x06	; 2 Bits
+	ADD	A, A	; * 4
+
+	LD	HL, ICE_STONE_ANIM_TAB
+	ADD A, L
+	LD	L, A	; HL points to correct Anim Frame
+
+	LD	DE, BUBBLE_BLACK
+
+IceStoneAnim_loop
+	LDI
+	LDI
+	LDI
+	LDI
+
+; FALL Through
 ;RET
 
 PowerUpAnim

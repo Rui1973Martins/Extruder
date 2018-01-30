@@ -147,3 +147,5 @@ BBL	EQU	7
 
 include "_DATA_\TilesSingle.asm"
 include "_DATA_\ExtruderNozzle.asm"
+
+include "_DATA_\BackgroundStone.asm"
