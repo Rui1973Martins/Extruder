@@ -18,7 +18,7 @@ SoundEffectsData:
 
 SoundEffect0Data:
 	defb 1 ;tone
-	defw 10,800,1000,65136,32896
+	defw 3,550,200,65136,32896
 	defb 0
 SoundEffect1Data:
 	defb 1 ;tone

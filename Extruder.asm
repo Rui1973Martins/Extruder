@@ -454,26 +454,13 @@ DrawMenu
 RET
 
 
-Menu_REPAINT
-
-	HALT
-
-	LD A, BLACK
-	OUT (ULA), A
-
-	LD HL, borderCounter
-	INC (HL)
-
-	JP NC, Menu_PAINT
-		LD (HL), BLACK
-
 Menu_PAINT
 
 IF	DEBUG_3D
 	LD A, RED
 	OUT (ULA), A
 ENDIF
-
+	
 	; WAIT so that we can draw, at the right moment to avoid flicker
 	LD	BC, 0xF205
 Menu_WAIT0
@@ -481,11 +468,6 @@ Menu_WAIT0
 	DEC C
 	JP NZ, Menu_WAIT0
 
-	; Control Speed of Animation
-	LD A,(borderCounter)
-	AND	0x03
-	XOR	0x02
-	JP NZ, NON_multiple
 
 IF	DEBUG_3D
 	LD A, WHITE
@@ -505,25 +487,9 @@ IF	DEBUG_3D
 	OUT (ULA), A
 ENDIF
 	
-		CALL	RollDraw
-
-NON_multiple
-
-IF	DEBUG_3D
-	LD A, BLACK
-	OUT (ULA), A
-ENDIF
-
-	; Press AnyKey
-	XOR A
-	IN A,(ULA)	; Read All Keys - Check for any Key pressed
-	AND #1F	; Test only keys (5 bits)
-	CP #1F	; If Not Zero, some key was pressed !
-
-	RET NZ
-	
-JP Menu_REPAINT
-
+		;CALL	RollDraw
+	JP	RollDraw
+;RET
 
 
 ; ===== MENU =====
@@ -544,28 +510,50 @@ MENU_ENTRY
 
 MENU_ENTRY_LOOP
 
-	CALL	Menu_REPAINT
+	LD HL, borderCounter
+	INC (HL)
+
+	JP NC, MENU_ENTRY_PAINT
+		LD (HL), BLACK
+
+MENU_ENTRY_PAINT
+	LD A, BLACK
+	OUT (ULA), A
+
+	HALT
+
+	; Control Speed of Animation
+	LD A,(borderCounter)
+	AND	0x03
+	XOR	0x02
+	JP NZ, MENU_ENTRY_CHECK_KEYS
+		
+		CALL	Menu_PAINT
+
+	JP	MENU_ENTRY_LOOP
+	
+MENU_ENTRY_CHECK_KEYS
 
 	; Read First Row (12345)
 	LD BC, KBRD15
 	IN A,(C)
 	OR #E0			;Set Bits765
 
-	CP KEY1
+	CP KEY3
 	JP Z, MENU_PLAY1_NEXT	; MENU_PLAY1
 
-	CP KEY2
+	CP KEY4
 	JP Z, MENU_PLAY2_NEXT	; MENU_PLAY2
 
-	; Read First Row (67890)
-	LD BC, KBRD60
-	IN A,(C)
-	OR #E0			;Set Bits765
+	; ; Read First Row (67890)
+	; LD BC, KBRD15
+	; IN A,(C)
+	; OR #E0			;Set Bits765
 
-	CP KEY0
+	CP KEY2
 	JP Z, MENU_PLAY2
 
-	CP	KEY9
+	CP	KEY1
 	JP	NZ, MENU_ENTRY_LOOP	; MENU_PLAY2
 
 	; TODO
