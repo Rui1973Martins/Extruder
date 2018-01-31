@@ -1571,6 +1571,11 @@ PLAY2_LOOP
 		LD	IX, BOARD2
 		LD	A, 1
 		CALL BoardAddLineTotal
+		
+		; TODO, on Dual player, this is not supposed to increase speed,
+		; But since we do not have combos yet, this provides a challenge
+		; Update/increase Speed
+		CALL BoardTimingSpeedUp 
 
 PLAY2_SYNC
 	HALT	; sync before update Board

@@ -104,6 +104,33 @@ RET
 
 
 ;--------------------
+BoardTimingSpeedUp
+;--------------------
+;	DE = new timing
+		LD	HL, BOARDS_NEWLINE_TIMING
+		LD	E, (HL)	; Low Part
+		INC	HL
+		LD	D, (HL)	; High Part
+
+		LD	A, LOW(NEWLINE_TIMING_1PLAYER_HARD)
+		CP	E
+		JP	NZ, BoardTimingSpeedUp_update
+		
+			LD	A, HIGH(NEWLINE_TIMING_1PLAYER_HARD)
+			CP	D
+			RET Z	; We never go lower than NEWLINE_TIMING_1PLAYER_HARD, so if it's equal, stop speedUp
+
+BoardTimingSpeedUp_update		
+		LD	A, E
+		SUB	1
+		LD	E, A
+		JP	NC, BoardTimingInit_Data
+			DEC D
+		JP	BoardTimingInit_Data
+; RET
+
+		
+;--------------------
 BoardTimingInit
 ;--------------------
 ; Inputs:
@@ -131,29 +158,8 @@ BoardTimingInit_1Player_Hard
 		
 BoardTimingInit_2Players
 		LD	DE, NEWLINE_TIMING_2PLAYER
-
-;--------------------
-BoardTimingSpeedUp
-;	DE = new timing
-		LD	HL, BOARDS_NEWLINE_TIMING
-		LD	E, (HL)	; Low Part
-		INC	HL
-		LD	D, (HL)	; High Part
-
-		LD	A, LOW(NEWLINE_TIMING_1PLAYER_HARD)
-		CP	E
-		JP	NZ, BoardTimingSpeedUp_update
-		
-			LD	A, HIGH(NEWLINE_TIMING_1PLAYER_HARD)
-			CP	D
-			RET Z	; We never go lower than NEWLINE_TIMING_1PLAYER_HARD, so if it's equal, stop speedUp
-
-BoardTimingSpeedUp_update		
-		LD	A, E
-		SUB	1
-		LD	E, A
-		JP	NC, BoardTimingInit_Data
-			DEC D
+;		JR	BoardTimingInit_Data
+; FALLTHROUGH
 
 BoardTimingInit_Data
 ;	DE = new timing

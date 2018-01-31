@@ -29,14 +29,26 @@ DONE	- LOSE test
 - Extruder FONT (Use ROM or SteelBall)
 	DONE
 	
-^ ^ ^ ---------- DONE ---------- ^ ^ ^
-
 - Control Menu Screen
 	DONE	- Text and Highlight
-			- Support selection
+	DONE	- Support selection
 
 - 1 Player Scenery Screen
-	DONE (Almost)
+	DONE
+
+- LOOSE WALL Animation
+	DONE	- PLAY1
+	DONE	- PLAY2
+	DONE	- Show LOSE TEXT Image
+	DONE	- Show WIN TEXT image
+	DONE	- OnDraw -=> Parallel Double Wall Animation, on DRAW
+
+- Show Clown Animation, when lost
+	DONE	- Draw Clown, After UpdateLastRow, before Wall LOSE Animation
+	DONE	- Show Clown LOSE Animation, after Wall LOSE Animation
+
+	
+^ ^ ^ ---------- DONE ---------- ^ ^ ^
 	
 - Improve SFX
 	Queue SFX
@@ -48,15 +60,10 @@ DONE	- LOSE test
 			- adjust POP count with remaining unseen items
 
 - Support a Control input Queue, to make game feel responsive
-	- Include 16 transitions per player.
-	- Insert and keep only entries, that provide a change in control input
+			- Include 16 transitions per player.
+			- Insert and keep only entries, that provide a change in control input
+	DONE	- Only save key state, when able to move.
 
-- LOOSE WALL Animation
-	DONE	- PLAY1
-	DONE	- PLAY2
-	- Show LOSE TEXT Image
-	- Show WIN TEXT image
-	- OnDraw -=> Parallel Double Wall Animation, on DRAW
 
 - Support Attack Patterns
 	DONE	- define patterns for each user
@@ -68,9 +75,6 @@ DONE	- LOSE test
 			- Update Number of Attack Pattern count, when in 2 Player mode
 			- Detect when to Inject Attack Patterns (Depends on Game State Machine)
 
-- Show Clown Animation, when lost
-	- Draw Clown, After UpdateLastRow, before Wall LOSE Animation
-	- Show Clown LOSE Animation, after Wall LOSE Animation
 
 - Stone Transform, in 2 or 3 passes
 	PASS0 . BLACK background (Optional)
@@ -100,6 +104,7 @@ DONE	- LOSE test
 	
 
 - Player and Input Selection Screen
+DONE
 	Player 1	Player 2
 	1 Kempston	1 Kempston
 	2 Fuller	2 Fuller
@@ -113,6 +118,8 @@ DONE	- LOSE test
   
 
 - Help Screen
+
+- Help Screen Tutorial
 	
 - 2 Player scenery Screen
 
@@ -121,9 +128,6 @@ DONE	- LOSE test
 - Clown Sprite with Color Ball
 
 - Status Screen Animation
-
-- Help Screen Tutorial
-
 
 
 - CPU Play
