@@ -1166,10 +1166,16 @@ RET
 BoardInjectLine
 ; Inputs:
 ;	IX = Board Structure
-; 	A = New Item (previous)
 ; ?	HL = Column Start Buffer 
 ;	DE = LineData Pointer
-	
+
+	LD	A, (IX+BRD_NEWLINE_DELAY)
+	AND	A
+	JP	Z, BoardInjectLine_JP0
+		DEC	(IX+BRD_NEWLINE_DELAY)
+	RET
+
+BoardInjectLine_JP0
 	LD	C, (IX+BRD_LINE_CNT)	; LineCount (always <= LineTotal)
 	LD	A, (IX+BRD_LINE_TOT)	; LineTotal
 	CP	C
@@ -1231,7 +1237,12 @@ BoardInjectLine_JP1
 
 	DJNZ BoardInjectLine_LOOP
 
-RET
+	LD	(IX+BRD_NEWLINE_DELAY), NEWLINE_TIMING_DELAY
+	
+	LD	A, SFX_DROP
+	;CALL	sfxPlay
+	JP	sfxPlay
+;RET
 
 
 ; This function, will extract the next ball color, from History or Generator

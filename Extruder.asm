@@ -1485,7 +1485,7 @@ ENDIF
 
 	
 	CALL PowerUpAnim
-	CALL IceStoneAnim	; TODO: 1 Player mode doe snot have Ice/Stones
+	CALL IceStoneAnim	; TODO: 1 Player mode does not have Ice/Stones
 	
 	;----------
 	; Press SPACE to LEAVE

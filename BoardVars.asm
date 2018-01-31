@@ -8,9 +8,10 @@ BOARDS_NEWLINE_TIMING_CNT	DEFW	#0000		; Used to control Board NewLine Drop Speed
 
 ; Board Timings
 ;=======================
-NEWLINE_TIMING_1PLAYER_MEDIUM	EQU	50*8		; 8 Seconds	
+NEWLINE_TIMING_1PLAYER_MEDIUM	EQU	50*7		; 8 Seconds	
 NEWLINE_TIMING_1PLAYER_HARD		EQU	50*2		; 2 Seconds	
 NEWLINE_TIMING_2PLAYER			EQU	50*4		; 4 Seconds	
+NEWLINE_TIMING_DELAY			EQU 6			; 0.12 seconds
 
 ; GameMode
 GAME_MODE_1PLAYER			EQU 0x00
@@ -116,8 +117,10 @@ BRD_CLOWN_ANIM_TAB			EQU 39	; Clown Animation Frames Table
 BRD_CLOWN_ERASE				EQU 41	; Clown Erase Sprite
 	BRD_CLOWN_ERASE_L		EQU 41	; Clown Erase Sprite (Low )
 	BRD_CLOWN_ERASE_H		EQU 42	; Clown Erase Sprite (High)
-	
-BRD_CUR_Y					EQU 43	; Cursor/Clown Y Position
+
+BRD_NEWLINE_DELAY			EQU 43	; amount of frames to wait after a row insert
+
+BRD_CUR_Y					EQU 44	; Cursor/Clown Y Position
 
 
 ;----------------------
@@ -161,6 +164,7 @@ BOARD1
 	DEFW #0000	; Clown Frames TAB
 	DEFW #0000	; ClownErase Sprite
 
+	DEFB 0		; Frame Delay, After Line Insert
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
@@ -203,6 +207,7 @@ BOARD2
 	DEFW #0000	; Clown Frames TAB
 	DEFW #0000	; ClownErase Sprite
 
+	DEFB 0		; Frame Delay, After Line Insert
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
