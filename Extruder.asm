@@ -1415,7 +1415,8 @@ PLAY1_LOOP
 		LD	A, 1
 		CALL BoardAddLineTotal
 
-		; Update Speed
+		; Update/increase Speed
+		CALL BoardTimingSpeedUp 
 
 PLAY1_SYNC		
 	LD IX, BOARD1
