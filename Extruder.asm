@@ -525,7 +525,7 @@ MENU_ENTRY_PAINT
 	; Control Speed of Animation
 	LD	A,(borderCounter)
 	AND	0x03
-	;XOR	0x02
+	XOR	0x02
 	JP NZ, MENU_ENTRY_CHECK_KEYS
 		
 		CALL	Menu_PAINT
@@ -534,6 +534,11 @@ MENU_ENTRY_PAINT
 	
 MENU_ENTRY_CHECK_KEYS
 
+	LD	A,(borderCounter)
+	AND	0x03
+	XOR	0x01
+	JP	NZ,	MENU_ENTRY_LOOP
+	
 	; Read First Row (12345)
 	LD	BC, KBRD15
 	IN	A,(C)
