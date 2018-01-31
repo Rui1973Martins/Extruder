@@ -1173,7 +1173,7 @@ BoardInjectLine
 	AND	A
 	JP	Z, BoardInjectLine_JP0
 		DEC	(IX+BRD_NEWLINE_DELAY)
-	RET
+		RET
 
 BoardInjectLine_JP0
 	LD	C, (IX+BRD_LINE_CNT)	; LineCount (always <= LineTotal)
@@ -1441,6 +1441,18 @@ BoardProcessUserInput
 ;	A = New User Input
 ; TRASHES:
 
+	EX	AF, AF'		; Save Driver input
+	
+		; We CAN NOT Move, if:
+		;	- a PULL is in progress
+		; 	- a PUSH is in progress
+		LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
+		;CP	PP_ANIM_STATE_STOPPED		; Hence NOT PP_ANIM_STATE_PULLING and NOT PP_ANIM_STATE_PUSHING
+		AND A
+		RET NZ
+
+	EX	AF, AF'		; Restore Driver input
+
 	; Save old NEW as LAST key state
 	LD	C, (IX+BRD_USER_CTRL_NEW)
 	LD	(IX+BRD_USER_CTRL_LAST), C
@@ -1448,14 +1460,6 @@ BoardProcessUserInput
 	; Save Driver result
 	LD	(IX+BRD_USER_CTRL_NEW), A
 	LD	B,	A
-
-	; We CAN NOT Move, if:
-	;	- a PULL is in progress
-	; 	- a PUSH is in progress
-	LD	A, (IX+BRD_PUSH_PULL_ANIM_STATE)
-	;CP	PP_ANIM_STATE_STOPPED		; Hence NOT PP_ANIM_STATE_PULLING and NOT PP_ANIM_STATE_PUSHING
-	AND A
-	RET NZ
 	
 	; Process User Keys
 	BOARD_INPUT_TEST_LEFT
