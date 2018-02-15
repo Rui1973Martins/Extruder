@@ -13,6 +13,9 @@ ClownAnimatorSingle_TAB
 	DEFW	ClownIdleAnimatorSingle_running	; RUNNING
 	DEFW	ClownIdleAnimFrames				; RUNNING FRAMES TAB
 
+	DEFW	ClownGrabAnimator				; GRAB
+	DEFW	ClownGrabAnimFrames				; GRAB FRAMES TAB
+
 	DEFW	ClownIdleAnimatorSingle_win		; WIN
 	DEFW	ClownIdleAnimFrames				; WIN FRAMES TAB
 
@@ -26,6 +29,9 @@ ClownAnimator1_TAB
 	DEFW	ClownIdleAnimator1_running	; RUNNING
 	DEFW	ClownIdleAnimFrames			; RUNNING FRAMES TAB
 
+	DEFW	ClownGrabAnimator1			; GRAB
+	DEFW	ClownGrabAnimFrames			; GRAB FRAMES TAB
+
 	DEFW	ClownIdleAnimator1_win		; WIN
 	DEFW	ClownIdleAnimFrames			; WIN FRAMES TAB
 
@@ -38,6 +44,9 @@ ClownAnimator2_TAB
 	DEFW	ClownIdleAnimator2_running	; RUNNING
 	DEFW	ClownIdleAnimFrames			; RUNNING FRAMES TAB
 
+	DEFW	ClownGrabAnimator2			; GRAB
+	DEFW	ClownGrabAnimFrames			; GRAB FRAMES TAB
+
 	DEFW	ClownIdleAnimator2_win		; WIN
 	DEFW	ClownIdleAnimFrames			; WIN FRAMES TAB
 
@@ -48,6 +57,7 @@ ClownAnimator2_TAB
 include "_DATA_\ClownIdle.asm"
 include "_DATA_\ClownErase.asm"
 include "_DATA_\ClownLose.asm"
+include "_DATA_\ClownGrab.asm"
 include "_DATA_\Char-Tiles.asm"
 include "_DATA_\MenuItem.asm"
 
