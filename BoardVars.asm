@@ -120,7 +120,11 @@ BRD_CLOWN_ERASE				EQU 41	; Clown Erase Sprite
 
 BRD_NEWLINE_DELAY			EQU 43	; amount of frames to wait after a row insert
 
-BRD_CUR_Y					EQU 44	; Cursor/Clown Y Position
+BRD_CLOWN_ANIMATOR_TAB		EQU 44	; Clown Animators table
+BRD_CLOWN_ANIMATOR_TAB_L		EQU 44	; Clown Animators table LOW
+BRD_CLOWN_ANIMATOR_TAB_H		EQU 45	; Clown Animators table HIGH
+
+BRD_CUR_Y					EQU 46	; Cursor/Clown Y Position
 
 
 ;----------------------
@@ -165,6 +169,7 @@ BOARD1
 	DEFW #0000	; ClownErase Sprite
 
 	DEFB 0		; Frame Delay, After Line Insert
+	DEFW #0000	; Clown Animators Table
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 
@@ -208,6 +213,7 @@ BOARD2
 	DEFW #0000	; ClownErase Sprite
 
 	DEFB 0		; Frame Delay, After Line Insert
+	DEFW #0000	; Clown Animators Table
 	DEFB 0		; Cursor Y (Constant after init)
 ;----------------------
 

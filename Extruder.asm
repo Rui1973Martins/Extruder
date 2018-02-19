@@ -693,6 +693,8 @@ GameInitWithAnim_1Player
 
 	; Set Clown Animator
 	LD	HL, ClownAnimatorSingle_TAB
+	LD	(IX+BRD_CLOWN_ANIMATOR_TAB_L), L
+	LD	(IX+BRD_CLOWN_ANIMATOR_TAB_H), H
 	CALL BoardUpdateAnimator
 
 	LD	A, BRD_FLAG_WRAP
@@ -875,10 +877,10 @@ GameEnd_1Player
 	LD	HL, ClownAnimatorSingle_TAB
 	CALL	BoardUpdateAnimator
 	CALL	BoardStepAnim_Force	
-	
+
 GameEnd_1P_waitLoop
 	CALL	BoardUpdateCursor
-	
+
 	LD HL, borderCounter
 	INC (HL)
 
@@ -1121,6 +1123,8 @@ GameInitWithAnim_2Players
 
 	; Set Clown Animator
 	LD	HL, ClownAnimator1_TAB
+	LD	(IX+BRD_CLOWN_ANIMATOR_TAB_L), L
+	LD	(IX+BRD_CLOWN_ANIMATOR_TAB_H), H
 	CALL BoardUpdateAnimator
 		
 	; Player 2
@@ -1136,6 +1140,8 @@ GameInitWithAnim_2Players
 
 	; Set Clown Animator
 	LD	HL, ClownAnimator2_TAB
+	LD	(IX+BRD_CLOWN_ANIMATOR_TAB_L), L
+	LD	(IX+BRD_CLOWN_ANIMATOR_TAB_H), H
 	CALL BoardUpdateAnimator
 
 

@@ -888,7 +888,10 @@ BoardUpdateAnimator
 ;--------------------
 ; Inputs:
 ;	IX = Board Structure
-;	HL = Animator TAB
+;	HL = Animator TAB	; TODO load from IX+BRD_CLOWN_ANIMATOR_TAB
+
+	;LD	L, (IX+BRD_CLOWN_ANIMATOR_TAB_L)
+	;LD	H, (IX+BRD_CLOWN_ANIMATOR_TAB_H)
 
 	; Update Erase Sprite
 	LD	A, (HL)
@@ -900,22 +903,42 @@ BoardUpdateAnimator
 
 	LD	A, (IX+BRD_GAME_STATE)
 	CP	GAME_STATE_RUNNING
-	JR	Z,	BoardUpdateAnimator_data
+	JR	NZ,	BoardUpdateAnimator_JP0
 
-	INC	HL	; Animation Structure
-	INC	HL
+	LD	A, (IX+BRD_PUSH_PULL_COLOR)
+	CP	B_0
+	JR	Z, BoardUpdateAnimator_data	; Running and Empty
 
-	INC	HL	; Frames TAB
-	INC	HL
-	
+		INC	HL	; Animation Structure
+		INC	HL
+
+		INC	HL	; Frames TAB
+		INC	HL
+
+	JP	BoardUpdateAnimator_data
+
+BoardUpdateAnimator_JP0	
+
+		INC	HL	; Grab Animation Structure
+		INC	HL
+
+		INC	HL	; Grab Frames TAB
+		INC	HL
+
+		INC	HL	; Animation Structure
+		INC	HL
+
+		INC	HL	; Frames TAB
+		INC	HL
+
 	CP	GAME_STATE_WON
 	JR	Z,	BoardUpdateAnimator_data
 
-	INC	HL	; Animation Structure
-	INC	HL
+		INC	HL	; Animation Structure
+		INC	HL
 
-	INC	HL	; Frames TAB
-	INC	HL
+		INC	HL	; Frames TAB
+		INC	HL
 
 	CP	GAME_STATE_LOST
 	JR	Z,	BoardUpdateAnimator_data
@@ -1694,9 +1717,11 @@ BoardPullStart
 		LD (IX+BRD_PULL_ANIM_COL_ADDR_L), L
 		LD (IX+BRD_PULL_ANIM_COL_ADDR_H), H
 
+IF DEBUG
 		; DEBUG
 		LD DE, DEBUG_ATTR_LOCATION1
 		CALL BoardDebugActiveColor		
+ENDIF
 
 	; TODO: WE DO NOT NEED TO MARK, when Starting a PULL
 	; This loop can me removed
@@ -1815,14 +1840,64 @@ BoardPullStop
 	XOR A
 	;LD	A, PP_ANIM_STATE_STOPPED	 	; = 0x00
 	LD	(IX+BRD_PUSH_PULL_ANIM_STATE), A
-	
+
+	; Represent
+	;LD	HL, ClownAnimatorSingle_TAB	; HACK TODO XXX
+	LD	L, (IX+BRD_CLOWN_ANIMATOR_TAB_L)
+	LD	H, (IX+BRD_CLOWN_ANIMATOR_TAB_H)
+	CALL BoardUpdateAnimator
+
+	CALL BoardUpdateGrabColor	; TODO: Could be inlined
+
+	XOR A
 	; TODO: Optimize by calculating HL = IX+BC for start location, and then clear and inc ?
 	; Clearing THESE Pointers can be optional, if they are NOT tested in any other ANIM_STATE except PULLING (and kept EQUAL on Exit)
 	LD	(IX+BRD_PULL_ANIM_COL_BASE_L), A		; Clear COL BASE
 	LD	(IX+BRD_PULL_ANIM_COL_BASE_H), A
-	
+
 	LD	(IX+BRD_PULL_ANIM_COL_ADDR_L), A		; Clear COL ADDR
 	LD	(IX+BRD_PULL_ANIM_COL_ADDR_H), A
+RET
+
+
+;------------------------
+BoardUpdateGrabColor
+;------------------------
+; Inputs:
+;	IX = Board Structure
+; Trashes: ?
+
+	;LD	DE, CLOWN_GRAB_CL+2
+	LD	L, (IX+BRD_CLOWN_ANIMATOR_TAB_L)
+	LD	H, (IX+BRD_CLOWN_ANIMATOR_TAB_H)
+	LD	DE, 0x0006		; Distance to Grab Animator Addr
+	ADD	HL, DE
+	LD	E, (HL)
+	INC HL
+	LD	D, (HL)		; De contains animator Addr Structure
+
+	LD	HL, 0x0002	; Sprite Color Addr, Offset
+	ADD	HL, DE
+	LD	E, (HL)
+	INC HL
+	LD	D, (HL)		; Sprite Color Addr
+
+	INC DE
+	INC	DE			; DE = Correct Sprite BAll Color Addr
+
+	LD	HL, CLOWN_GRAB_CL_TAB
+
+	LD	A, (IX+BRD_PUSH_PULL_COLOR)
+	AND	BUBBLE_BASE_MASK	; Get only base colors
+	SLA	A	; *2	; make sure we clear Carry
+	RLA		; *4
+	ADD	A, L
+	LD	L, A
+
+	LDI		; Copy 4 attributes
+	LDI
+	LDI
+	LDI
 RET
 
 
@@ -2092,9 +2167,17 @@ BoardPushStop_continue
 ;	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_L), A		; Clear COL ADDR
 ;	LD	(IX+BRD_PUSH_ANIM_COL_ADDR_H), A
 
+	; Represent
+	;LD	HL, ClownAnimatorSingle_TAB	; HACK TODO XXX
+	LD	L, (IX+BRD_CLOWN_ANIMATOR_TAB_L)
+	LD	H, (IX+BRD_CLOWN_ANIMATOR_TAB_H)
+	CALL BoardUpdateAnimator
+
+IF DEBUG
 	; DEBUG
 	LD DE, DEBUG_ATTR_LOCATION1
 	CALL BoardDebugActiveColor
+ENDIF
 
 RET
 
@@ -2687,6 +2770,8 @@ ENDIF
 
 RET
 
+
+IF DEBUG
 ;------------------------
 BoardDebugActiveColor
 ;------------------------
@@ -2699,8 +2784,6 @@ BoardDebugActiveColor
 	LD	A, (IX+BRD_PUSH_PULL_COLOR)	; Active Color	
 ; FAll Through
 
-
-IF DEBUG
 ;------------------------
 BoardDebugBubbleColor
 ;------------------------
