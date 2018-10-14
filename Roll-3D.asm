@@ -42,7 +42,7 @@ ROLL_DELTA	EQU	5
 ROLL_LENGTH EQU ROLL_LEN + (8*ROLL_DELTA) + 4
 
 
-Cardinal_LETTER
+Cardinal_LETTER ; Useful for DEBUG
 	DEFB	0x15;  # # #
 	DEFB	0x0A;   # # 
 	DEFB	0x15;  # # #

@@ -7,7 +7,7 @@ include "_REF_\REF.asm"
 include "_REF_\KEYBOARD.asm"
 
 include "Macros.asm"
-	
+
 ORG #6000
 JP MENU_ENTRY
 
@@ -15,22 +15,23 @@ borderCounter DEFB BLACK
 
 include "CharBlitter.ASM"
 
-DrawCredits
 
+DrawCredits
 	HALT
 
-	LD A,BLACK
-	OUT (ULA),A
+	LD	A, BLACK
+	OUT	(ULA), A
 
 	; Press AnyKey
-	XOR A
-	IN A,(ULA)	; Read All Keys - Check for any Key pressed
-	AND #1F ; Test only 5 Keys
-	CP #1F	; If Not Zero, some key was pressed !
+	XOR	A
+	IN	A, (ULA)	; Read All Keys - Check for any Key pressed
+	AND	#1F			; Test only 5 Keys
+	CP	#1F			; If Not Zero, some key was pressed !
 
 	JP Z, DrawCredits
 
 RET
+
 
 JOY_DRIVER_TAB
 	DEFW	KEMPSTON_DRIVER
@@ -43,18 +44,16 @@ JOY_DRIVER_TAB
 
 
 GetJoyDriver
-;	 A = Player Ctrl
+;	 A = Player Ctrl Driver index
 ; Outputs
 ;	DE = Joy Driver Addr
 
-	LD	HL, JOY_DRIVER_TAB
-	EX	DE, HL
+	LD	DE, JOY_DRIVER_TAB
 
 	ADD	A, A	; *2
-
 	LD	H, 0
 	LD	L, A
-	
+
 	ADD	HL, DE
 
 	LD	E, (HL)
@@ -62,7 +61,7 @@ GetJoyDriver
 	LD	D, (HL)
 RET
 
-	
+
 SetJoyDrivers
 	LD	A,(CtrlP1)
 	CALL	SetJoyDriverP1
@@ -74,30 +73,36 @@ SetJoyDrivers
 
 	
 SetDriverP2
-;	 A = Player Ctrl
-	CALL	GetJoyDriver
+;	 A = Player Ctrl Driver index
+	CALL	GetJoyDriver		; returns ; DE =  Joy Driver Addr
 
-	LD	A, E		;DE =  Joy Driver Addr
-	LD	(PLAY2_P2_DRIVER), A	; LOW Byte
+	LD (PLAY2_P2_DRIVER), DE	; 20T
+; Replaces the following
+;	LD	A, E					; 4T
+;	LD	(PLAY2_P2_DRIVER), A	; 13T ; LOW Byte
 
-	LD	A, D
-	LD	(PLAY2_P2_DRIVER+1), A	; HIGH Byte
+;	LD	A, D					; 4T
+;	LD	(PLAY2_P2_DRIVER+1), A	; 13T ; HIGH Byte
+
 RET
 
 
 SetJoyDriverP1
-;	 A = Player Ctrl
-	CALL	GetJoyDriver
+;	 A = Player Ctrl Driver index
+	CALL	GetJoyDriver		; returns ;DE =  Joy Driver Addr
 
-	;DE =  Joy Driver Addr
-	LD	A, E
-	LD	(PLAY1_DRIVER), A		; LOW Byte
-	LD	(PLAY2_P1_DRIVER), A	; LOW Byte
+	LD	(PLAY1_DRIVER), DE		; 20T
+	LD	(PLAY2_P1_DRIVER), DE	; 20T
+; Replaces the following
+;	LD	A, E					; 4T
+;	LD	(PLAY1_DRIVER), A		; 13T ; LOW Byte
+;	LD	(PLAY2_P1_DRIVER), A	; 13T ; LOW Byte
 
-	LD	A, D
-	LD	(PLAY1_DRIVER+1), A		; HIGH Byte
-	LD	(PLAY2_P1_DRIVER+1), A	; HIGH Byte
+;	LD	A, D					; 4T
+;	LD	(PLAY1_DRIVER+1), A		; 13T ; HIGH Byte
+;	LD	(PLAY2_P1_DRIVER+1), A	; 13T ; HIGH Byte
 RET
+
 
 MENU_LEFT_COL	EQU 0
 MENU_RIGHT_COL	EQU 16
@@ -118,13 +123,13 @@ PxBlitControlMenu
 ;	HL = Title Message Addr
 
 	PUSH DE
-		LD	D, MENU_ROW_TITLE	; Y 
+		LD	D, MENU_ROW_TITLE	; Y
 		CALL FPrtStr
 	POP DE
 
-	LD	D, MENU_ROW1	; Y 
+	LD	D, MENU_ROW1	; Y
 	PUSH DE
-		LD	HL, MenuItem	
+		LD	HL, MenuItem
 		CALL	PxBlit0
 	POP DE
 	PUSH DE
@@ -136,9 +141,9 @@ PxBlitControlMenu
 			CALL FPrtStr
 	POP DE
 
-	LD	D, MENU_ROW2	; Y 
+	LD	D, MENU_ROW2	; Y
 	PUSH DE
-		LD	HL, MenuItem	
+		LD	HL, MenuItem
 		CALL	PxBlit0
 	POP DE
 	PUSH DE
@@ -150,9 +155,9 @@ PxBlitControlMenu
 			CALL FPrtStr
 	POP DE
 
-	LD	D, MENU_ROW3	; Y 
+	LD	D, MENU_ROW3	; Y
 	PUSH DE
-		LD	HL, MenuItem	
+		LD	HL, MenuItem
 		CALL	PxBlit0
 	POP DE
 	PUSH DE
@@ -164,9 +169,9 @@ PxBlitControlMenu
 			CALL FPrtStr
 	POP DE
 
-	LD	D, MENU_ROW4	; Y 
+	LD	D, MENU_ROW4	; Y
 	PUSH DE
-		LD	HL, MenuItem	
+		LD	HL, MenuItem
 		CALL	PxBlit0
 	POP DE	
 	PUSH DE
@@ -180,7 +185,7 @@ PxBlitControlMenu
 
 	LD	D, MENU_ROW5	; Y
 	PUSH DE
-		LD	HL, MenuItem	
+		LD	HL, MenuItem
 		CALL	PxBlit0
 	POP DE
 	PUSH DE
@@ -194,7 +199,7 @@ PxBlitControlMenu
 
 	LD	D, MENU_ROW6	; Y
 	PUSH DE
-		LD	HL, MenuItem	
+		LD	HL, MenuItem
 		CALL	PxBlit0
 	POP DE
 	PUSH DE
@@ -208,7 +213,7 @@ PxBlitControlMenu
 
 	LD	D, MENU_ROW7	; Y
 	PUSH DE
-		LD	HL, MenuItem	
+		LD	HL, MenuItem
 		CALL	PxBlit0
 	POP DE
 	;PUSH DE
@@ -221,6 +226,7 @@ PxBlitControlMenu
 			JP	FPrtStr ; CALL FPrtStr
 	; POP DE
 ;RET
+
 
 STR_Z 	EQU	0x00
 CtrlPlayer1		DB	"PLAYER 1", STR_Z
