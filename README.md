@@ -1,5 +1,5 @@
 # Extruder
-Extruder is a remake of the arcade game Magical Drop II, for the 8 bit micro computer ZX Spectrum 48k
+Extruder is a remake of the arcade game Magical Drop II, for the 8 bit micro computer Sinclair ZX Spectrum 48k
 
 It uses the pasmo assembler.
 
