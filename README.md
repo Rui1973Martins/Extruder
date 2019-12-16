@@ -8,4 +8,6 @@ To compile, requires 2 steps
 - execute the compile.bat to generate the final assembly with code and graphics data
 
 # NOTE:
+This code uses the BeepFX player by Shiru.
+
 This is still a work in progress, although the game is already playable.
